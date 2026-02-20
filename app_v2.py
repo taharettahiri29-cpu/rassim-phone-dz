@@ -4,158 +4,126 @@ import time
 import urllib.parse
 import os
 
-# --- 1. إعدادات الهوية العالمية لعام 2026 ---
-st.set_page_config(
-    page_title="Rassim de Recherche DZ",
-    layout="wide",
-    page_icon="🔍",
-    initial_sidebar_state="collapsed"
-)
+# --- 1. إعدادات الهوية البصرية ---
+st.set_page_config(page_title="Rassim de Recherche DZ", layout="wide", page_icon="🔍")
 
-# --- 2. دالة مستشار الأسعار الذكي (الذكاء الاصطناعي للمنصة) ---
-def price_advisor(model_name, user_price):
-    market_prices = {
-        "iphone 13": 95000, "iphone 12": 75000, 
-        "samsung s21": 65000, "redmi note 12": 32000,
-        "oppo a54": 38000
-    }
-    model_key = model_name.lower()
-    for key, avg_price in market_prices.items():
-        if key in model_key:
-            if user_price < avg_price * 0.9:
-                return f"🔥 صفقة ذهبية! سعرك (دج {user_price:,}) مغري جداً مقارنة بسعر السوق ({avg_price:,} دج)."
-            elif user_price > avg_price * 1.1:
-                return f"⚠️ تنبيه: متوسط السعر هو {avg_price:,} دج. قد تجد صعوبة في البيع بهذا السعر."
-            else:
-                return "✅ سعر احترافي! أنت في النطاق الصحيح للسوق الجزائري."
-    return "📊 لم نجد بيانات تاريخية دقيقة لهذا الموديل، ننصحك بمتابعة 'همزات اليوم'."
-
-# --- 3. لغة التصميم المتطورة CSS ---
+# --- 2. لغة التصميم المتطورة (Modern UI) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Cairo', sans-serif; }
+    html, body, [class*="css"] { font-family: 'Cairo', sans-serif; text-align: right; }
     
-    .header-container {
-        text-align: center;
-        padding: 40px 20px;
+    .main-header {
         background: linear-gradient(135deg, #1e3799 0%, #0984e3 100%);
-        border-radius: 0 0 50px 50px;
+        padding: 40px;
+        border-radius: 25px;
         color: white;
+        text-align: center;
+        margin-bottom: 30px;
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
     
+    .logo-text { font-size: 3.5em; font-weight: 800; letter-spacing: -1px; margin: 0; }
+    .logo-sub { font-size: 1.2em; opacity: 0.9; }
+    
     .search-card {
         background: white;
-        padding: 25px;
-        border-radius: 20px;
-        border-right: 8px solid #341f97;
+        padding: 20px;
+        border-radius: 15px;
+        border-right: 8px solid #25D366;
         margin-bottom: 15px;
-        transition: transform 0.3s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    .search-card:hover { transform: translateY(-5px); }
     
     .wa-btn {
         background-color: #25D366;
         color: white !important;
         padding: 10px 20px;
-        border-radius: 12px;
+        border-radius: 10px;
         text-decoration: none;
         font-weight: bold;
         display: inline-block;
     }
-    
-    .stButton>button {
-        border-radius: 20px;
-        border: none;
-        background-color: #341f97;
-        color: white;
-        transition: 0.3s;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. واجهة الهيدر ---
+# --- 3. الهيدر مع اللوجو النصي الاحترافي ---
 st.markdown("""
-    <div class="header-container">
-        <h1 style="font-size: 3.5em; margin: 0;">Rassim de Recherche DZ</h1>
-        <p style="font-size: 1.2em; opacity: 0.9;">المحرك الأول في الجزائر للبحث عن الهواتف وقطع الغيار</p>
+    <div class="main-header">
+        <div class="logo-text">RASSIM <span style='color:#feca57'>DZ</span></div>
+        <div class="logo-sub">Rassim de Recherche : Votre moteur de recherche intelligent</div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- 5. نظام التبويبات الذكي ---
-st.write("##")
-tab1, tab2, tab3 = st.tabs(["🔍 محرك البحث الفوري", "📢 أنشر عرضك (بائع)", "🔥 همزات اليوم"])
+# --- 4. جلب البيانات ---
+def load_data():
+    if os.path.exists('users_database.csv'):
+        return pd.read_csv('users_database.csv')
+    return pd.DataFrame(columns=['Product', 'Price', 'Phone', 'City', 'Description'])
 
-# --- التبويب الأول: البحث ---
+# --- 5. التبويبات الرئيسية ---
+tab1, tab2 = st.tabs(["🔍 ابحث عن همزة", "➕ أنشر عرضك"])
+
 with tab1:
-    col_s1, col_s2, col_s3 = st.columns([1, 4, 1])
-    with col_s2:
-        query = st.text_input("", placeholder="🔍 ماذا تريد أن تجد اليوم؟ (مثال: iPhone 13, شاشة Oppo...)", key="search_bar")
-        
-    if query:
-        if os.path.exists('users_database.csv'):
-            df = pd.read_csv('users_database.csv')
-            results = df[df['Product'].str.contains(query, case=False, na=False)]
-            
-            if not results.empty:
-                st.subheader(f"📍 نتائج البحث لـ '{query}':")
-                for _, row in results.iterrows():
-                    msg = urllib.parse.quote(f"سلام، شفت إعلانك لـ {row['Product']} في Rassim de Recherche DZ.. هل متوفر؟")
-                    wa_url = f"https://wa.me/213{str(row['Phone'])[1:]}?text={msg}"
-                    st.markdown(f"""
-                        <div class="search-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin:0; color:#2c3e50;">{row['Product']}</h3>
-                                    <p style="margin:5px 0; color:#27ae60; font-size:1.4em; font-weight:bold;">{row['Price']:,} دج</p>
-                                    <p style="margin:0; color:#636e72;">📍 {row['City']} | 👤 بائع موثوق</p>
-                                    <p style="font-size:0.9em; color:#2980b9;">📝 {row['Description']}</p>
-                                </div>
-                                <a href="{wa_url}" target="_blank" class="wa-btn">💬 تواصل واتساب</a>
+    # الفلترة الذكية
+    col_a, col_b = st.columns([2, 1])
+    with col_a:
+        search_query = st.text_input("", placeholder="🔍 ابحث عن (iPhone, شاشة، Samsung...)", key="main_search")
+    with col_b:
+        city_filter = st.selectbox("📍 تصفية حسب الموقع", ["كل البلديات", "فوكة", "تيبازة", "القليعة", "بوسماعيل", "حجوط"])
+
+    df = load_data()
+    
+    # تطبيق الفلاتر
+    if not df.empty:
+        filtered_df = df.copy()
+        if search_query:
+            filtered_df = filtered_df[filtered_df['Product'].str.contains(search_query, case=False, na=False)]
+        if city_filter != "كل البلديات":
+            filtered_df = filtered_df[filtered_df['City'] == city_filter]
+
+        if not filtered_df.empty:
+            st.write(f"### تم العثور على {len(filtered_df)} عرض:")
+            for _, row in filtered_df.iterrows():
+                msg = urllib.parse.quote(f"سلام، شفت إعلانك لـ {row['Product']} في Rassim DZ.. هل متوفر؟")
+                wa_url = f"https://wa.me/213{str(row['Phone'])[1:]}?text={msg}"
+                st.markdown(f"""
+                    <div class="search-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin:0;">{row['Product']}</h3>
+                                <p style="color:#27ae60; font-size:1.3em; font-weight:bold; margin:5px 0;">{row['Price']:,} دج</p>
+                                <p style="color:#636e72; margin:0;">📍 {row['City']} | 📱 {row['Phone']}</p>
                             </div>
+                            <a href="{wa_url}" target="_blank" class="wa-btn">💬 واتساب</a>
                         </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.warning("لم نجد نتائج مطابقة، جرب كلمات أخرى.")
+                    </div>
+                """, unsafe_allow_html=True)
         else:
-            st.info("قاعدة البيانات فارغة حالياً، كن أول من ينشر عرضاً!")
+            st.warning("لم نجد نتائج تطابق بحثك في هذه المنطقة.")
 
-# --- التبويب الثاني: إضافة عرض ---
 with tab2:
-    st.markdown("### 📤 سجل سلعتك في المحرك الوطني")
-    with st.form("pro_add_form", clear_on_submit=True):
-        c_a, c_b = st.columns(2)
-        with c_a:
-            p_name = st.text_input("اسم الهاتف أو القطعة")
-            p_price = st.number_input("السعر المقترح (دج)", min_value=0, step=1000)
-        with c_b:
-            p_phone = st.text_input("رقم الواتساب (مثال: 0550112233)")
-            p_city = st.selectbox("البلدية / الولاية", ["فوكة", "تيبازة", "القليعة", "حجوط", "بوسماعيل", "الجزائر العاصمة"])
+    st.markdown("### 📢 أضف عرضك مجاناً")
+    with st.form("add_form", clear_on_submit=True):
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            name = st.text_input("اسم الهاتف / القطعة")
+            price = st.number_input("السعر (دج)", min_value=0)
+        with f_col2:
+            phone = st.text_input("رقم الهاتف (واتساب)")
+            city = st.selectbox("البلدية", ["فوكة", "تيبازة", "القليعة", "بوسماعيل", "حجوط"])
         
-        p_desc = st.text_area("وصف دقيق للحالة (مثلاً: كابا، شاشة أصلية، بدون ملحقات)")
-        submitted = st.form_submit_button("🚀 تحليل السعر ونشر العرض")
+        desc = st.text_area("وصف إضافي")
+        submit = st.form_submit_button("نشر العرض الآن")
 
-    if submitted:
-        if p_name and p_price > 0 and len(p_phone) >= 10:
-            advice = price_advisor(p_name, p_price)
-            st.info(f"💡 نصيحة Rassim Advisor: {advice}")
-            
-            # الحفظ في الملف
-            new_data = pd.DataFrame([[p_name, p_price, p_phone, p_city, p_desc]], 
-                                    columns=['Product', 'Price', 'Phone', 'City', 'Description'])
-            new_data.to_csv('users_database.csv', mode='a', header=False, index=False)
-            st.success(f"✅ مبروك! عرضك لـ {p_name} متاح الآن في Rassim de Recherche DZ")
+    if submit:
+        if name and price and len(phone) >= 10:
+            new_row = pd.DataFrame([[name, price, phone, city, desc]], 
+                                  columns=['Product', 'Price', 'Phone', 'City', 'Description'])
+            new_row.to_csv('users_database.csv', mode='a', header=False, index=False)
+            st.success("✅ تم النشر بنجاح! سيظهر عرضك الآن في نتائج البحث.")
         else:
-            st.error("⚠️ يرجى ملء كافة الخانات بشكل صحيح لضمان النشر.")
+            st.error("يرجى ملء البيانات بشكل صحيح.")
 
-# --- التبويب الثالث: الهمزات ---
-with tab3:
-    st.markdown("### 🔥 أفضل الصفقات المقترحة اليوم")
-    # هنا تظهر الهمزات التي تختارها أنت يدوياً لتشجيع المستخدمين
-    st.info("هذا القسم مخصص للسلع التي يقل سعرها عن سعر السوق بـ 20% فأكثر.")
-
-# --- الفوتر الاحترافي ---
-st.markdown("---")
-st.markdown(f"<p style='text-align: center; color: #95a5a6;'>© 2026 Rassim de Recherche DZ - Fouka, Tipaza<br>صُمم بكل فخر في الجزائر بمشاركة طاهر ورسيم</p>", unsafe_allow_html=True)
+# الفوتر
+st.markdown("<p style='text-align:center; color:#95a5a6; margin-top:50px;'>Rassim de Recherche DZ - Fouka 2026</p>", unsafe_allow_html=True)
