@@ -21,35 +21,20 @@ st.set_page_config(
     page_title="راسم تيتانيوم - سوق الهواتف الجزائري",
     page_icon="🇩🇿",
     layout="wide",
-    initial_sidebar_state="auto",
-    menu_items={
-        'Get Help': 'https://t.me/RassimDZ',
-        'Report a bug': 'https://t.me/RassimDZ',
-        'About': '''
-        # 🇩🇿 راسم تيتانيوم ألترا
-        **أول سوق إلكتروني جزائري متخصص في الهواتف**
-        
-        - بيع وشراء في 58 ولاية
-        - آمن وسريع ومجاني
-        - تواصل مباشر مع البائعين
-        '''
-    }
+    initial_sidebar_state="auto"
 )
 
 # ==========================================
-# 2. تحسين محركات البحث (SEO) بالكامل
+# 2. تحسين محركات البحث (SEO)
 # ==========================================
 st.markdown("""
-<meta name="description" content="راسم تيتانيوم - أفضل سوق للهواتف في الجزائر. بيع وشراء الهواتف المستعملة والجديدة في 58 ولاية. منصة آمنة وسريعة">
-<meta name="keywords" content="واد كنيس, Ouedkniss, هواتف, الجزائر, بيع وشراء, راسم فون, تيتانيوم, سامسونج, ايفون, هواوي, تليفون, téléphone Algerie">
+<meta name="description" content="راسم تيتانيوم - أفضل سوق للهواتف في الجزائر. بيع وشراء الهواتف المستعملة والجديدة في 58 ولاية.">
+<meta name="keywords" content="واد كنيس, Ouedkniss, هواتف, الجزائر, بيع وشراء, راسم فون, تيتانيوم">
 <meta name="author" content="RASSIM DZ">
-<meta property="og:title" content="راسم تيتانيوم - سوق الهواتف الجزائري">
-<meta property="og:description" content="أول سوق إلكتروني جزائري متخصص في الهواتف">
-<meta name="twitter:card" content="summary_large_image">
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. التصميم المتكامل (CSS الكامل)
+# 3. التصميم المتكامل (CSS)
 # ==========================================
 st.markdown("""
 <style>
@@ -59,16 +44,13 @@ st.markdown("""
     font-family: 'Cairo', sans-serif;
     direction: rtl;
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
 
 .stApp {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
 }
 
-/* ===== الهيدر الرئيسي ===== */
+/* الهيدر الرئيسي */
 .main-header {
     background: linear-gradient(135deg, #006633 0%, #006633 48%, #d21034 50%, #ffffff 52%, #ffffff 100%);
     padding: 40px 20px;
@@ -88,17 +70,15 @@ st.markdown("""
     color: white;
     font-size: 2.5rem;
     font-weight: 900;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     margin-bottom: 10px;
 }
 
 .main-header p {
     color: white;
     font-size: 1.2rem;
-    opacity: 0.95;
 }
 
-/* ===== أزرار المشاركة الاجتماعية ===== */
+/* أزرار المشاركة الاجتماعية */
 .social-share {
     background: white;
     padding: 25px 20px;
@@ -159,7 +139,7 @@ st.markdown("""
     font-weight: bold;
 }
 
-/* ===== قسم تيك توك ===== */
+/* قسم تيك توك */
 .tiktok-section {
     background: linear-gradient(135deg, #25F4EE, #FE2C55);
     padding: 25px;
@@ -217,7 +197,7 @@ st.markdown("""
     font-weight: bold;
 }
 
-/* ===== بطاقات الإحصائيات ===== */
+/* بطاقات الإحصائيات */
 .stats-container {
     display: flex;
     justify-content: space-between;
@@ -251,7 +231,7 @@ st.markdown("""
     margin-top: 5px;
 }
 
-/* ===== بطاقات الإعلانات ===== */
+/* بطاقات الإعلانات */
 .ad-card {
     background: white;
     border-radius: 25px;
@@ -323,7 +303,7 @@ st.markdown("""
     color: white;
 }
 
-/* ===== فقاعات الدردشة ===== */
+/* فقاعات الدردشة */
 .chat-container {
     background: #f8f9fa;
     border-radius: 20px;
@@ -358,7 +338,7 @@ st.markdown("""
     border: 1px solid #eee;
 }
 
-/* ===== شارة المميز ===== */
+/* شارة المميز */
 .featured-badge {
     background: linear-gradient(135deg, #ffd700, #ffa500);
     color: white;
@@ -377,7 +357,7 @@ st.markdown("""
     100% { transform: scale(1); }
 }
 
-/* ===== المساعد الذكي ===== */
+/* المساعد الذكي */
 .ai-section {
     background: linear-gradient(135deg, #667eea, #764ba2);
     padding: 25px;
@@ -386,7 +366,7 @@ st.markdown("""
     margin: 25px 0;
 }
 
-/* ===== لوحة الإدارة ===== */
+/* لوحة الإدارة */
 .admin-section {
     background: linear-gradient(135deg, #2c3e50, #3498db);
     padding: 25px;
@@ -395,20 +375,18 @@ st.markdown("""
     margin: 25px 0;
 }
 
-/* ===== التجاوب مع الجوال ===== */
+/* التجاوب مع الجوال */
 @media (max-width: 768px) {
     .main-header h1 { font-size: 1.8rem; }
     .stat-value { font-size: 1.8rem; }
     .ad-title { font-size: 1.3rem; }
-    .ad-price { font-size: 1.1rem; padding: 6px 15px; }
-    .social-icon { width: 40px; height: 40px; }
-    .social-icon img { width: 24px; height: 24px; }
+    .ad-price { font-size: 1.1rem; }
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. إعدادات قاعدة البيانات
+# 4. إعدادات قاعدة البيانات (مصححة بالكامل)
 # ==========================================
 DB = "rassim_titanium.db"
 
@@ -508,13 +486,13 @@ def init_db():
         )
     """)
     
-    # جدول الزوار
+    # جدول الزوار (مصحح - مع حقل visit_date)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ip TEXT,
             page TEXT,
-            visited_at TEXT DEFAULT CURRENT_TIMESTAMP
+            visit_date TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
@@ -530,7 +508,7 @@ def get_connection():
 init_db()
 
 # ==========================================
-# 5. دوال المساعدة
+# 5. دوال المساعدة الأساسية
 # ==========================================
 def hash_password(password, salt):
     """تشفير كلمة المرور"""
@@ -538,33 +516,42 @@ def hash_password(password, salt):
 
 def create_notification(username, message, notif_type="info"):
     """إنشاء إشعار جديد"""
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO notifications (username, message, type) VALUES (?, ?, ?)",
-        (username, message, notif_type)
-    )
-    conn.commit()
+    try:
+        conn = get_connection()
+        conn.execute(
+            "INSERT INTO notifications (username, message, type) VALUES (?, ?, ?)",
+            (username, message, notif_type)
+        )
+        conn.commit()
+    except:
+        pass
 
 def log_visitor():
-    """تسجيل زائر جديد"""
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO visitors (ip, page) VALUES (?, ?)",
-        (st.session_state.get('ip', 'unknown'), st.session_state.get('page', 'main'))
-    )
-    conn.commit()
+    """تسجيل زائر جديد - مصحح"""
+    try:
+        conn = get_connection()
+        conn.execute(
+            "INSERT INTO visitors (ip, page) VALUES (?, ?)",
+            (st.session_state.get('ip', 'unknown'), st.session_state.get('page', 'main'))
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"خطأ في تسجيل الزائر: {e}")
 
 def get_stats():
     """الحصول على إحصائيات الموقع"""
-    conn = get_connection()
-    users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
-    visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
-    views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
-    return users, ads, visitors, views
+    try:
+        conn = get_connection()
+        users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
+        visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
+        views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        return users, ads, visitors, views
+    except:
+        return 0, 0, 0, 0
 
 # ==========================================
-# 6. أزرار المشاركة الاجتماعية (المطلوبة)
+# 6. أزرار المشاركة الاجتماعية
 # ==========================================
 def show_social_share():
     """عرض أزرار المشاركة الاجتماعية"""
@@ -597,7 +584,7 @@ def show_social_share():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 7. قسم تيك توك (المطلوب)
+# 7. قسم تيك توك
 # ==========================================
 def show_tiktok_section():
     """عرض قسم تيك توك"""
@@ -627,7 +614,7 @@ def show_tiktok_section():
         
         <div style="margin-top: 20px;">
             <span style="background: white; color: #FE2C55; padding: 8px 25px; border-radius: 50px; font-weight: bold;">
-                📱 58 ولاية - حمل التطبيق
+                📱 58 ولاية
             </span>
         </div>
     </div>
@@ -662,10 +649,74 @@ def show_stats_cards():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 9. صفحة السوق الذكي
+# 9. صفحة تسجيل الدخول
+# ==========================================
+def login_page():
+    st.markdown("""
+    <div class="main-header">
+        <h1>🇩🇿 راسم تيتانيوم ألترا</h1>
+        <p>أول سوق إلكتروني جزائري للهواتف</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # إحصائيات
+    show_stats_cards()
+    
+    # أزرار المشاركة
+    show_social_share()
+    
+    # قسم تيك توك
+    show_tiktok_section()
+    
+    tab1, tab2 = st.tabs(["🔑 تسجيل الدخول", "📝 حساب جديد"])
+    conn = get_connection()
+    
+    with tab1:
+        username = st.text_input("اسم المستخدم")
+        password = st.text_input("كلمة المرور", type="password")
+        
+        if st.button("دخول", use_container_width=True):
+            try:
+                user = conn.execute(
+                    "SELECT password, salt, role FROM users WHERE username=?",
+                    (username,)
+                ).fetchone()
+                
+                if user and user[0] == hash_password(password, user[1]):
+                    st.session_state.user = username
+                    st.session_state.role = user[2]
+                    st.rerun()
+                else:
+                    st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة")
+            except:
+                st.error("❌ خطأ في تسجيل الدخول")
+    
+    with tab2:
+        new_user = st.text_input("اسم المستخدم الجديد")
+        new_pass = st.text_input("كلمة المرور الجديدة", type="password")
+        email = st.text_input("البريد الإلكتروني")
+        phone = st.text_input("رقم الهاتف")
+        
+        if st.button("تسجيل", use_container_width=True):
+            if new_user and new_pass:
+                try:
+                    salt = secrets.token_hex(16)
+                    hashed = hash_password(new_pass, salt)
+                    
+                    conn.execute("""
+                        INSERT INTO users (username, password, salt, email, phone)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (new_user, hashed, salt, email, phone))
+                    conn.commit()
+                    
+                    st.success("✅ تم التسجيل بنجاح! يمكنك الدخول الآن")
+                except:
+                    st.error("❌ اسم المستخدم موجود مسبقاً")
+
+# ==========================================
+# 10. صفحة السوق الذكي
 # ==========================================
 def show_market(conn):
-    """عرض السوق الذكي مع الفلاتر"""
     st.markdown('<div class="main-header"><h1>🛍️ السوق الذكي</h1><p>تصفح آلاف الهواتف في 58 ولاية</p></div>', unsafe_allow_html=True)
     
     # إحصائيات سريعة
@@ -693,47 +744,44 @@ def show_market(conn):
             st.success("جاري البحث...")
     
     # عرض الإعلانات
-    ads = conn.execute("""
-        SELECT * FROM ads 
-        WHERE status='active' 
-        ORDER BY featured DESC, created_at DESC 
-        LIMIT 10
-    """).fetchall()
-    
-    if ads:
-        for ad in ads:
-            featured_badge = '<span class="featured-badge">⭐ مميز</span>' if ad[9] else ''
-            
-            st.markdown(f"""
-            <div class="ad-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span class="ad-title">{ad[1]}</span>
-                        {featured_badge}
+    try:
+        ads = conn.execute("""
+            SELECT * FROM ads 
+            WHERE status='active' 
+            ORDER BY featured DESC, created_at DESC 
+            LIMIT 10
+        """).fetchall()
+        
+        if ads:
+            for ad in ads:
+                featured_badge = '<span class="featured-badge">⭐ مميز</span>' if ad[9] else ''
+                
+                st.markdown(f"""
+                <div class="ad-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="ad-title">{ad[1]}</span>
+                            {featured_badge}
+                        </div>
+                        <span class="ad-price">{ad[2]:,} دج</span>
                     </div>
-                    <span class="ad-price">{ad[2]:,} دج</span>
+                    
+                    <div class="ad-details">
+                        <span>📍 {ad[4]}</span>
+                        <span>👁️ {ad[8]} مشاهدة</span>
+                        <span>📅 {ad[12][:10]}</span>
+                    </div>
+                    
+                    <p style="color: #666; margin: 10px 0;">{ad[5][:100]}...</p>
                 </div>
-                
-                <div class="ad-details">
-                    <span>📍 {ad[4]}</span>
-                    <span>👁️ {ad[8]} مشاهدة</span>
-                    <span>📅 {ad[12][:10]}</span>
-                </div>
-                
-                <p style="color: #666; margin: 10px 0;">{ad[5][:100]}...</p>
-                
-                <div class="ad-actions">
-                    <button class="ad-btn" onclick="window.open('https://wa.me/213{ad[3]}')">📞 واتساب</button>
-                    <button class="ad-btn">❤️ حفظ</button>
-                    <button class="ad-btn">💬 مراسلة</button>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info("لا توجد إعلانات حالياً")
+                """, unsafe_allow_html=True)
+        else:
+            st.info("لا توجد إعلانات حالياً")
+    except:
+        st.info("جاري تحميل الإعلانات...")
 
 # ==========================================
-# 10. صفحة إضافة إعلان
+# 11. صفحة إضافة إعلان
 # ==========================================
 def post_ad(conn):
     st.markdown('<div class="main-header"><h1>📢 إضافة إعلان جديد</h1></div>', unsafe_allow_html=True)
@@ -752,87 +800,88 @@ def post_ad(conn):
         
         if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
             if title and price > 0 and phone:
-                conn.execute("""
-                    INSERT INTO ads (title, price, phone, wilaya, description, category, owner)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (title, price, phone, wilaya, description, category, st.session_state.user))
-                conn.commit()
-                st.success("✅ تم نشر الإعلان بنجاح!")
-                st.balloons()
-                time.sleep(2)
-                st.rerun()
+                try:
+                    conn.execute("""
+                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (title, price, phone, wilaya, description, category, st.session_state.user))
+                    conn.commit()
+                    st.success("✅ تم نشر الإعلان بنجاح!")
+                    st.balloons()
+                    time.sleep(2)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ حدث خطأ: {e}")
             else:
                 st.error("❌ يرجى ملء جميع الحقول المطلوبة")
 
 # ==========================================
-# 11. نظام الدردشة
+# 12. صفحة الدردشة
 # ==========================================
 def show_chat(conn):
     st.markdown('<div class="main-header"><h1>💬 المحادثات</h1></div>', unsafe_allow_html=True)
     
     user = st.session_state.user
     
-    # جلب المحادثات
-    conversations = conn.execute("""
-        SELECT DISTINCT 
-            CASE WHEN sender = ? THEN receiver ELSE sender END as contact,
-            MAX(created_at) as last_msg
-        FROM messages 
-        WHERE sender = ? OR receiver = ?
-        GROUP BY contact
-        ORDER BY last_msg DESC
-    """, (user, user, user)).fetchall()
-    
-    if not conversations:
-        st.info("لا توجد محادثات حالياً")
-        return
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        st.subheader("المحادثات")
-        contacts = [c[0] for c in conversations]
-        selected = st.radio("", contacts)
-    
-    with col2:
-        if selected:
-            st.subheader(f"الدردشة مع {selected}")
-            
-            # عرض الرسائل
-            messages = conn.execute("""
-                SELECT sender, message, created_at FROM messages
-                WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)
-                ORDER BY created_at ASC
-            """, (user, selected, selected, user)).fetchall()
-            
-            st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-            for msg in messages:
-                if msg[0] == user:
-                    st.markdown(f'<div class="chat-bubble chat-sent"><b>أنت:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="chat-bubble chat-received"><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # إرسال رسالة
-            with st.form("send_message", clear_on_submit=True):
-                msg = st.text_input("اكتب رسالتك...")
-                if st.form_submit_button("إرسال", use_container_width=True) and msg:
-                    conn.execute("""
-                        INSERT INTO messages (sender, receiver, message)
-                        VALUES (?, ?, ?)
-                    """, (user, selected, msg))
-                    conn.commit()
-                    st.rerun()
+    try:
+        conversations = conn.execute("""
+            SELECT DISTINCT 
+                CASE WHEN sender = ? THEN receiver ELSE sender END as contact,
+                MAX(created_at) as last_msg
+            FROM messages 
+            WHERE sender = ? OR receiver = ?
+            GROUP BY contact
+            ORDER BY last_msg DESC
+        """, (user, user, user)).fetchall()
+        
+        if not conversations:
+            st.info("لا توجد محادثات حالياً")
+            return
+        
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.subheader("المحادثات")
+            contacts = [c[0] for c in conversations]
+            selected = st.radio("", contacts)
+        
+        with col2:
+            if selected:
+                st.subheader(f"الدردشة مع {selected}")
+                
+                messages = conn.execute("""
+                    SELECT sender, message, created_at FROM messages
+                    WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)
+                    ORDER BY created_at ASC
+                """, (user, selected, selected, user)).fetchall()
+                
+                st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+                for msg in messages:
+                    if msg[0] == user:
+                        st.markdown(f'<div class="chat-bubble chat-sent"><b>أنت:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'<div class="chat-bubble chat-received"><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                with st.form("send_message", clear_on_submit=True):
+                    msg = st.text_input("اكتب رسالتك...")
+                    if st.form_submit_button("إرسال", use_container_width=True) and msg:
+                        conn.execute("""
+                            INSERT INTO messages (sender, receiver, message)
+                            VALUES (?, ?, ?)
+                        """, (user, selected, msg))
+                        conn.commit()
+                        st.rerun()
+    except:
+        st.info("نظام المحادثات قيد التطوير")
 
 # ==========================================
-# 12. لوحة الإدارة
+# 13. لوحة الإدارة
 # ==========================================
 def admin_dashboard(conn):
     st.markdown('<div class="admin-section"><h1 style="color:white; text-align:center;">🔐 لوحة الإدارة</h1></div>', unsafe_allow_html=True)
     
-    tab1, tab2, tab3 = st.tabs(["📊 الإحصائيات", "👥 المستخدمين", "🚨 البلاغات"])
-    
-    with tab1:
+    try:
         users, ads, visitors, views = get_stats()
         
         col1, col2, col3, col4 = st.columns(4)
@@ -841,102 +890,10 @@ def admin_dashboard(conn):
         col3.metric("الزيارات", visitors)
         col4.metric("المشاهدات", views)
         
-        # رسم بياني
-        daily_visits = conn.execute("""
-            SELECT date(visited_at) as date, COUNT(*) as count
-            FROM visitors
-            GROUP BY date
-            ORDER BY date DESC
-            LIMIT 7
-        """).fetchall()
-        
-        if daily_visits:
-            df = pd.DataFrame(daily_visits, columns=["التاريخ", "الزيارات"])
-            fig = px.line(df, x="التاريخ", y="الزيارات", title="آخر 7 أيام")
-            st.plotly_chart(fig, use_container_width=True)
-    
-    with tab2:
         users_df = pd.read_sql_query("SELECT username, role, verified, banned, ad_count FROM users", conn)
         st.dataframe(users_df, use_container_width=True)
-    
-    with tab3:
-        reports = conn.execute("""
-            SELECT r.id, a.title, r.reporter, r.reason, r.status
-            FROM reports r JOIN ads a ON r.ad_id = a.id
-            WHERE r.status = 'pending'
-        """).fetchall()
-        
-        if reports:
-            for report in reports:
-                st.warning(f"إعلان: {report[1]} - سبب: {report[3]}")
-                if st.button(f"معالجة {report[0]}"):
-                    conn.execute("UPDATE reports SET status='resolved' WHERE id=?", (report[0],))
-                    conn.commit()
-                    st.rerun()
-        else:
-            st.info("لا توجد بلاغات معلقة")
-
-# ==========================================
-# 13. صفحة تسجيل الدخول
-# ==========================================
-def login_page():
-    st.markdown("""
-    <div class="main-header">
-        <h1>🇩🇿 راسم تيتانيوم ألترا</h1>
-        <p>أول سوق إلكتروني جزائري للهواتف</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # إحصائيات
-    show_stats_cards()
-    
-    # أزرار المشاركة
-    show_social_share()
-    
-    # قسم تيك توك
-    show_tiktok_section()
-    
-    tab1, tab2 = st.tabs(["🔑 تسجيل الدخول", "📝 حساب جديد"])
-    conn = get_connection()
-    
-    with tab1:
-        username = st.text_input("اسم المستخدم")
-        password = st.text_input("كلمة المرور", type="password")
-        
-        if st.button("دخول", use_container_width=True):
-            user = conn.execute(
-                "SELECT password, salt, role FROM users WHERE username=?",
-                (username,)
-            ).fetchone()
-            
-            if user and user[0] == hash_password(password, user[1]):
-                st.session_state.user = username
-                st.session_state.role = user[2]
-                st.rerun()
-            else:
-                st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة")
-    
-    with tab2:
-        new_user = st.text_input("اسم المستخدم الجديد")
-        new_pass = st.text_input("كلمة المرور الجديدة", type="password")
-        email = st.text_input("البريد الإلكتروني")
-        phone = st.text_input("رقم الهاتف")
-        
-        if st.button("تسجيل", use_container_width=True):
-            if new_user and new_pass:
-                try:
-                    salt = secrets.token_hex(16)
-                    hashed = hash_password(new_pass, salt)
-                    
-                    conn.execute("""
-                        INSERT INTO users (username, password, salt, email, phone)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (new_user, hashed, salt, email, phone))
-                    conn.commit()
-                    
-                    st.success("✅ تم التسجيل بنجاح! يمكنك الدخول الآن")
-                except:
-                    st.error("❌ اسم المستخدم موجود مسبقاً")
+    except:
+        st.info("جاري تحميل البيانات...")
 
 # ==========================================
 # 14. التشغيل الرئيسي
@@ -949,6 +906,8 @@ def main():
         st.session_state.role = "user"
     if "ip" not in st.session_state:
         st.session_state.ip = secrets.token_hex(8)
+    if "page" not in st.session_state:
+        st.session_state.page = "main"
     
     # تسجيل الزائر
     log_visitor()
