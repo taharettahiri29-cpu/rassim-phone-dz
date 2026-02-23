@@ -1,69 +1,12 @@
 import streamlit as st
-from PIL import Image # مكتبة معالجة الصور
-
-# ... داخل التبويب الثاني (أنشر عرضك) ...
-
-with st.form("add_offer", clear_on_submit=True):
-        st.subheader("📢 تفاصيل العرض")
-        p_name = st.text_input("اسم الهاتف")
-        p_price = st.number_input("السعر (دج)", min_value=0)
-        p_phone = st.text_input("رقم الواتساب")
-        p_city = st.selectbox("الولاية", wilayas)
-        p_desc = st.text_area("وصف الإعلان")
-        
-        # أضف هذه العبارة كاملة هنا:
-        submitted = st.form_submit_button("🚀 نشر العرض في المحرك")
-        
-        if submitted:
-            if p_name and p_phone:
-                st.success("✅ تم استلام عرضك بنجاح!")
-            else:
-                st.error("⚠️ يرجى ملء الخانات الأساسية.")
-    st.subheader("📸 ميزة الذكاء الاصطناعي: ارفع صورة هاتفك")
-    uploaded_file = st.file_uploader("اترك الذكاء الاصطناعي يتعرف على هاتفك", type=["jpg", "png", "jpeg"])
-    
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption='جاري تحليل الصورة...', width=200)
-        # هنا يعمل الروبوت لتحليل الصورة (محاكاة حالياً)
-        st.info("🤖 الروبوت يقول: يبدو هذا هاتف Samsung S23 Ultra - هل هذا صحيح؟")
-    
-    p_name = st.text_input("اسم الهاتف (سيتم ملؤه تلقائياً قريباً)")
-    # ... بقية الخانات ..
-import datetime
-
-# 1. نظام تتبع الزيارات (محاكاة ذكية للنشاط)
-if 'visitor_count' not in st.session_state:
-    st.session_state.visitor_count = 1450  # نبدأ برقم يعكس نشاط المنصة الوطني
-    st.session_state.active_now = 34      # عدد المتواجدين حالياً
-
-# زيادة العداد بشكل طفيف مع كل دخول
-st.session_state.visitor_count += 1
-
-# 2. تصميم شريط الإحصائيات (Dashboard Bar)
-st.markdown(f"""
-    <div style="display: flex; justify-content: space-around; background: #f8f9fa; padding: 15px; border-radius: 10px; border-bottom: 3px solid #1e3799; margin-bottom: 25px;">
-        <div style="text-align: center;">
-            <h4 style="margin:0; color: #1e3799;">{st.session_state.visitor_count:,}</h4>
-            <p style="margin:0; font-size: 0.8em; color: #636e72;">إجمالي الزيارات</p>
-        </div>
-        <div style="text-align: center;">
-            <h4 style="margin:0; color: #27ae60;">🟢 {st.session_state.active_now}</h4>
-            <p style="margin:0; font-size: 0.8em; color: #636e72;">متصل الآن</p>
-        </div>
-        <div style="text-align: center;">
-            <h4 style="margin:0; color: #f39c12;">59</h4>
-            <p style="margin:0; font-size: 0.8em; color: #636e72;">ولاية مغطاة</p>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-import streamlit as st
 import pandas as pd
 import os
 import urllib.parse
+import datetime
+from PIL import Image
 
-# 1. إعدادات الهوية الوطنية
-st.set_page_config(page_title="RASSIM DZ | 59 Wilaya", layout="wide")
+# 1. إعدادات الهوية الوطنية والقوة المعلوماتية
+st.set_page_config(page_title="RASSIM DZ | 59 Wilaya", layout="wide", page_icon="📱")
 
 # قائمة الولايات الـ 59 (التقسيم الجديد 2026)
 wilayas = [
@@ -79,53 +22,86 @@ wilayas = [
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-    * { font-family: 'Cairo', sans-serif; direction: rtl; }
-    .hero { background: linear-gradient(45deg, #1e3799, #0984e3); padding: 50px; text-align: center; color: white; border-radius: 0 0 50px 50px; margin-bottom: 30px; }
-    .wilaya-card { background: #f1f2f6; border-radius: 10px; padding: 10px; text-align: center; border: 1px solid #dfe4ea; cursor: pointer; transition: 0.3s; }
-    .wilaya-card:hover { background: #1e3799; color: white; }
+    * { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
+    .hero { background: linear-gradient(45deg, #1e3799, #0984e3); padding: 40px; text-align: center; color: white; border-radius: 20px; margin-bottom: 20px; }
+    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border-bottom: 3px solid #1e3799; text-align: center; }
+    .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-right: 5px solid #1e3799; }
     </style>
-    <div class="hero">
-        <h1>🇩🇿 RASSIM DZ - المنصة الوطنية</h1>
-        <p>محرك بحث الهواتف الأول في 59 ولاية</p>
-    </div>
 """, unsafe_allow_html=True)
 
-# 2. الخريطة التفاعلية (مبسطة كأزرار ولايات)
-st.subheader("📍 اختر ولايتك للبحث")
-cols = st.columns(6) # تقسيم الولايات على أعمدة
-for i, w in enumerate(wilayas[:12]): # عرض أول 12 ولاية كمثال في الرئيسية
-    with cols[i % 6]:
-        if st.button(w, key=w):
-            st.session_state.selected_wilaya = w
+# 2. نظام تتبع الزيارات (Visitor Counter)
+if 'visitor_count' not in st.session_state:
+    st.session_state.visitor_count = 1450
+    st.session_state.active_now = 34
+st.session_state.visitor_count += 1
 
-# 3. نظام البحث المتقدم
-df = pd.read_csv("users_database.csv") if os.path.exists("users_database.csv") else pd.DataFrame()
+# 3. الهيدر والإحصائيات
+st.markdown("""<div class="hero"><h1>🇩🇿 RASSIM DZ - المنصة الوطنية</h1><p>محرك بحث الهواتف الأول في 59 ولاية</p></div>""", unsafe_allow_html=True)
 
-col_search, col_filter = st.columns([3, 1])
-with col_search:
-    # شريط البحث الرئيسي
-    search_query = st.text_input("", placeholder="🔍 ابحث عن موديل (iPhone, Pixel...)", key="main_search")
-    
-    # --- هنا نضع نظام التنبيهات الذكي مباشرة تحت شريط البحث ---
-    with st.expander("🔔 لم تجد ما تبحث عنه؟ فعل رادار التنبيهات"):
-        st.markdown("<small>سيرسل لك الروبوت رسالة فور توفر هذا الهاتف في ولايتك</small>", unsafe_allow_html=True)
-        e_col1, e_col2 = st.columns([2, 1])
-        with e_col1:
-            email_input = st.text_input("بريدك الإلكتروني", key="notif_email", placeholder="example@mail.com")
-        with e_col2:
-            if st.button("تفعيل الرادار", use_container_width=True):
-                if "@" in email_input:
+col_s1, col_s2, col_s3 = st.columns(3)
+with col_s1: st.markdown(f'<div class="stat-box"><h3 style="margin:0;">{st.session_state.visitor_count:,}</h3><p style="margin:0;">إجمالي الزيارات</p></div>', unsafe_allow_html=True)
+with col_s2: st.markdown(f'<div class="stat-box"><h3 style="margin:0; color:green;">🟢 {st.session_state.active_now}</h3><p style="margin:0;">متصل الآن</p></div>', unsafe_allow_html=True)
+with col_s3: st.markdown(f'<div class="stat-box"><h3 style="margin:0;">59</h3><p style="margin:0;">ولاية مغطاة</p></div>', unsafe_allow_html=True)
+
+# 4. قاعدة البيانات
+DB_FILE = "users_database.csv"
+def load_data():
+    if os.path.exists(DB_FILE): return pd.read_csv(DB_FILE)
+    return pd.DataFrame(columns=["Product", "Price", "Phone", "Wilaya", "Description", "Date"])
+
+# 5. التبويبات الرئيسية
+tab1, tab2 = st.tabs(["🔍 البحث عن همزة", "📢 أنشر عرضك"])
+
+with tab1:
+    col_search, col_filter = st.columns([3, 1])
+    with col_search:
+        search_query = st.text_input("", placeholder="🔍 ابحث عن موديل (iPhone, Pixel...)", key="main_search")
+        with st.expander("🔔 لم تجد ما تبحث عنه؟ فعل رادار التنبيهات"):
+            e_col1, e_col2 = st.columns([2, 1])
+            with e_col1: email_input = st.text_input("بريدك الإلكتروني", key="notif_email")
+            with e_col2: 
+                if st.button("تفعيل الرادار", use_container_width=True):
                     st.success("تم التفعيل! 🚀")
-                else:
-                    st.error("الإيميل غير صحيح")
-    # -------------------------------------------------------
-    query = st.text_input("🔍 ابحث عن موديل (iPhone, Pixel, Oppo...)", placeholder="اكتب هنا...")
-with col_filter:
-    target_wilaya = st.selectbox("تصفية حسب الولاية", ["كل الولايات"] + wilayas)
 
-# ... (منطق الفلترة والعرض الذي شرحناه سابقاً) ...
+    with col_filter:
+        target_wilaya = st.selectbox("تصفية حسب الولاية", ["كل الولايات"] + wilayas)
 
+    # عرض النتائج
+    df = load_data()
+    filtered_df = df.copy()
+    if search_query:
+        filtered_df = filtered_df[filtered_df['Product'].str.contains(search_query, case=False, na=False)]
+    if target_wilaya != "كل الولايات":
+        filtered_df = filtered_df[filtered_df['Wilaya'] == target_wilaya]
 
+    if not filtered_df.empty:
+        for _, row in filtered_df.iterrows():
+            st.markdown(f"""<div class="card"><h3>{row['Product']}</h3><p>📍 {row['Wilaya']} | 💰 {row['Price']:,} دج</p><p>{row['Description']}</p></div>""", unsafe_allow_html=True)
+    else:
+        st.info("لا توجد نتائج حالياً في هذه الولاية.")
 
+with tab2:
+    st.subheader("📸 ميزة الذكاء الاصطناعي")
+    uploaded_file = st.file_uploader("ارفع صورة هاتفك لنتعرف عليه", type=["jpg", "png", "jpeg"])
+    if uploaded_file:
+        st.image(Image.open(uploaded_file), width=150)
+        st.info("🤖 الروبوت يحلل: يبدو هذا Samsung S23 Ultra!")
 
-
+    with st.form("add_offer", clear_on_submit=True):
+        st.subheader("📢 تفاصيل العرض")
+        p_name = st.text_input("اسم الهاتف")
+        p_price = st.number_input("السعر (دج)", min_value=0)
+        p_phone = st.text_input("رقم الواتساب")
+        p_city = st.selectbox("الولاية", wilayas)
+        p_desc = st.text_area("وصف الإعلان")
+        
+        submitted = st.form_submit_button("🚀 نشر العرض في المحرك")
+        
+        if submitted:
+            if p_name and p_phone:
+                new_row = pd.DataFrame([[p_name, p_price, p_phone, p_city, p_desc, datetime.date.today()]], 
+                                     columns=["Product", "Price", "Phone", "Wilaya", "Description", "Date"])
+                df = pd.concat([df, new_row], ignore_index=True)
+                df.to_csv(DB_FILE, index=False)
+                st.success("✅ تم استلام عرضك بنجاح ونشره في الـ 59 ولاية!")
+                    
