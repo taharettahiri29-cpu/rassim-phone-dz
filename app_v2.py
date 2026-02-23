@@ -224,12 +224,12 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. إعدادات قاعدة البيانات
+# 4. إعدادات قاعدة البيانات (مصححة)
 # ==========================================
 DB = "rassim_titanium.db"
 
 def init_db():
-    """تهيئة قاعدة البيانات"""
+    """تهيئة قاعدة البيانات مع التأكد من وجود جميع الأعمدة"""
     try:
         conn = sqlite3.connect(DB, check_same_thread=False)
         cursor = conn.cursor()
@@ -247,11 +247,11 @@ def init_db():
                 banned INTEGER DEFAULT 0,
                 ad_count INTEGER DEFAULT 0,
                 last_login TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                date TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
-        # جدول الإعلانات
+        # جدول الإعلانات (باستخدام date بدلاً من created_at)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -266,7 +266,7 @@ def init_db():
                 featured INTEGER DEFAULT 0,
                 status TEXT DEFAULT 'active',
                 owner TEXT NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner) REFERENCES users(username)
             )
         """)
@@ -279,7 +279,7 @@ def init_db():
                 receiver TEXT NOT NULL,
                 message TEXT NOT NULL,
                 read INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (sender) REFERENCES users(username),
                 FOREIGN KEY (receiver) REFERENCES users(username)
             )
@@ -291,7 +291,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
                 ad_id INTEGER NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (username) REFERENCES users(username),
                 FOREIGN KEY (ad_id) REFERENCES ads(id),
                 UNIQUE(username, ad_id)
@@ -306,7 +306,7 @@ def init_db():
                 message TEXT NOT NULL,
                 type TEXT DEFAULT 'info',
                 read INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (username) REFERENCES users(username)
             )
         """)
@@ -319,7 +319,7 @@ def init_db():
                 reporter TEXT NOT NULL,
                 reason TEXT NOT NULL,
                 status TEXT DEFAULT 'pending',
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (ad_id) REFERENCES ads(id),
                 FOREIGN KEY (reporter) REFERENCES users(username)
             )
@@ -331,15 +331,36 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ip TEXT,
                 page TEXT,
-                visit_date TEXT DEFAULT CURRENT_TIMESTAMP
+                date TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
         conn.commit()
+        
+        # التحقق من وجود الأعمدة في الجداول الموجودة
+        check_and_add_columns(cursor)
+        conn.commit()
+        
         return conn
     except Exception as e:
         st.error(f"خطأ في قاعدة البيانات: {e}")
         return None
+
+def check_and_add_columns(cursor):
+    """التحقق من وجود الأعمدة وإضافتها إذا لزم الأمر"""
+    try:
+        # التحقق من جدول ads
+        cursor.execute("PRAGMA table_info(ads)")
+        columns = [col[1] for col in cursor.fetchall()]
+        
+        if 'date' not in columns:
+            cursor.execute("ALTER TABLE ads ADD COLUMN date TEXT DEFAULT CURRENT_TIMESTAMP")
+        
+        if 'created_at' in columns:
+            # تحويل البيانات من created_at إلى date إذا وجد
+            cursor.execute("UPDATE ads SET date = created_at WHERE date IS NULL AND created_at IS NOT NULL")
+    except:
+        pass
 
 @st.cache_resource
 def get_connection():
@@ -451,13 +472,13 @@ def show_stats_cards():
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("المستخدمين", users)
+        st.metric("المستخدمين", f"{users:,}")
     with col2:
-        st.metric("الإعلانات", ads)
+        st.metric("الإعلانات", f"{ads:,}")
     with col3:
-        st.metric("الزيارات", visitors)
+        st.metric("الزيارات", f"{visitors:,}")
     with col4:
-        st.metric("المشاهدات", views)
+        st.metric("المشاهدات", f"{views:,}")
 
 # ==========================================
 # 9. صفحة تسجيل الدخول
@@ -494,8 +515,8 @@ def login_page():
                             st.rerun()
                         else:
                             st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة")
-                    except:
-                        st.error("❌ خطأ في تسجيل الدخول")
+                    except Exception as e:
+                        st.error(f"❌ خطأ في تسجيل الدخول: {e}")
     
     with tab2:
         with st.form("register_form"):
@@ -509,7 +530,7 @@ def login_page():
                 if not new_user or not new_pass:
                     st.error("❌ اسم المستخدم وكلمة المرور مطلوبان")
                 elif len(new_user) < 3:
-                    st.error("❌ اسم المستخدم قصير جداً")
+                    st.error("❌ اسم المستخدم قصير جداً (3 أحرف على الأقل)")
                 elif len(new_pass) < 6:
                     st.error("❌ كلمة المرور قصيرة جداً (6 أحرف على الأقل)")
                 else:
@@ -518,8 +539,8 @@ def login_page():
                         hashed = hash_password(new_pass, salt)
                         
                         conn.execute("""
-                            INSERT INTO users (username, password, salt, email, phone)
-                            VALUES (?, ?, ?, ?, ?)
+                            INSERT INTO users (username, password, salt, email, phone, role)
+                            VALUES (?, ?, ?, ?, ?, 'user')
                         """, (new_user, hashed, salt, email, phone))
                         conn.commit()
                         
@@ -530,7 +551,7 @@ def login_page():
                         st.error(f"❌ حدث خطأ: {e}")
 
 # ==========================================
-# 10. صفحة السوق الذكي
+# 10. صفحة السوق الذكي (مصححة)
 # ==========================================
 def show_market(conn):
     """عرض السوق الذكي"""
@@ -568,7 +589,8 @@ def show_market(conn):
             query += " AND (title LIKE ? OR description LIKE ?)"
             params.extend([f"%{search}%", f"%{search}%"])
         
-        query += " ORDER BY featured DESC, created_at DESC LIMIT 10"
+        # استخدام date بدلاً من created_at
+        query += " ORDER BY featured DESC, date DESC LIMIT 10"
         
         ads = conn.execute(query, params).fetchall()
         
@@ -579,11 +601,13 @@ def show_market(conn):
                     with col1:
                         st.markdown(f"### {ad[1]}")
                         st.write(f"📍 {ad[4]} | 👁️ {ad[8]} مشاهدة")
-                        st.write(ad[5][:100] + "...")
+                        if ad[12]:  # تاريخ الإعلان
+                            st.write(f"📅 {ad[12][:10]}")
+                        st.write(ad[5][:100] + "..." if len(ad[5]) > 100 else ad[5])
                     with col2:
                         st.markdown(f"## 💰 {ad[2]:,} دج")
                         if st.button("📞 واتساب", key=f"wa_{ad[0]}"):
-                            st.info(f"رقم الهاتف: {ad[3]}")
+                            st.info(f"📱 رقم الهاتف: {ad[3]}")
                     st.divider()
         else:
             st.info("لا توجد إعلانات حالياً")
@@ -647,7 +671,7 @@ def show_chat(conn):
         conversations = conn.execute("""
             SELECT DISTINCT 
                 CASE WHEN sender = ? THEN receiver ELSE sender END as contact,
-                MAX(created_at) as last_msg,
+                MAX(date) as last_msg,
                 (SELECT COUNT(*) FROM messages WHERE receiver=? AND sender=contact AND read=0) as unread
             FROM messages 
             WHERE sender = ? OR receiver = ?
@@ -660,8 +684,9 @@ def show_chat(conn):
             return
         
         # عرض قائمة المحادثات
-        contacts = [c[0] for c in conversations]
+        contacts = [f"{c[0]} 🔴" if c[2] > 0 else c[0] for c in conversations]
         selected = st.selectbox("اختر محادثة", contacts)
+        selected = selected.replace(" 🔴", "")
         
         if selected:
             st.subheader(f"الدردشة مع {selected}")
@@ -673,16 +698,16 @@ def show_chat(conn):
             
             # عرض الرسائل
             messages = conn.execute("""
-                SELECT sender, message, created_at FROM messages
+                SELECT sender, message, date FROM messages
                 WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)
-                ORDER BY created_at ASC
+                ORDER BY date ASC
             """, (user, selected, selected, user)).fetchall()
             
             for msg in messages:
                 if msg[0] == user:
-                    st.markdown(f"<div style='background: #dcf8c6; padding: 10px; border-radius: 10px; margin: 5px 0; text-align: left;'><b>أنت:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='background: #dcf8c6; padding: 10px; border-radius: 10px; margin: 5px 0; text-align: left;'><b>أنت:</b> {msg[1]}<br><small>{msg[2][11:16] if msg[2] else ''}</small></div>", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div style='background: white; padding: 10px; border-radius: 10px; margin: 5px 0;'><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16]}</small></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='background: white; padding: 10px; border-radius: 10px; margin: 5px 0;'><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16] if msg[2] else ''}</small></div>", unsafe_allow_html=True)
             
             # إرسال رسالة جديدة
             with st.form("send_message", clear_on_submit=True):
@@ -709,24 +734,74 @@ def admin_dashboard(conn):
     # إحصائيات سريعة
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("المستخدمين", users)
+        st.metric("المستخدمين", f"{users:,}")
     with col2:
-        st.metric("الإعلانات", ads)
+        st.metric("الإعلانات", f"{ads:,}")
     with col3:
-        st.metric("الزيارات", visitors)
+        st.metric("الزيارات", f"{visitors:,}")
     with col4:
-        st.metric("المشاهدات", views)
+        st.metric("المشاهدات", f"{views:,}")
     
-    # عرض المستخدمين
-    st.subheader("👥 المستخدمين")
-    try:
-        users_df = pd.read_sql_query("""
-            SELECT username, role, verified, banned, ad_count, last_login 
-            FROM users ORDER BY last_login DESC
-        """, conn)
-        st.dataframe(users_df, use_container_width=True)
-    except Exception as e:
-        st.error(f"خطأ في تحميل البيانات: {e}")
+    # تبويبات الإدارة
+    tab1, tab2, tab3 = st.tabs(["👥 المستخدمين", "📊 الإحصائيات", "🚨 البلاغات"])
+    
+    with tab1:
+        st.subheader("👥 قائمة المستخدمين")
+        try:
+            users_df = pd.read_sql_query("""
+                SELECT username, role, verified, banned, ad_count, 
+                       substr(last_login, 1, 10) as last_login
+                FROM users ORDER BY last_login DESC
+            """, conn)
+            st.dataframe(users_df, use_container_width=True)
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات: {e}")
+    
+    with tab2:
+        st.subheader("📊 إحصائيات متقدمة")
+        
+        # إحصائيات الإعلانات حسب الفئة
+        try:
+            category_stats = conn.execute("""
+                SELECT category, COUNT(*) as count 
+                FROM ads 
+                WHERE status='active' 
+                GROUP BY category
+            """).fetchall()
+            
+            if category_stats:
+                df_cats = pd.DataFrame(category_stats, columns=["الفئة", "العدد"])
+                fig = px.pie(df_cats, values='العدد', names='الفئة', 
+                            title="توزيع الإعلانات حسب الفئة",
+                            color_discrete_sequence=px.colors.sequential.Greens)
+                st.plotly_chart(fig, use_container_width=True)
+        except:
+            pass
+    
+    with tab3:
+        st.subheader("🚨 البلاغات المعلقة")
+        try:
+            reports = conn.execute("""
+                SELECT r.id, a.title, r.reporter, r.reason, r.date
+                FROM reports r JOIN ads a ON r.ad_id = a.id
+                WHERE r.status='pending'
+                ORDER BY r.date DESC
+            """).fetchall()
+            
+            if reports:
+                for report in reports:
+                    with st.container():
+                        st.warning(f"📌 إعلان: {report[1]}")
+                        st.write(f"المبلغ: {report[2]} | السبب: {report[3]} | التاريخ: {report[4][:10]}")
+                        if st.button("✅ معالجة", key=f"resolve_{report[0]}"):
+                            conn.execute("UPDATE reports SET status='resolved' WHERE id=?", (report[0],))
+                            conn.commit()
+                            st.rerun()
+                        st.divider()
+            else:
+                st.info("لا توجد بلاغات معلقة")
+        except Exception as e:
+            st.error(f"خطأ في تحميل البلاغات: {e}")
 
 # ==========================================
 # 14. التشغيل الرئيسي
