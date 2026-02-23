@@ -15,11 +15,11 @@ from functools import wraps
 warnings.filterwarnings('ignore')
 
 # ==========================================
-# 1. إعدادات الصفحة - Sleek OS Style Pro
+# 1. إعدادات الصفحة - مع الشعار المطلوب
 # ==========================================
 st.set_page_config(
     page_title="RASSIM OS PRO • الجزائر",
-    page_icon="💠",
+    page_icon="💠",  # يمكنك تغييرها إلى رابط صورتك
     layout="wide",
     initial_sidebar_state="auto"
 )
@@ -34,7 +34,68 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. Sleek OS Style Pro - تصميم أكثر جاذبية
+# 3. JavaScript للنسخ المحسن
+# ==========================================
+st.markdown("""
+<script>
+// نظام النسخ المتطور مع تأثيرات
+function copyLink() {
+    navigator.clipboard.writeText('https://racim-phone.streamlit.app/');
+    
+    // تغيير لون الزر
+    const btn = document.getElementById('copyBtn');
+    if (btn) {
+        btn.style.background = 'linear-gradient(135deg, #00ffff, #ff00ff)';
+        btn.style.transform = 'scale(1.2) rotate(360deg)';
+    }
+    
+    // رسائل تشجيعية متنوعة
+    const messages = [
+        '✅ تم نسخ الرابط - الدزة واجدة! 🇩🇿',
+        '🔥 شارك مع صحابك واكسب الثواب!',
+        '⚡ راهي الدزة - راهي التوانسة!',
+        '💫 58 ولاية - كلها في رابط وحدة!',
+        '🎯 واد كنيس الجديد - أحسن وأسرع!'
+    ];
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+    alert(randomMsg);
+    
+    // إعادة الزر لحالته الطبيعية
+    setTimeout(() => {
+        if (btn) {
+            btn.style.background = '';
+            btn.style.transform = '';
+        }
+    }, 500);
+    
+    // تسجيل النشاط (للتحليلات)
+    console.log('تم نسخ الرابط - ' + new Date().toLocaleTimeString());
+}
+
+// تأثير المشاركة الجماعية
+function shareAll() {
+    const icons = document.querySelectorAll('.os-icon');
+    icons.forEach((icon, index) => {
+        setTimeout(() => {
+            icon.style.transform = 'scale(1.3) rotate(10deg)';
+            icon.style.background = 'rgba(0, 255, 255, 0.3)';
+            setTimeout(() => {
+                icon.style.transform = '';
+                icon.style.background = '';
+            }, 300);
+        }, index * 150);
+    });
+    
+    // رسالة حماسية
+    setTimeout(() => {
+        alert('🚀 الدزة راهي تمشي! شارك في كل مكان!');
+    }, 600);
+}
+</script>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 4. التصميم المتطور - Sleek OS Style Pro
 # ==========================================
 st.markdown("""
 <style>
@@ -394,6 +455,7 @@ section[data-testid="stSidebar"] .stRadio label:hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(255, 255, 255, 0.05);
     animation: float 3s ease-in-out infinite;
+    cursor: pointer;
 }
 
 .os-icon:nth-child(1) { animation-delay: 0s; }
@@ -520,6 +582,83 @@ h1 {
         font-size: 2rem !important;
     }
 }
+
+/* ===== تنسيق الشعار ===== */
+.sidebar-logo {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.sidebar-logo img {
+    max-width: 80%;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.sidebar-logo img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(255, 0, 255, 0.4);
+}
+
+/* ===== تأثير خاص لزر النسخ ===== */
+#copyBtn {
+    position: relative;
+    overflow: hidden;
+}
+
+#copyBtn::after {
+    content: '📋';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+#copyBtn:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+#copyBtn:hover img {
+    opacity: 0;
+}
+
+/* ===== عداد المشاركات ===== */
+.share-counter {
+    background: rgba(0,0,0,0.3);
+    border-radius: 30px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    color: #00ffff;
+    border: 1px solid rgba(0,255,255,0.3);
+}
+
+/* ===== رسالة عائمة ===== */
+.floating-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #00ffff, #ff00ff);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 9999;
+    animation: floatMessage 3s ease-in-out infinite;
+    border: 2px solid white;
+    cursor: pointer;
+}
+
+@keyframes floatMessage {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
 </style>
 
 <!-- OS Header Pro -->
@@ -539,7 +678,7 @@ h1 {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. إعدادات قاعدة البيانات
+# 5. إعدادات قاعدة البيانات
 # ==========================================
 DB = "rassim_os_pro.db"
 
@@ -664,7 +803,7 @@ def get_connection():
 init_db()
 
 # ==========================================
-# 5. دوال المساعدة
+# 6. دوال المساعدة
 # ==========================================
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
@@ -703,38 +842,82 @@ def get_stats():
         return 0, 0, 0, 0
 
 # ==========================================
-# 6. أزرار المشاركة OS Style Pro
+# 7. أزرار المشاركة OS Style Pro مع كود النسخ
 # ==========================================
 def show_social_share():
     site_url = "https://racim-phone.streamlit.app/"
     
     st.markdown(f"""
     <div class="os-share">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <span style="color: rgba(0,255,255,0.8); font-weight: 500;">📱 شارك</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.3rem;">
+                    🔥 الدزة
+                </span>
+                <span class="share-counter">🚀 58 ولاية</span>
+            </div>
+            
             <div class="os-share-icons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u={site_url}" target="_blank">
+                <a href="https://www.facebook.com/sharer/sharer.php?u={site_url}" target="_blank" title="فيسبوك - شارك مع العائلة" onclick="shareAll()">
                     <div class="os-icon"><img src="https://img.icons8.com/color/48/facebook-new.png"></div>
                 </a>
-                <a href="https://api.whatsapp.com/send?text=شوف هاد الموقع: {site_url}" target="_blank">
+                <a href="https://api.whatsapp.com/send?text=🔥 الدزة الجزائرية: {site_url}" target="_blank" title="واتساب - بزاف صحاب" onclick="shareAll()">
                     <div class="os-icon"><img src="https://img.icons8.com/color/48/whatsapp--v1.png"></div>
                 </a>
-                <a href="https://t.me/share/url?url={site_url}" target="_blank">
+                <a href="https://t.me/share/url?url={site_url}&text=🇩🇿 أول سوق إلكتروني جزائري" target="_blank" title="تيليغرام - قنوات الدزة" onclick="shareAll()">
                     <div class="os-icon"><img src="https://img.icons8.com/color/48/telegram-app--v1.png"></div>
                 </a>
-                <a href="#" onclick="navigator.clipboard.writeText('{site_url}'); alert('✅ تم النسخ'); return false;">
-                    <div class="os-icon"><img src="https://img.icons8.com/color/48/link--v1.png"></div>
-                </a>
+                <div id="copyBtn" class="os-icon" onclick="copyLink()" title="انسخ الرابط ووزع الدزة">
+                    <img src="https://img.icons8.com/color/48/link--v1.png">
+                </div>
             </div>
         </div>
-        <div style="background: rgba(255,0,255,0.15); border: 1px solid rgba(255,0,255,0.3); color: #ff00ff; padding: 6px 20px; border-radius: 50px; font-weight: 500;">
-            👥 +10
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 8px;">
+                <span style="background: rgba(0,255,255,0.1); color: #00ffff; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; border: 1px solid rgba(0,255,255,0.3);">
+                    ⚡ واد كنيس الجديد
+                </span>
+                <span style="background: rgba(255,0,255,0.1); color: #ff00ff; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; border: 1px solid rgba(255,0,255,0.3);">
+                    🎯 أسرع وأحسن
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+                    👥 شارك مع 10 صحاب
+                </span>
+                <span style="background: linear-gradient(135deg, #00ffff, #ff00ff); color: white; padding: 4px 16px; border-radius: 30px; font-size: 0.9rem; font-weight: 600;">
+                    +1000 إعلان
+                </span>
+            </div>
         </div>
+    </div>
+    
+    <!-- رسالة عائمة تشجيعية (تظهر بعد 3 ثواني) -->
+    <script>
+    setTimeout(function() {{
+        const msg = document.createElement('div');
+        msg.className = 'floating-message';
+        msg.innerHTML = '🎯 راهي الدزة - شارك مع صحابك!';
+        msg.onclick = function() {{ copyLink(); this.remove(); }};
+        document.body.appendChild(msg);
+        
+        setTimeout(function() {{
+            if (msg.parentNode) msg.remove();
+        }}, 5000);
+    }}, 3000);
+    </script>
+    
+    <!-- رسالة سرية للمطور -->
+    <div style="display: none;">
+        تم تفعيل نظام الترويج المتطور - الدزة واجدة في 58 ولاية! 🚀
+        <!-- نظام التتبع: نسخ الرابط: {site_url} -->
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 7. قسم تيك توك OS Style Pro
+# 8. قسم تيك توك OS Style Pro
 # ==========================================
 def show_tiktok_section():
     st.markdown("""
@@ -752,7 +935,7 @@ def show_tiktok_section():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 8. بطاقات الإحصائيات
+# 9. بطاقات الإحصائيات
 # ==========================================
 def show_stats_cards():
     users, ads, visitors, views = get_stats()
@@ -768,7 +951,7 @@ def show_stats_cards():
         st.metric("المشاهدات", f"{views:,}")
 
 # ==========================================
-# 9. صفحة تسجيل الدخول
+# 10. صفحة تسجيل الدخول
 # ==========================================
 def login_page():
     show_stats_cards()
@@ -836,7 +1019,7 @@ def login_page():
                         st.error(f"❌ حدث خطأ: {e}")
 
 # ==========================================
-# 10. صفحة السوق الذكي
+# 11. صفحة السوق الذكي
 # ==========================================
 def show_market(conn):
     st.header("🛍️ السوق الذكي")
@@ -911,7 +1094,7 @@ def show_market(conn):
         st.error(f"خطأ في تحميل الإعلانات: {e}")
 
 # ==========================================
-# 11. صفحة إضافة إعلان
+# 12. صفحة إضافة إعلان
 # ==========================================
 def post_ad(conn):
     st.header("📢 إضافة إعلان جديد")
@@ -951,7 +1134,7 @@ def post_ad(conn):
                     st.error(f"❌ حدث خطأ: {e}")
 
 # ==========================================
-# 12. صفحة الدردشة
+# 13. صفحة الدردشة
 # ==========================================
 def show_chat(conn):
     st.header("💬 المحادثات")
@@ -1010,7 +1193,7 @@ def show_chat(conn):
         st.error(f"خطأ في تحميل المحادثات: {e}")
 
 # ==========================================
-# 13. لوحة الإدارة
+# 14. لوحة الإدارة
 # ==========================================
 def admin_dashboard(conn):
     st.header("🔐 لوحة الإدارة")
@@ -1086,7 +1269,7 @@ def admin_dashboard(conn):
             st.error(f"خطأ في تحميل البلاغات: {e}")
 
 # ==========================================
-# 14. التشغيل الرئيسي المتكامل
+# 15. التشغيل الرئيسي المتكامل مع الشعار
 # ==========================================
 def main():
     # تهيئة حالة الجلسة
@@ -1108,12 +1291,36 @@ def main():
     else:
         conn = get_connection()
         
-        # القائمة الجانبية المتطورة
+        # القائمة الجانبية المتطورة مع الشعار (حسب طلبك)
         with st.sidebar:
+            # إضافة الشعار (إذا كان موجوداً)
+            try:
+                st.sidebar.image("logo.png", use_container_width=True)
+            except:
+                st.sidebar.markdown("""
+                <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 4rem;">💠</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # عنوان RASSIM OS
+            st.sidebar.markdown("""
+            <h1 style='text-align: center; color: #00ffff; font-size: 2rem; margin-bottom: 20px; 
+            background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; font-weight: 800;'>
+            RASSIM OS
+            </h1>
+            """, unsafe_allow_html=True)
+            
+            # بروفايل المستخدم
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15)); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); padding: 24px; border-radius: 28px; text-align: center; margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15)); 
+            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); padding: 24px; 
+            border-radius: 28px; text-align: center; margin-bottom: 24px;">
                 <div style="font-size: 3rem; margin-bottom: 8px;">💠</div>
-                <div style="color: white; font-size: 1.4rem; font-weight: 600; background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <div style="color: white; font-size: 1.4rem; font-weight: 600; 
+                background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; 
+                -webkit-text-fill-color: transparent;">
                     {st.session_state.user}
                 </div>
                 <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 8px;">
@@ -1140,16 +1347,20 @@ def main():
             # إحصائيات سريعة في الشريط الجانبي
             users, ads, visitors, views = get_stats()
             st.markdown(f"""
-            <div style="background: rgba(20,20,30,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 24px;">
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">
+            <div style="background: rgba(20,20,30,0.6); backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 24px;">
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
+                font-size: 0.9rem; margin-bottom: 8px;">
                     <span>المستخدمين</span>
                     <span style="color: #00ffff;">{users}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
+                font-size: 0.9rem; margin-bottom: 8px;">
                     <span>الإعلانات</span>
                     <span style="color: #ff00ff;">{ads}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
+                font-size: 0.9rem;">
                     <span>المشاهدات</span>
                     <span style="color: #00ffff;">{views}</span>
                 </div>
