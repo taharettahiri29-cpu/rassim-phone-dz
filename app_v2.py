@@ -1,10 +1,24 @@
 import streamlit as st
-import streamlit as st
 from PIL import Image # مكتبة معالجة الصور
 
 # ... داخل التبويب الثاني (أنشر عرضك) ...
 
 with st.form("add_offer", clear_on_submit=True):
+        st.subheader("📢 تفاصيل العرض")
+        p_name = st.text_input("اسم الهاتف")
+        p_price = st.number_input("السعر (دج)", min_value=0)
+        p_phone = st.text_input("رقم الواتساب")
+        p_city = st.selectbox("الولاية", wilayas)
+        p_desc = st.text_area("وصف الإعلان")
+        
+        # أضف هذه العبارة كاملة هنا:
+        submitted = st.form_submit_button("🚀 نشر العرض في المحرك")
+        
+        if submitted:
+            if p_name and p_phone:
+                st.success("✅ تم استلام عرضك بنجاح!")
+            else:
+                st.error("⚠️ يرجى ملء الخانات الأساسية.")
     st.subheader("📸 ميزة الذكاء الاصطناعي: ارفع صورة هاتفك")
     uploaded_file = st.file_uploader("اترك الذكاء الاصطناعي يتعرف على هاتفك", type=["jpg", "png", "jpeg"])
     
@@ -110,6 +124,7 @@ with col_filter:
     target_wilaya = st.selectbox("تصفية حسب الولاية", ["كل الولايات"] + wilayas)
 
 # ... (منطق الفلترة والعرض الذي شرحناه سابقاً) ...
+
 
 
 
