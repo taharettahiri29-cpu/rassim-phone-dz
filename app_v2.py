@@ -51,7 +51,7 @@ if 'user' not in st.session_state:
 if 'role' not in st.session_state:
     st.session_state.role = "user"
 if 'verified' not in st.session_state:
-    st.session_state.verified = 1  # مفعل تلقائياً
+    st.session_state.verified = 1
 if 'ip' not in st.session_state:
     st.session_state.ip = secrets.token_hex(8)
 if 'robot_active' not in st.session_state:
@@ -196,7 +196,7 @@ def load_data_optimized():
         return None
 
 # ==========================================
-# 7. نظام "الذكاء العصبي" للواجهة مع جميع التصحيحات
+# 7. نظام "الذكاء العصبي" للواجهة
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
@@ -215,7 +215,6 @@ def set_ultimate_theme():
         min-height: 100vh;
     }
 
-    /* ===== تصميم الشعار الاحترافي ===== */
     .logo-container {
         text-align: center;
         padding: 20px;
@@ -241,7 +240,6 @@ def set_ultimate_theme():
         to { background-position: 200% center; }
     }
 
-    /* ===== تصحيح تداخل التبويبات ===== */
     .stTabs [data-baseweb="tab-list"] {
         gap: 40px !important;
         justify-content: center;
@@ -260,7 +258,6 @@ def set_ultimate_theme():
         color: white !important;
     }
 
-    /* إخفاء أي نصوص غريبة */
     [class*="keyboard_ar"], [class*="keyboard"], [class*="translate"] {
         display: none !important;
     }
@@ -270,7 +267,6 @@ def set_ultimate_theme():
         display: none !important;
     }
 
-    /* تحسين المسافات في حقول الإدخال */
     .stTextInput, .stTextArea {
         margin-bottom: 15px !important;
     }
@@ -387,7 +383,6 @@ def set_ultimate_theme():
         50% { transform: translateY(-10px); }
     }
 
-    /* عداد الزوار الحي */
     .live-counter {
         position: fixed;
         bottom: 20px;
@@ -422,6 +417,34 @@ def set_ultimate_theme():
         50% { opacity: 0.3; }
     }
 
+    .terms-box {
+        background: rgba(20, 20, 30, 0.6);
+        border: 1px solid #ff00ff;
+        border-radius: 30px;
+        padding: 20px;
+        margin-top: 20px;
+        color: white;
+        font-size: 0.9rem;
+        line-height: 1.8;
+    }
+
+    .terms-box h2 {
+        color: #ff00ff;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .terms-box hr {
+        border-color: rgba(255, 0, 255, 0.2);
+        margin: 15px 0;
+    }
+
+    .footer-note {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #888;
+    }
+
     @media screen and (max-width: 768px) {
         .logo-text { font-size: 2.2rem; }
         .stat-value { font-size: 1.8rem; }
@@ -436,15 +459,11 @@ def set_ultimate_theme():
 # 8. عداد الزوار الحي
 # ==========================================
 def show_live_counter():
-    """عرض عداد الزوار الحي في أسفل الصفحة"""
     _, _, total_visitors, _ = get_stats()
-    
     st.markdown(f"""
     <div class="live-counter">
         <span class="live-dot">●</span>
-        <span style="color: white; font-family: 'Space Grotesk';">
-            LIVE: <b style="color: #00ffff; font-size: 1.1rem;">{total_visitors:,}</b>
-        </span>
+        <span style="color: white; font-family: 'Space Grotesk';">LIVE: <b style="color: #00ffff;">{total_visitors:,}</b></span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -467,14 +486,12 @@ def serious_buyer_detector(message, price_offered=0):
             'price': price_offered,
             'time': datetime.now().strftime("%H:%M:%S")
         }
-        
-        st.toast("🚨 مشتري جدي دخل!", icon="💰")
-        st.balloons()
+        st.toast("🚨 مشتري جدي!", icon="💰")
         return True
     return False
 
 # ==========================================
-# 10. روبوت RASSIM الذكي بالدارجة
+# 10. روبوت RASSIM الذكي
 # ==========================================
 def rassim_robot_logic(user_message):
     user_message = user_message.lower()
@@ -492,21 +509,20 @@ def rassim_robot_logic(user_message):
     """
     
     responses = {
-        "سعر": "💰 الأسعار عندنا هي الأفضل في السوق! تفقد الإعلانات وشوف بنفسك",
-        "متوفر": "✅ كل الإعلانات المعروضة متوفرة حالياً. دوز وشوف اللي يعجبك",
-        "تيبازة": "📍 مقرنا في فوكة (42). التوصيل لـ69 ولاية كاملة 🚚",
-        "سلام": "وعليكم السلام! نورت RASSIM OS. تحب تعاون؟ 😊",
-        "آيفون": "📱 آيفون 15 برو ماكس بـ225,000 دج موجود. حاب تحجز؟",
-        "سامسونج": "📱 S24 Ultra بـ185,000 دج شامل الضمان. متوفر في 16 و31",
-        "هواوي": "📱 هواوي P60 Pro موجود. سقسقة عليه في البحث",
-        "شاومي": "📱 Xiaomi 14 Pro بـ95,000 دج فقط. فرصة ما تعوضش",
-        "واد كنيس": "🎯 نحن البديل العصري لواد كنيس. أسرع، أذكى، وأكثر أماناً",
-        "الدزة": "⚡ الدزة الجزائرية واجدة! RASSIM OS هو المستقبل",
-        "وين": "📍 المقر الرئيسي: فوكة، تيبازة (42). نغطي 69 ولاية كاملة",
-        "69": "✅ 69 ولاية جزائرية مدعومة. حتى الولايات الجديدة مشمولة!",
-        "كيفاش": "💡 بسيطة! سجل، دوز على الإعلان، وضغط على واتساب مباشر",
-        "توصيل": "📦 التوصيل لكل الولايات. نتعامل مع شركات موثوقة",
-        "مساعدة": "🤔 اكتب سؤالك وأنا نجاوبك فوراً"
+        "سعر": "💰 الأسعار عندنا هي الأفضل! تفقد الإعلانات وشوف بنفسك",
+        "متوفر": "✅ كل الإعلانات المعروضة متوفرة حالياً",
+        "تيبازة": "📍 مقرنا في فوكة (42). التوصيل لـ69 ولاية",
+        "سلام": "وعليكم السلام! نورت RASSIM OS",
+        "آيفون": "📱 آيفون 15 بـ225,000 دج موجود",
+        "سامسونج": "📱 S24 Ultra بـ185,000 دج",
+        "هواوي": "📱 هواوي P60 Pro موجود",
+        "شاومي": "📱 Xiaomi 14 Pro بـ95,000 دج",
+        "واد كنيس": "🎯 نحن البديل العصري لواد كنيس",
+        "الدزة": "⚡ الدزة الجزائرية واجدة!",
+        "وين": "📍 فوكة، تيبازة (42) - نغطي 69 ولاية",
+        "69": "✅ 69 ولاية جزائرية مدعومة",
+        "كيفاش": "💡 سجل، دوز على الإعلان، وضغط واتساب",
+        "توصيل": "📦 التوصيل لكل الولايات"
     }
     
     if user_message == "ترحيب_خاص":
@@ -514,11 +530,10 @@ def rassim_robot_logic(user_message):
     
     for key in responses:
         if key in user_message:
-            if key in ["حاب نشري", "كاش", "وين", "دابا"]:
+            if key in ["حاب نشري", "كاش", "وين"]:
                 serious_buyer_detector(user_message)
             return responses[key]
-    
-    return "رسالتك وصلت! أنا روبوت RASSIM. سأرد عليك قريباً. 🌟"
+    return "رسالتك وصلت! سأرد قريباً 🌟"
 
 # ==========================================
 # 11. رادار راسم الآلي
@@ -526,21 +541,15 @@ def rassim_robot_logic(user_message):
 def robotic_alert_ui():
     st.sidebar.markdown("---")
     st.sidebar.subheader("🛰️ رادار RASSIM")
-    
     hunter_mode = st.sidebar.toggle("⚡ وضع الصياد", value=True)
     st.session_state.robot_active = hunter_mode
     
     if hunter_mode:
-        st.sidebar.success("🟢 الرادار نشط - يراقب الصفقات")
-        
+        st.sidebar.success("🟢 الرادار نشط")
         if st.session_state.last_alert:
-            with st.sidebar.expander("🚨 آخر عرض ساخن", expanded=True):
-                st.markdown(f"""
-                **الرسالة:** {st.session_state.last_alert['message']}
-                **💰 السعر:** {st.session_state.last_alert['price']} دج
-                **⏰ الوقت:** {st.session_state.last_alert['time']}
-                """)
-                st.markdown("[📞 تواصل فوري](https://wa.me/213555555555)")
+            with st.sidebar.expander("🚨 آخر عرض"):
+                st.markdown(f"**{st.session_state.last_alert['message']}**\n💰 {st.session_state.last_alert['price']} دج")
+                st.markdown("[📞 تواصل](https://wa.me/213555555555)")
     else:
         st.sidebar.warning("🔴 الرادار متوقف")
 
@@ -550,11 +559,11 @@ def robotic_alert_ui():
 def generate_auto_ads():
     hour = datetime.now().hour
     if 18 <= hour <= 22:
-        st.sidebar.markdown("<p style='color:#00ffff; font-weight:bold;'>🔥 وقت الذروة! انشر إعلانك الآن</p>", unsafe_allow_html=True)
+        st.sidebar.markdown("<p style='color:#00ffff;'>🔥 وقت الذروة! انشر الآن</p>", unsafe_allow_html=True)
     elif 9 <= hour <= 12:
-        st.sidebar.markdown("<p style='color:#ff00ff; font-weight:bold;'>☀️ وقت الصباح الذهبي</p>", unsafe_allow_html=True)
+        st.sidebar.markdown("<p style='color:#ff00ff;'>☀️ وقت الصباح الذهبي</p>", unsafe_allow_html=True)
     else:
-        st.sidebar.markdown("<p style='color:#888;'>⏳ وقت هادئ - جهز إعلاناتك</p>", unsafe_allow_html=True)
+        st.sidebar.markdown("<p style='color:#888;'>⏳ وقت هادئ</p>", unsafe_allow_html=True)
 
 # ==========================================
 # 13. عداد وشبكة الولايات
@@ -570,10 +579,12 @@ def show_wilaya_counter():
     """, unsafe_allow_html=True)
 
 def show_wilaya_badges():
+    sample_wilayas = ALGERIAN_WILAYAS[1:21]
     cols = st.columns(6)
-    for i, wilaya in enumerate(ALGERIAN_WILAYAS[1:21]):  # عرض أول 20 ولاية كعينة
+    for i, wilaya in enumerate(sample_wilayas):
         with cols[i % 6]:
-            st.markdown(f"<span class='wilaya-badge'>{wilaya[:10]}...</span>", unsafe_allow_html=True)
+            display_text = wilaya if len(wilaya) <= 10 else wilaya[:10] + "..."
+            st.markdown(f"<span class='wilaya-badge'>{display_text}</span>", unsafe_allow_html=True)
     
     with st.expander("📍 عرض جميع الولايات (69)"):
         cols = st.columns(5)
@@ -589,9 +600,6 @@ def show_live_chat():
     <div class="chat-bubble" onclick="document.getElementById('chat_trigger').click();">
         <img src="https://img.icons8.com/ios-filled/30/ffffff/speech-bubble.png" width="30">
     </div>
-    <div style="display: none;">
-        <button id="chat_trigger">Open</button>
-    </div>
     """, unsafe_allow_html=True)
 
     with st.sidebar:
@@ -600,7 +608,6 @@ def show_live_chat():
         
         with st.expander("🗣️ تحدث مع روبوت RASSIM", expanded=False):
             st.write("أهلاً! أنا روبوت راسم الذكي بالدارجة الجزائرية")
-            
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("[![WhatsApp](https://img.icons8.com/color/40/whatsapp.png)](https://wa.me/213555555555)")
@@ -608,14 +615,10 @@ def show_live_chat():
                 st.markdown("[![Telegram](https://img.icons8.com/color/40/telegram-app.png)](https://t.me/RassimDZ)")
             
             msg = st.text_area("📝 اكتب رسالتك:", key="robot_input", height=80)
-            if st.button("🤖 إرسال", use_container_width=True):
-                if msg:
-                    if msg.lower() == "ترحيب_خاص":
-                        reply = rassim_robot_logic("ترحيب_خاص")
-                    else:
-                        reply = rassim_robot_logic(msg)
-                    st.info(f"🤖 {reply}")
-                    serious_buyer_detector(msg, 0)
+            if st.button("🤖 إرسال", use_container_width=True) and msg:
+                reply = rassim_robot_logic(msg)
+                st.info(f"🤖 {reply}")
+                serious_buyer_detector(msg, 0)
 
 # ==========================================
 # 15. نظام التحليل التنبئي
@@ -623,34 +626,34 @@ def show_live_chat():
 def show_market_trends(conn):
     st.markdown("### 📈 تحليلات السوق")
     try:
-        df = pd.read_sql_query("SELECT category, COUNT(*) as count FROM ads WHERE status='active' GROUP BY category", conn)
-        if not df.empty:
-            fig = go.Figure(go.Bar(
-                x=df['count'],
-                y=df['category'],
-                orientation='h',
-                marker_color='#00ffff',
-                text=df['count'],
-                textposition='auto'
-            ))
-            fig.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='white',
-                height=250,
-                margin=dict(l=20, r=20, t=30, b=20)
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        if conn:
+            df = pd.read_sql_query("SELECT category, COUNT(*) as count FROM ads WHERE status='active' GROUP BY category", conn)
+            if not df.empty:
+                fig = go.Figure(go.Bar(
+                    x=df['count'],
+                    y=df['category'],
+                    orientation='h',
+                    marker_color='#00ffff',
+                    text=df['count'],
+                    textposition='auto'
+                ))
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='white',
+                    height=250
+                )
+                st.plotly_chart(fig, use_container_width=True)
     except:
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 16. محرك البحث الذكي المطور
+# 16. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2 = st.columns([3, 1])
     with col1:
-        q = st.text_input("", placeholder="🔍 ابحث عن هاتف (آيفون، سامسونج...)")
+        q = st.text_input("", placeholder="🔍 ابحث عن هاتف...")
     with col2:
         st.selectbox("", ["⚡ Flash", "🧠 ذكي"], label_visibility="collapsed")
     
@@ -662,53 +665,74 @@ def quantum_search_ui():
     return q, w, s
 
 # ==========================================
-# 17. دالة الإعلان المختصرة والأنيقة (نسخة ميني)
+# 17. دالة الإعلان
 # ==========================================
 def render_ad_pro(ad):
-    """عرض الإعلان بشكل مختصر وأنيق"""
-    
-    phone_display = ad['phone'][:4] + "••••" + ad['phone'][-4:] if len(ad['phone']) > 8 else ad['phone']
+    phone_display = ad['phone'][:4] + "••••" + ad['phone'][-4:] if len(ad.get('phone', '')) > 8 else ad.get('phone', '')
     verified = "✅" if ad.get('verified') else "⚠️"
     verified_color = "#00ffff" if ad.get('verified') else "#ff00ff"
+    title = ad.get('title', '')[:30] if ad.get('title') else ''
+    description = ad.get('description', '')[:60] if ad.get('description') else ''
     
     st.markdown(f"""
     <div class="hologram-card">
-        <div style="display: flex; justify-content: space-between; color: #888; font-size: 0.85rem; margin-bottom: 8px;">
-            <span>📍 {ad['wilaya']}</span>
-            <span>👁️ {ad['views']}</span>
+        <div style="display: flex; justify-content: space-between; color: #888; margin-bottom: 8px;">
+            <span>📍 {ad.get('wilaya', '')}</span>
+            <span>👁️ {ad.get('views', 0)}</span>
             <span style="color: {verified_color};">{verified}</span>
         </div>
-        
-        <h3 style="color: #00ffff; margin: 8px 0; font-size: 1.3rem;">{ad['title'][:30]}</h3>
-        
+        <h3 style="color: #00ffff; margin: 8px 0;">{title}</h3>
         <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
-            <span style="color: #ff00ff; font-size: 1.6rem; font-weight: bold;">{ad['price']:,} دج</span>
-            <span style="background: rgba(255,0,255,0.1); padding: 5px 12px; border-radius: 50px; color: #ff00ff; font-size: 0.9rem;">📞 {phone_display}</span>
+            <span style="color: #ff00ff; font-size: 1.6rem; font-weight: bold;">{ad.get('price', 0):,} دج</span>
+            <span style="background: rgba(255,0,255,0.1); padding: 5px 12px; border-radius: 50px; color: #ff00ff;">📞 {phone_display}</span>
         </div>
-        
-        <p style="color: #aaa; margin: 8px 0; font-size: 0.9rem;">{ad['description'][:60]}...</p>
-        
+        <p style="color: #aaa; margin: 8px 0;">{description}...</p>
         <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <a href="https://wa.me/{ad['phone']}" target="_blank" style="flex: 1;">
-                <button style="width:100%; padding:10px; background:#25D366; border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer; font-size:0.9rem;">📱 واتساب</button>
+            <a href="https://wa.me/{ad.get('phone', '')}" target="_blank" style="flex: 1;">
+                <button style="width:100%; padding:10px; background:#25D366; border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer;">📱 واتساب</button>
             </a>
-            <a href="tel:{ad['phone']}" style="flex: 1;">
-                <button style="width:100%; padding:10px; background:linear-gradient(90deg, #00ffff, #ff00ff); border:none; border-radius:12px; color:black; font-weight:bold; cursor:pointer; font-size:0.9rem;">📞 اتصال</button>
+            <a href="tel:{ad.get('phone', '')}" style="flex: 1;">
+                <button style="width:100%; padding:10px; background:linear-gradient(90deg, #00ffff, #ff00ff); border:none; border-radius:12px; color:black; font-weight:bold; cursor:pointer;">📞 اتصال</button>
             </a>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 18. صفحة تسجيل الدخول مع الشعار الجديد
+# 18. اتفاقية الاستخدام (Terms of Service)
+# ==========================================
+def show_terms():
+    st.markdown("""
+    <div class="terms-box hologram-card" style="border-color: #ff00ff;">
+        <h2 style="color: #ff00ff; text-align: center;">📜 قانون المنصة (RASSIM OS)</h2>
+        <p style="text-align: right;">
+        يا أهلاً بيك في RASSIM OS. باش نحافظو على نظافة السوق وثقة المستخدمين، لازم تلتزم بهاد الشروط:
+        <br><br>
+        ✅ <b>المصداقية:</b> الإعلان لازم يكون حقيقي وصور الهاتف تكون واضحة. الكذب في السلعة "ممنوع" والروبوت تاعنا يفيق بيك.
+        <br><br>
+        ✅ <b>الاحترام:</b> أي كلام غير لائق في الدردشة أو الوصف يؤدي لحظر الحساب (Ban) نهائياً بلا ما نرجعو لك.
+        <br><br>
+        ✅ <b>69 ولاية:</b> حنا نغطيو كامل الجزائر، لذا تأكد من اختيار ولايتك الصحيحة باش يوصلك المشتري الجدي اللي قريب ليك.
+        <br><br>
+        ⚠️ <b>إخلاء مسؤولية:</b> الموقع هو وسيط ذكي يجمع البائع والمشتري. التأكد من سلامة الهاتف والخلص يكون بيناتكم (برّاء للذمة).
+        <br><br>
+        🚀 <b>التفعيل الفوري:</b> عطيناكم الثقة وفعلنا الحسابات تلقائياً، حافظوا عليها باش تبقاو Verified.
+        </p>
+        <hr>
+        <p class="footer-note">
+        برمجة وتطوير: راسم (2026) • فوكة، تيبازة
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# 19. صفحة تسجيل الدخول
 # ==========================================
 def login_page(conn):
     st.markdown("""
     <div class="logo-container">
         <div class="logo-text">RASSIM OS</div>
-        <div style="color: #00ffff; letter-spacing: 2px; font-size: 0.9rem; margin-top: -5px;">
-            ULTIMATE • 69 WILAYAS
-        </div>
+        <div style="color: #00ffff; letter-spacing: 2px;">ULTIMATE • 69 WILAYAS</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -729,23 +753,16 @@ def login_page(conn):
         with st.form("login_form"):
             u = st.text_input("👤 اسم المستخدم")
             p = st.text_input("🔐 كلمة المرور", type="password")
-            if st.form_submit_button("⚡ دخول سريع", use_container_width=True):
-                if u and p:
-                    user = conn.execute("SELECT password, salt, role, verified FROM users WHERE username=?", (u,)).fetchone()
-                    if user:
-                        if user[0] == hash_password(p, user[1]):
-                            st.session_state.user = u
-                            st.session_state.role = user[2]
-                            st.session_state.verified = user[3]
-                            st.success(f"✅ أهلاً {u}")
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("❌ كلمة المرور غير صحيحة")
-                    else:
-                        st.error("❌ المستخدم غير موجود")
+            if st.form_submit_button("⚡ دخول", use_container_width=True) and u and p:
+                user = conn.execute("SELECT password, salt, role, verified FROM users WHERE username=?", (u,)).fetchone()
+                if user and user[0] == hash_password(p, user[1]):
+                    st.session_state.user = u
+                    st.session_state.role = user[2]
+                    st.session_state.verified = user[3]
+                    st.success(f"✅ أهلاً {u}")
+                    st.rerun()
                 else:
-                    st.warning("⚠️ املأ جميع الحقول")
+                    st.error("❌ بيانات غير صحيحة")
     
     with tab2:
         with st.form("register_form"):
@@ -753,49 +770,41 @@ def login_page(conn):
             np = st.text_input("🔐 كلمة المرور", type="password")
             em = st.text_input("📧 البريد الإلكتروني")
             ph = st.text_input("📱 رقم الهاتف")
-            if st.form_submit_button("✨ تسجيل وتفعيل فوري", use_container_width=True):
-                if nu and np:
-                    if len(np) < 6:
-                        st.error("❌ كلمة المرور قصيرة (6 أحرف على الأقل)")
-                    else:
-                        salt = secrets.token_hex(16)
-                        hashed = hash_password(np, salt)
-                        try:
-                            conn.execute("""
-                                INSERT INTO users (username, password, salt, email, phone, role, verified)
-                                VALUES (?, ?, ?, ?, ?, 'user', 1)
-                            """, (nu, hashed, salt, em, ph))
-                            conn.commit()
-                            st.success("✅ تم التسجيل والتفعيل الفوري! يمكنك الدخول الآن")
-                            st.balloons()
-                        except sqlite3.IntegrityError:
-                            st.error("❌ اسم المستخدم موجود مسبقاً")
+            if st.form_submit_button("✨ تسجيل", use_container_width=True) and nu and np:
+                if len(np) >= 6:
+                    salt = secrets.token_hex(16)
+                    hashed = hash_password(np, salt)
+                    try:
+                        conn.execute("INSERT INTO users (username, password, salt, email, phone, role, verified) VALUES (?,?,?,?,?,'user',1)", 
+                                   (nu, hashed, salt, em, ph))
+                        conn.commit()
+                        st.success("✅ تم التسجيل!")
+                    except:
+                        st.error("❌ اسم المستخدم موجود")
                 else:
-                    st.warning("⚠️ اسم المستخدم وكلمة المرور مطلوبان")
+                    st.error("❌ كلمة المرور قصيرة")
 
 # ==========================================
-# 19. صفحة السوق الذكي
+# 20. صفحة السوق الذكي
 # ==========================================
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
-    
     q, w, s = quantum_search_ui()
     
-    with st.expander("📊 تحليلات السوق الحية", expanded=False):
+    with st.expander("📊 تحليلات السوق", expanded=False):
         show_market_trends(conn)
     
-    # إعلانات تجريبية (تأتي من قاعدة البيانات في النسخة الحقيقية)
     ads = [
         {"id": 1, "title": "iPhone 15 Pro Max 512GB", "price": 225000, "phone": "0555123456", 
-         "wilaya": "16 - الجزائر", "description": "نظيف جداً، مع كامل أغراضه، بطارية 100%، لون أسود، مع سماعات AirPods Pro هدية", "views": 1024, "verified": True},
+         "wilaya": "16 - الجزائر", "description": "نظيف جداً، مع كامل أغراضه، بطارية 100%", "views": 1024, "verified": True},
         {"id": 2, "title": "Samsung S24 Ultra 512GB", "price": 185000, "phone": "0666123456", 
-         "wilaya": "31 - وهران", "description": "حالة ممتازة، بطارية 100%، مع قلم S Pen أصلي، شاحن سريع 45W", "views": 856, "verified": True},
+         "wilaya": "31 - وهران", "description": "حالة ممتازة، بطارية 100%، مع قلم S Pen", "views": 856, "verified": True},
         {"id": 3, "title": "Xiaomi 14 Pro 256GB", "price": 95000, "phone": "0777123456", 
-         "wilaya": "25 - قسنطينة", "description": "جديد لم يستعمل، مع كامل أغراضه، ضمان محل 6 أشهر", "views": 623, "verified": True},
+         "wilaya": "25 - قسنطينة", "description": "جديد لم يستعمل، ضمان 6 أشهر", "views": 623, "verified": True},
         {"id": 4, "title": "Google Pixel 8 Pro", "price": 165000, "phone": "0555987654", 
-         "wilaya": "42 - تيبازة", "description": "نظيف، مستعمل شهرين فقط، مع جراب أصلي وشاحن", "views": 421, "verified": True},
+         "wilaya": "42 - تيبازة", "description": "مستعمل شهرين، مع جراب أصلي", "views": 421, "verified": True},
         {"id": 5, "title": "iPhone 14 Pro Max", "price": 155000, "phone": "0666987654", 
-         "wilaya": "16 - الجزائر", "description": "حالة ممتازة، بطارية 92%، مع جميع الأكسسوارات", "views": 789, "verified": False}
+         "wilaya": "16 - الجزائر", "description": "حالة ممتازة، بطارية 92%", "views": 789, "verified": False}
     ]
     
     filtered = ads
@@ -808,13 +817,13 @@ def show_market():
         render_ad_pro(ad)
     
     if not filtered:
-        st.info("😕 لا توجد إعلانات تطابق بحثك")
+        st.info("😕 لا توجد إعلانات")
 
 # ==========================================
-# 20. إضافة إعلان جديد (نشر فوري)
+# 21. إضافة إعلان جديد
 # ==========================================
 def post_ad():
-    st.markdown("### 📢 إعلان جديد - نشر فوري لـ 69 ولاية")
+    st.markdown("### 📢 إعلان جديد - نشر فوري")
     
     with st.form("new_ad_form"):
         col1, col2 = st.columns(2)
@@ -825,28 +834,25 @@ def post_ad():
             price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
             wilaya = st.selectbox("📍 الولاية *", ALGERIAN_WILAYAS[1:])
         
-        phone = st.text_input("📞 رقم الهاتف *", placeholder="مثال: 0555123456")
-        desc = st.text_area("📝 الوصف", height=100, placeholder="اكتب وصفاً مفصلاً للمنتج...")
+        phone = st.text_input("📞 رقم الهاتف *")
+        desc = st.text_area("📝 الوصف", height=100)
         
-        if st.form_submit_button("🚀 نشر فوري", use_container_width=True):
-            if title and phone and price > 0:
-                try:
-                    conn.execute("""
-                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner, status, verified)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)
-                    """, (title, price, phone, wilaya, desc, cat, st.session_state.user))
-                    conn.commit()
-                    st.success("✅ تم نشر إعلانك فوراً! سيظهر في كل الولايات")
-                    st.balloons()
-                    time.sleep(2)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ خطأ: {e}")
-            else:
-                st.error("❌ يرجى ملء جميع الحقول المطلوبة")
+        if st.form_submit_button("🚀 نشر", use_container_width=True) and title and phone and price > 0:
+            try:
+                conn.execute("""
+                    INSERT INTO ads (title, price, phone, wilaya, description, category, owner, verified)
+                    VALUES (?,?,?,?,?,?,?,1)
+                """, (title, price, phone, wilaya, desc, cat, st.session_state.user))
+                conn.commit()
+                st.success("✅ تم النشر!")
+                st.balloons()
+                time.sleep(2)
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ خطأ: {e}")
 
 # ==========================================
-# 21. صفحة الحساب الشخصي
+# 22. صفحة الحساب الشخصي
 # ==========================================
 def profile_page():
     st.markdown("### 👤 حسابي الشخصي")
@@ -860,12 +866,10 @@ def profile_page():
             <p><b>👤 المستخدم:</b> {st.session_state.user}</p>
             <p><b>🔐 الصلاحية:</b> {'مسؤول' if st.session_state.role == 'admin' else 'عضو'}</p>
             <p><b>✅ الحالة:</b> {'مفعل' if st.session_state.verified else 'غير مفعل'}</p>
-            <p><b>⭐ التقييم:</b> 4.8/5</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        # إحصائيات المستخدم
         try:
             user_ads = conn.execute("SELECT COUNT(*) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0]
             user_views = conn.execute("SELECT SUM(views) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0] or 0
@@ -878,19 +882,17 @@ def profile_page():
             <h4 style="color:#ff00ff;">إحصائياتي</h4>
             <p><b>📊 إعلاناتي:</b> {user_ads}</p>
             <p><b>👁️ مشاهدات:</b> {user_views}</p>
-            <p><b>📅 عضو منذ:</b> 2026</p>
-            <p><b>🏆 الترتيب:</b> برونزي</p>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 22. لوحة الإدارة السرية
+# 23. لوحة الإدارة
 # ==========================================
 def admin_dashboard():
     st.markdown("""
     <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); border: 2px solid #00ffff; border-radius: 30px; padding: 20px; margin-bottom: 20px;">
-        <h1 style="color: white; text-align: center;">🔐 لوحة القيادة المركزية</h1>
-        <p style="color: #00ffff; text-align: center;">خاص بالطاهر الطاهري فقط 🛡️</p>
+        <h1 style="color: white; text-align: center;">🔐 لوحة القيادة</h1>
+        <p style="color: #00ffff; text-align: center;">خاص بالطاهر الطاهري</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -909,70 +911,56 @@ def admin_dashboard():
     st.markdown("### 🚨 تنبيهات الرادار")
     if st.session_state.last_alert:
         st.markdown(f"""
-        <div style="background: rgba(255,0,0,0.2); border: 2px solid #ff00ff; border-radius: 15px; padding: 15px; margin: 10px 0;">
+        <div style="background: rgba(255,0,0,0.2); border: 2px solid #ff00ff; border-radius: 15px; padding: 15px;">
             <h4 style="color: #ff00ff;">🔥 مشتري جدي!</h4>
-            <p><b>الرسالة:</b> {st.session_state.last_alert['message']}</p>
-            <p><b>💰 السعر:</b> {st.session_state.last_alert['price']} دج</p>
-            <p><b>⏰ الوقت:</b> {st.session_state.last_alert['time']}</p>
+            <p><b>{st.session_state.last_alert['message']}</b></p>
+            <p>💰 {st.session_state.last_alert['price']} دج</p>
         </div>
         """, unsafe_allow_html=True)
-        st.markdown("[📞 تواصل عبر واتساب](https://wa.me/213555555555)")
-    else:
-        st.info("لا توجد تنبيهات جديدة")
-    
-    # عرض آخر المستخدمين
-    st.markdown("### 👥 آخر المستخدمين")
-    try:
-        recent_users = conn.execute("SELECT username, created_at FROM users ORDER BY created_at DESC LIMIT 5").fetchall()
-        for u in recent_users:
-            st.markdown(f"- **{u[0]}** ⏱️ {u[1][:16]}")
-    except:
-        pass
 
 # ==========================================
-# 23. المحرك الرئيسي (Main Controller)
+# 24. الدالة الرئيسية - المحرك النهائي
 # ==========================================
 def main():
     set_ultimate_theme()
     log_visitor()
+    
+    # عرض الدعم الحي والعداد
     show_live_chat()
-    robotic_alert_ui()
-
-    if st.session_state.user is None:
-        login_page(conn)
-    else:
+    show_live_counter()
+    
+    # القائمة الجانبية
+    if st.session_state.user:
         with st.sidebar:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 3rem;">👑</div>
-                <div style="color: white; font-size: 1.2rem;">{st.session_state.user}</div>
-                <div style="color: #00ffff; font-size: 0.9rem;">المالك: الطاهر الطاهري</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"### ✨ أهلاً {st.session_state.user}")
+            choice = st.radio("القائمة الرئيسية", ["🛍️ السوق", "📢 نشر", "👤 حسابي", "🚪 خروج"])
             
-            page = st.radio("القائمة الرئيسية", ["🛍️ السوق", "📢 إعلان جديد", "👤 حسابي", "🔐 الإدارة"])
+            robotic_alert_ui()
             
-            if st.button("🚪 تسجيل الخروج", use_container_width=True):
+            # عرض شروط الاستخدام
+            with st.expander("📜 شروط الاستخدام"):
+                show_terms()
+            
+            if choice == "🚪 خروج":
                 st.session_state.user = None
-                st.session_state.admin_access = False
                 st.rerun()
         
-        if page == "🛍️ السوق":
+        # توجيه الصفحات
+        if choice == "🛍️ السوق":
             show_market()
-        elif page == "📢 إعلان جديد":
+        elif choice == "📢 نشر":
             post_ad()
-        elif page == "👤 حسابي":
+        elif choice == "👤 حسابي":
             profile_page()
-        elif page == "🔐 الإدارة":
-            if st.session_state.role == "admin":
-                admin_dashboard()
-            else:
-                st.error("🔒 هذه اللوحة خاصة بالطاهر الطاهري فقط")
-
-    show_live_counter()
+        
+        # لوحة الإدارة للمسؤول
+        if st.session_state.role == "admin" and st.sidebar.button("🔐 الإدارة"):
+            admin_dashboard()
+    else:
+        login_page(conn)
 
 # ==========================================
-# 24. تشغيل التطبيق
+# 25. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
