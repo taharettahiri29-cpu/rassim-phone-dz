@@ -439,7 +439,7 @@ def show_market_trends(conn):
 # ==========================================
 # 6. لوحة التحكم السرية للإدارة
 # ==========================================
-def rassim_os_admin_logic():
+def rassim_os_admin_logic(conn):
     """لوحة التحكم السرية - للمصرح لهم فقط"""
     
     st.markdown("""
@@ -450,8 +450,6 @@ def rassim_os_admin_logic():
         <p style="text-align: center; color: #00ffff;">مستوى الدخول: القائد 🛰️</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    conn = get_connection()
     
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 الإحصائيات الكمومية", 
@@ -488,19 +486,20 @@ def rassim_os_admin_logic():
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            username = st.selectbox("اختر مستخدم", users_df['username'].tolist())
-        with col2:
-            if st.button("✅ توثيق المستخدم", use_container_width=True):
-                conn.execute("UPDATE users SET verified=1 WHERE username=?", (username,))
-                conn.commit()
-                st.success(f"تم توثيق {username}")
-                st.rerun()
-        with col3:
-            if st.button("🚫 حظر المستخدم", use_container_width=True):
-                conn.execute("UPDATE users SET banned=1 WHERE username=?", (username,))
-                conn.commit()
-                st.success(f"تم حظر {username}")
-                st.rerun()
+            username = st.selectbox("اختر مستخدم", users_df['username'].tolist() if not users_df.empty else [])
+        if not users_df.empty:
+            with col2:
+                if st.button("✅ توثيق المستخدم", use_container_width=True):
+                    conn.execute("UPDATE users SET verified=1 WHERE username=?", (username,))
+                    conn.commit()
+                    st.success(f"تم توثيق {username}")
+                    st.rerun()
+            with col3:
+                if st.button("🚫 حظر المستخدم", use_container_width=True):
+                    conn.execute("UPDATE users SET banned=1 WHERE username=?", (username,))
+                    conn.commit()
+                    st.success(f"تم حظر {username}")
+                    st.rerun()
     
     with tab3:
         st.subheader("📢 إدارة الإعلانات")
@@ -510,7 +509,7 @@ def rassim_os_admin_logic():
         """, conn)
         st.dataframe(ads_df, use_container_width=True)
         
-        ad_id = st.number_input("معرف الإعلان", min_value=1)
+        ad_id = st.number_input("معرف الإعلان", min_value=1, step=1)
         if st.button("⭐ تمييز كمميز", use_container_width=True):
             conn.execute("UPDATE ads SET featured=1 WHERE id=?", (ad_id,))
             conn.commit()
@@ -1087,7 +1086,7 @@ def show_chat(conn):
         st.error(f"خطأ: {e}")
 
 # ==========================================
-# 16. التشغيل الرئيسي النهائي مع النظام السري
+# 16. التشغيل الرئيسي النهائي مع النظام السري (مصحح)
 # ==========================================
 def main():
     set_ultimate_theme()
@@ -1108,6 +1107,7 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
+    # تهيئة المتغيرات
     if "user" not in st.session_state:
         st.session_state.user = None
     if "role" not in st.session_state:
@@ -1121,69 +1121,46 @@ def main():
     
     log_visitor()
     
+    # إذا لم يكن هناك مستخدم، عرض صفحة تسجيل الدخول
     if not st.session_state.user:
         login_page()
-    else:
-        conn = get_connection()
+        return
+    
+    # إذا كان هناك مستخدم، عرض الصفحات
+    conn = get_connection()
+    
+    with st.sidebar:
+        verified_badge = "✅ موثوق" if st.session_state.verified else "⏳ غير موثق"
+        badge_color = "#00ffff" if st.session_state.verified else "#ff00ff"
         
-        with st.sidebar:
-            verified_badge = "✅ موثوق" if st.session_state.verified else "⏳ غير موثق"
-            badge_color = "#00ffff" if st.session_state.verified else "#ff00ff"
-            
-            st.markdown(f"""
-            <div style="background: rgba(20,20,30,0.5); backdrop-filter: blur(12px); 
-            border: 1px solid rgba(0,255,255,0.1); border-radius: 25px; padding: 25px; 
-            text-align: center; margin-bottom: 25px;">
-                <div style="font-size: 4rem; margin-bottom: 10px;">⚡</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{st.session_state.user}</div>
-                <div style="color: {badge_color}; font-size: 0.9rem; margin-top: 8px;">{verified_badge}</div>
-                <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 5px;">{st.session_state.role}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            menu_options = ["🛍️ السوق الذكي", "📢 إضافة إعلان", "💬 المحادثات", "🤖 المساعد الذكي"]
-            if st.session_state.role == "admin":
-                menu_options.append("🔐 لوحة الإدارة")
-            
-            choice = st.radio("", menu_options, label_visibility="collapsed")
-            
-            st.divider()
-            
-            # ===== النظام السري للإدارة =====
-            with st.expander("🔧 النظام", expanded=False):
-                secret_key = st.text_input("System Code", type="password", help="للمصرح لهم فقط")
-                
-                if secret_key == "RASSIM-42-2026":
-                    st.session_state.admin_access = True
-                    st.success("تم تفعيل وضع القائد 🛰️")
-                elif secret_key != "":
-                    st.error("كود خاطئ ⚠️")
-            
-            if st.button("🚪 خروج", use_container_width=True):
-                st.session_state.user = None
-                st.rerun()
+        st.markdown(f"""
+        <div style="background: rgba(20,20,30,0.5); backdrop-filter: blur(12px); 
+        border: 1px solid rgba(0,255,255,0.1); border-radius: 25px; padding: 25px; 
+        text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 4rem; margin-bottom: 10px;">⚡</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{st.session_state.user}</div>
+            <div style="color: {badge_color}; font-size: 0.9rem; margin-top: 8px;">{verified_badge}</div>
+            <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 5px;">{st.session_state.role}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # عرض لوحة الإدارة السرية إذا تم التفعيل
-        if st.session_state.admin_access:
-            rassim_os_admin_logic()
-            if st.sidebar.button("إغلاق لوحة التحكم 🔒", use_container_width=True):
-                st.session_state.admin_access = False
-                st.rerun()
+        # قائمة الخيارات العادية
+        menu_options = ["🛍️ السوق الذكي", "📢 إضافة إعلان", "💬 المحادثات"]
+        if st.session_state.role == "admin":
+            menu_options.append("🔐 لوحة الإدارة")
         
-        # توجيه الصفحات العادية
-        elif choice == "🛍️ السوق الذكي":
-            show_market(conn)
-        elif choice == "📢 إضافة إعلان":
-            post_ad(conn)
-        elif choice == "💬 المحادثات":
-            show_chat(conn)
-        elif choice == "🤖 المساعد الذكي":
-            st.markdown("### 🤖 المساعد الكمومي")
-            st.info("قيد التطوير - قريباً")
-        elif choice == "🔐 لوحة الإدارة" and st.session_state.role == "admin":
-            # لوحة الإدارة العادية (للمسؤولين العاديين)
-            st.info("لوحة الإدارة العادية - استخدم النظام السري للوصول الكامل")
-
-if __name__ == "__main__":
-    main()
-
+        choice = st.radio("", menu_options, label_visibility="collapsed")
+        
+        st.divider()
+        
+        # النظام السري للإدارة
+        with st.expander("🔧 النظام", expanded=False):
+            secret_key = st.text_input("System Code", type="password", help="للمصرح لهم فقط")
+            
+            if secret_key == "RASSIM-42-2026":
+                st.session_state.admin_access = True
+                st.success("تم تفعيل وضع القائد 🛰️")
+            elif secret_key != "":
+                st.error("كود خاطئ ⚠️")
+        
+        # زر إغلاق لوحة الإدارة السري
