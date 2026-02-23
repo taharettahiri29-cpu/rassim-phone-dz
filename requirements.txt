@@ -1,2 +1,39 @@
-streamlit
-pandas
+# ==========================================
+# نظام إدارة حالة الفلاتر الذكي (Filter State Engine)
+# ==========================================
+
+# 1. تهيئة النظام بذكاء (Default Values Registry)
+if "filters" not in st.session_state:
+    st.session_state.filters = {
+        "wilaya": "الكل",       # القيمة الافتراضية الشاملة
+        "min_price": 0,        # حد السعر الأدنى
+        "max_price": 500000,   # حد السعر الأعلى
+        "search_query": "",    # نص البحث
+        "sort_by": "الأكثر شعبية", # نظام الترتيب الافتراضي
+        "featured_only": False # إظهار المميز فقط
+    }
+
+# 2. تحديث القيم دون حذف البيانات الأخرى (Smart Update)
+# هنا نقوم بتعيين ولاية الجزائر (16) كمثال مع الحفاظ على بقية الفلاتر
+st.session_state.filters.update({
+    "wilaya": "16",
+    "last_updated": datetime.datetime.now().strftime("%H:%M:%S")
+})
+
+# 3. أداة مساعدة لإعادة ضبط الفلاتر (Reset Tool)
+def reset_filters():
+    st.session_state.filters.update({
+        "wilaya": "الكل",
+        "min_price": 0,
+        "search_query": "",
+        "featured_only": False
+    })
+    st.rerun()
+
+# 4. عرض الحالة الحالية في Sidebar (للمدراء أو للتصحيح)
+with st.sidebar:
+    with st.expander("🎯 تفضيلات البحث الحالية"):
+        st.write(st.session_state.filters)
+        if st.button("♻️ إعادة ضبط الفلاتر"):
+            reset_filters()
+
