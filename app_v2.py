@@ -28,6 +28,457 @@ st.set_page_config(
 # 2. تحسين محركات البحث (SEO)
 # ==========================================
 st.markdown("""
+st.markdown("""
+<style>
+/* ===== التصميم العام للصفحة ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+
+* {
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+}
+
+.stApp {
+    background: radial-gradient(circle at 10% 20%, rgba(0, 255, 136, 0.03) 0%, rgba(0, 189, 255, 0.03) 90%),
+                linear-gradient(135deg, #0a0a1a 0%, #1a1a2f 50%, #0d0d1a 100%);
+    color: #ffffff;
+    position: relative;
+}
+
+/* إضافة تأثير النجوم المتحركة في الخلفية */
+.stApp::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 80px 120px, #ddd, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 90px, #ccc, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 240px 150px, #eee, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 320px 210px, #fff, rgba(0,0,0,0)),
+        radial-gradient(3px 3px at 400px 50px, #00ff88, rgba(0,0,0,0)),
+        radial-gradient(3px 3px at 480px 280px, #00bdff, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 600px 600px;
+    opacity: 0.3;
+    animation: stars 200s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes stars {
+    from { transform: translateY(0); }
+    to { transform: translateY(-600px); }
+}
+
+/* ===== تحسين شكل الكروت (المستخدمين، الإعلانات، الزيارات) ===== */
+.stMetric {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 25px;
+    padding: 25px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 
+        0 20px 40px -10px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.stMetric::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ff88, #00bdff, transparent);
+    animation: borderGlow 3s linear infinite;
+}
+
+@keyframes borderGlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.stMetric:hover {
+    transform: translateY(-8px) scale(1.02);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 255, 136, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* تنسيق النصوص داخل الكروت */
+.stMetric label {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.5px;
+}
+
+.stMetric div {
+    color: #fff !important;
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+}
+
+/* ===== تحسين الأزرار لتصبح جذابة جداً ===== */
+.stButton>button {
+    width: 100%;
+    border-radius: 60px;
+    background: linear-gradient(135deg, #00ff88, #00bdff, #0066ff);
+    background-size: 200% 200%;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: none;
+    height: 3.2em;
+    padding: 0 30px;
+    transition: 0.4s ease;
+    box-shadow: 0 10px 20px -5px rgba(0, 255, 136, 0.3);
+    position: relative;
+    overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+}
+
+.stButton>button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.stButton>button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 30px -5px rgba(0, 255, 136, 0.6);
+    animation: gradientShift 3s ease infinite;
+    background-size: 200% 200%;
+}
+
+.stButton>button:hover::before {
+    left: 100%;
+}
+
+.stButton>button:active {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px -5px rgba(0, 255, 136, 0.4);
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ===== تحسين الهيدر (العنوان الرئيسي) ===== */
+.main-title {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00ff88, #00bdff, #0066ff, #00ff88);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin: 30px 0 20px;
+    text-shadow: 
+        0 0 30px rgba(0, 255, 136, 0.3),
+        2px 2px 0 rgba(0,0,0,0.3);
+    animation: gradientFlow 8s ease infinite, float 6s ease-in-out infinite;
+    letter-spacing: 2px;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+@keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.main-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #00ff88, #00bdff, transparent);
+    border-radius: 2px;
+    animation: widthPulse 3s ease infinite;
+}
+
+@keyframes widthPulse {
+    0%, 100% { width: 100px; opacity: 0.5; }
+    50% { width: 200px; opacity: 1; }
+}
+
+/* ===== تحسين صناديق الإدخال ===== */
+.stTextInput>div>div>input, 
+.stTextArea>div>div>textarea,
+.stSelectbox>div>div>select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50px !important;
+    color: white !important;
+    padding: 15px 20px !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.stTextInput>div>div>input:focus,
+.stTextArea>div>div>textarea:focus,
+.stSelectbox>div>div>select:focus {
+    border-color: #00ff88 !important;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2) !important;
+    transform: translateY(-2px);
+}
+
+.stTextInput>div>div>input:hover,
+.stTextArea>div>div>textarea:hover,
+.stSelectbox>div>div>select:hover {
+    border-color: rgba(0, 255, 136, 0.5) !important;
+}
+
+/* ===== تحسين التبويبات (Tabs) ===== */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 60px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    border-radius: 50px !important;
+    padding: 10px 30px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    background: rgba(0, 255, 136, 0.1) !important;
+    border-color: rgba(0, 255, 136, 0.3) !important;
+    color: white !important;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #00ff88, #00bdff) !important;
+    color: black !important;
+    font-weight: 700 !important;
+    box-shadow: 0 10px 20px -5px rgba(0, 255, 136, 0.4);
+}
+
+/* ===== تحسين الشريط الجانبي ===== */
+.css-1d391kg, .css-12oz5g7 {
+    background: rgba(10, 10, 26, 0.8);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.css-1d391kg:hover, .css-12oz5g7:hover {
+    background: rgba(15, 15, 35, 0.9);
+}
+
+/* ===== تحسين الإطارات المنبثقة ===== */
+div[data-baseweb="popover"] {
+    background: rgba(20, 20, 40, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+}
+
+/* ===== تحسين شريط التمرير ===== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00ff88, #00bdff);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #00bdff, #00ff88);
+}
+
+/* ===== تحسين رسائل النجاح والخطأ ===== */
+.stAlert {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    color: white !important;
+    animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ===== تأثيرات إضافية للكروت ===== */
+.css-1r6slb0 {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-radius: 30px !important;
+    padding: 25px !important;
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    transition: all 0.3s ease;
+}
+
+.css-1r6slb0:hover {
+    border-color: rgba(0, 255, 136, 0.2) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 255, 136, 0.2);
+}
+
+/* ===== تحسين عنوان الصفحة الثانوي ===== */
+h1, h2, h3 {
+    color: white !important;
+    text-shadow: 0 2px 10px rgba(0, 255, 136, 0.2);
+}
+
+h1 {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #fff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 30px !important;
+}
+
+/* ===== تحسين الفوتر ===== */
+footer {
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 15px !important;
+}
+
+/* ===== تأثيرات حركية للعناصر ===== */
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+    }
+}
+
+.pulse-effect {
+    animation: pulseGlow 3s ease infinite;
+}
+
+/* ===== تحسين التوافق مع الجوال ===== */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2.5rem;
+    }
+    
+    .stMetric div {
+        font-size: 1.8rem !important;
+    }
+    
+    .stButton>button {
+        height: 2.8em;
+        font-size: 1rem;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        padding: 8px 15px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* ===== تأثيرات الإضاءة الخلفية ===== */
+.glow-effect {
+    position: relative;
+}
+
+.glow-effect::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00ff88, #00bdff, #0066ff, #00ff88);
+    background-size: 400% 400%;
+    border-radius: inherit;
+    z-index: -1;
+    filter: blur(20px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: gradientShift 6s ease infinite;
+}
+
+.glow-effect:hover::after {
+    opacity: 0.5;
+}
+</style>
+
+<!-- إضافة عناوين متحركة -->
+<div class="main-title">
+    🇩🇿 راسم تيتانيوم ألترا
+</div>
+
+<div style="text-align: center; margin-bottom: 30px;">
+    <p style="color: rgba(255,255,255,0.7); font-size: 1.2rem; animation: fadeInUp 1s ease;">
+        ✨ أول سوق إلكتروني جزائري متخصص في الهواتف
+    </p>
+</div>
+
+<script>
+// إضافة تأثيرات حركية إضافية
+document.addEventListener('DOMContentLoaded', function() {
+    const elements = document.querySelectorAll('.stMetric, .stButton>button');
+    elements.forEach((el, index) => {
+        el.style.animationDelay = `${index * 0.1}s`;
+        el.classList.add('fadeInUp');
+    });
+});
+</script>
+""", unsafe_allow_html=True)
 <meta name="description" content="راسم تيتانيوم - أفضل سوق للهواتف في الجزائر. بيع وشراء الهواتف المستعملة والجديدة في 58 ولاية.">
 <meta name="keywords" content="واد كنيس, Ouedkniss, هواتف, الجزائر, بيع وشراء, راسم فون, تيتانيوم">
 <meta name="author" content="RASSIM DZ">
@@ -952,3 +1403,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
