@@ -8,7 +8,10 @@ import plotly.graph_objects as go
 import warnings
 import os
 import base64
+import requests
 from datetime import datetime
+from bs4 import BeautifulSoup
+import re
 
 warnings.filterwarnings('ignore')
 
@@ -45,7 +48,7 @@ ALGERIAN_WILAYAS = [
     "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
     "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
     "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام", "55 - توقرت",
-    "56 - جانت", "57 - المغير", "58 - المنيع", "59 - الطيبات", "60 - أولاد سليман",
+    "56 - جانت", "57 - المغير", "58 - المنيع", "59 - الطيبات", "60 - أولاد سليمان",
     "61 - سيدي خالد", "62 - بوسعادة", "63 - عين وسارة", "64 - حاسي بحبح", "65 - عين الملح",
     "66 - سيدي عيسى", "67 - عين الباردة", "68 - عين آزال", "69 - عين الحجر"
 ]
@@ -69,7 +72,7 @@ if 'last_alert' not in st.session_state:
     st.session_state.last_alert = None
 
 # ==========================================
-# 5. إعدادات قاعدة البيانات مع إضافة حقل الصورة
+# 5. إعدادات قاعدة البيانات
 # ==========================================
 DB = "rassim_os_ultimate.db"
 
@@ -112,38 +115,28 @@ def init_db():
             )
         """)
         
-        # إضافة حقل الصورة (إذا لم يكن موجوداً)
+        # إضافة حقل الصورة
         try:
             cursor.execute("ALTER TABLE ads ADD COLUMN image_path TEXT")
         except:
-            pass  # العمود موجود بالفعل
+            pass
         
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sender TEXT NOT NULL,
-                receiver TEXT NOT NULL,
-                message TEXT NOT NULL,
-                read INTEGER DEFAULT 0,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        # إضافة حقل رابط الصورة الخارجي
+        try:
+            cursor.execute("ALTER TABLE ads ADD COLUMN image_url TEXT")
+        except:
+            pass
         
+        # جدول الإعلانات الممولة
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS visitors (
+            CREATE TABLE IF NOT EXISTS promoted_ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ip TEXT,
-                page TEXT,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                message TEXT NOT NULL,
-                price INTEGER,
-                status TEXT DEFAULT 'new',
+                type TEXT NOT NULL,
+                url TEXT NOT NULL,
+                title TEXT NOT NULL,
+                link TEXT,
+                views INTEGER DEFAULT 0,
+                clicks INTEGER DEFAULT 0,
                 date TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -196,22 +189,226 @@ def get_stats():
     except:
         return 0, 0, 0, 0
 
-@st.cache_data(ttl=600)
-def load_data_optimized():
+# ==========================================
+# 8. بوت جلب الإعلانات من واد كنيس (Web Scraper)
+# ==========================================
+def scrape_ouedkniss_url(url):
+    """جلب بيانات الإعلان من رابط واد كنيس"""
     try:
-        conn = get_connection()
-        data = {
-            'users': conn.execute("SELECT COUNT(*) FROM users").fetchone()[0],
-            'ads': conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0],
-            'visitors': conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0],
-            'views': conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        return data
-    except:
-        return None
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # استخراج البيانات (هذه محاكاة - تحتاج تعديل حسب هيكل الموقع)
+        title = soup.find('h1').text if soup.find('h1') else "عنوان غير معروف"
+        
+        # البحث عن السعر
+        price_text = soup.find(text=re.compile(r'\d+[.,]?\d*\s*(دج|دينار|DA)', re.IGNORECASE))
+        price = 0
+        if price_text:
+            numbers = re.findall(r'\d+', price_text)
+            if numbers:
+                price = int(numbers[0]) * 1000 if len(numbers[0]) < 4 else int(numbers[0])
+        
+        # البحث عن الوصف
+        description = soup.find('meta', {'name': 'description'})
+        description = description['content'] if description else "وصف غير متوفر"
+        
+        # البحث عن الصورة
+        image = soup.find('meta', {'property': 'og:image'})
+        image_url = image['content'] if image else None
+        
+        # البحث عن الولاية (افتراضية)
+        wilaya = "16 - الجزائر"  # قيمة افتراضية
+        
+        return {
+            'success': True,
+            'title': title.strip()[:100],
+            'price': price,
+            'description': description[:200],
+            'image_url': image_url,
+            'wilaya': wilaya,
+            'url': url
+        }
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+def scrape_ads_ui():
+    """واجهة جلب الإعلانات من الروابط"""
+    st.markdown("### 🤖 بوت جلب الإعلانات الذكي")
+    
+    with st.expander("🔗 جلب إعلان من رابط واد كنيس", expanded=False):
+        url = st.text_input("أدخل رابط الإعلان من واد كنيس:", placeholder="https://www.ouedkniss.com/...")
+        
+        if st.button("🚀 جلب البيانات", use_container_width=True) and url:
+            with st.spinner("جاري جلب بيانات الإعلان..."):
+                result = scrape_ouedkniss_url(url)
+                
+                if result['success']:
+                    st.success("✅ تم جلب البيانات بنجاح!")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown(f"**العنوان:** {result['title']}")
+                        st.markdown(f"**السعر:** {result['price']:,} دج")
+                        st.markdown(f"**الولاية:** {result['wilaya']}")
+                    with col2:
+                        if result['image_url']:
+                            st.image(result['image_url'], caption="صورة الإعلان", use_container_width=True)
+                    
+                    # حفظ في قاعدة البيانات
+                    if st.button("💾 حفظ الإعلان في قاعدة البيانات"):
+                        try:
+                            conn.execute("""
+                                INSERT INTO ads (title, price, phone, wilaya, description, category, owner, status, verified, image_url)
+                                VALUES (?, ?, ?, ?, ?, ?, 'SCRAPER_BOT', 'active', 1, ?)
+                            """, (result['title'], result['price'], "0555000000", result['wilaya'], result['description'], "أخرى", result['image_url']))
+                            conn.commit()
+                            st.success("✅ تم حفظ الإعلان في قاعدة البيانات!")
+                            time.sleep(2)
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ خطأ في الحفظ: {e}")
+                else:
+                    st.error(f"❌ فشل الجلب: {result.get('error', 'خطأ غير معروف')}")
 
 # ==========================================
-# 8. نظام "الذكاء العصبي" للواجهة
+# 9. دالة إضافة الإعلانات التلقائية (السحرية)
+# ==========================================
+def seed_smart_ads():
+    """إدخال إعلانات تجريبية احترافية تلقائياً"""
+    
+    fake_ads = [
+        ("iPhone 15 Pro Max 512GB", 225000, "0555112233", "16 - الجزائر", "نظيف جداً 10/10 مع شاحن أصلي وسماعات، بطارية 100%", "آيفون"),
+        ("iPhone 15 Pro 256GB", 195000, "0555112244", "31 - وهران", "مستعمل شهرين فقط، مع كامل الأكسسوارات، لون أزرق", "آيفون"),
+        ("Samsung S24 Ultra 512GB", 185000, "0666445566", "31 - وهران", "مستعمل شهر واحد فقط، ضمان سنة، مع قلم S Pen", "سامسونج"),
+        ("Samsung S23 Ultra", 145000, "0666445577", "16 - الجزائر", "حالة ممتازة، بطارية 98%، مع شاحن سريع", "سامسونج"),
+        ("Google Pixel 8 Pro", 165000, "0777889900", "42 - تيبازة", "نسخة أمريكية، مفتوح على كل الشبكات، بطارية 98%", "جوجل"),
+        ("Xiaomi 14 Pro", 98000, "0544332211", "25 - قسنطينة", "اللون الأسود، 12GB RAM, 512GB، جديد", "شاومي"),
+        ("Huawei P60 Pro", 135000, "0888991122", "42 - تيبازة", "مع خدمات جوجل، نظيف، بطارية 100%", "هواوي"),
+        ("Nothing Phone 2", 85000, "0999001122", "16 - الجزائر", "تصميم فريد، بطارية ممتازة، مع جراب", "أخرى"),
+        ("OnePlus 12", 130000, "0999001133", "31 - وهران", "شاحن 100W سريع، مع كامل الأكسسوارات", "أخرى"),
+        ("iPhone 12 Pro", 85000, "0555112277", "06 - بجاية", "باتري 90%، كل شيء أصلي، مع جراب", "آيفون")
+    ]
+    
+    try:
+        cursor = conn.cursor()
+        count = 0
+        for ad in fake_ads:
+            existing = cursor.execute(
+                "SELECT id FROM ads WHERE title=? AND price=? AND phone=?", 
+                (ad[0], ad[1], ad[2])
+            ).fetchone()
+            
+            if not existing:
+                cursor.execute("""
+                    INSERT INTO ads (title, price, phone, wilaya, description, category, owner, status, verified)
+                    VALUES (?, ?, ?, ?, ?, ?, 'RASSIM_BOT', 'active', 1)
+                """, ad)
+                count += 1
+        
+        conn.commit()
+        
+        if count > 0:
+            st.success(f"🚀 تمت إضافة {count} إعلان ذكي بنجاح!")
+            st.balloons()
+            time.sleep(2)
+            st.rerun()
+        else:
+            st.info("✅ الإعلانات موجودة مسبقاً")
+            
+    except Exception as e:
+        st.error(f"⚠️ خطأ في الإضافة: {e}")
+
+# ==========================================
+# 10. إضافة إعلانات ممولة من الذكاء الاصطناعي
+# ==========================================
+def seed_ai_promoted_ads():
+    """إضافة إعلانات مولدة بالذكاء الاصطناعي"""
+    
+    ai_ads = [
+        {"type": "image", "url": "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=400", 
+         "title": "🛍️ تخفيضات الصيف - حتى 40%", "link": "https://example.com/summer"},
+        {"type": "image", "url": "https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=400", 
+         "title": "📱 iPhone 15 Pro - عروض حصرية", "link": "https://example.com/iphone"},
+        {"type": "video", "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", 
+         "title": "🎬 إعلان تلفزيوني - Samsung Galaxy", "link": "https://example.com/samsung"},
+        {"type": "image", "url": "https://images.unsplash.com/photo-1580910051074-78eb47e9b8a3?w=400", 
+         "title": "⚡ Xiaomi 14 Pro - أقوى عروض السنة", "link": "https://example.com/xiaomi"},
+    ]
+    
+    try:
+        cursor = conn.cursor()
+        count = 0
+        for ad in ai_ads:
+            existing = cursor.execute(
+                "SELECT id FROM promoted_ads WHERE url=? AND title=?", 
+                (ad['url'], ad['title'])
+            ).fetchone()
+            
+            if not existing:
+                cursor.execute("""
+                    INSERT INTO promoted_ads (type, url, title, link)
+                    VALUES (?, ?, ?, ?)
+                """, (ad['type'], ad['url'], ad['title'], ad['link']))
+                count += 1
+        
+        conn.commit()
+        
+        if count > 0:
+            st.success(f"🎯 تمت إضافة {count} إعلان ممول بالذكاء الاصطناعي!")
+    except Exception as e:
+        st.error(f"⚠️ خطأ: {e}")
+
+# ==========================================
+# 11. عرض الإعلانات الممولة (Sponsored)
+# ==========================================
+def show_promoted_ads():
+    """عرض الإعلانات الممولة في الصفحة الرئيسية"""
+    
+    # جلب الإعلانات من قاعدة البيانات
+    try:
+        promotions = conn.execute("SELECT * FROM promoted_ads ORDER BY date DESC LIMIT 4").fetchall()
+    except:
+        promotions = []
+    
+    if promotions:
+        st.markdown("### ✨ عروض حصرية (Sponsored)")
+        
+        # عرض في صفوف من اثنين
+        for i in range(0, len(promotions), 2):
+            cols = st.columns(2)
+            for j in range(2):
+                if i + j < len(promotions):
+                    promo = promotions[i + j]
+                    with cols[j]:
+                        # إنشاء div للإعلان مع تأثير hover
+                        st.markdown(f"""
+                        <div style="background: rgba(20,20,30,0.4); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,0,255,0.3); transition: all 0.3s;" 
+                             onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(255,0,255,0.3)';"
+                             onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                        """, unsafe_allow_html=True)
+                        
+                        if promo[1] == 'video':  # type
+                            st.video(promo[2])  # url
+                        else:
+                            st.image(promo[2], use_container_width=True)  # url
+                        
+                        st.markdown(f"**{promo[3]}**")  # title
+                        
+                        if promo[4]:  # link
+                            st.markdown(f"[🔗 زيارة المتجر]({promo[4]})")
+                        
+                        # تسجيل المشاهدة
+                        conn.execute("UPDATE promoted_ads SET views = views + 1 WHERE id=?", (promo[0],))
+                        conn.commit()
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# 12. نظام "الذكاء العصبي" للواجهة
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
@@ -471,7 +668,7 @@ def set_ultimate_theme():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 9. عداد الزوار الحي
+# 13. عداد الزوار الحي
 # ==========================================
 def show_live_counter():
     _, _, total_visitors, _ = get_stats()
@@ -483,13 +680,12 @@ def show_live_counter():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 10. كاشف المشتري الجدي
+# 14. كاشف المشتري الجدي
 # ==========================================
 def serious_buyer_detector(message, price_offered=0):
     serious_keywords = [
         "حاب نشري", "نخلصك توت سويت", "وين نسكنو", 
-        "كاش", "آخر سعر", "دابا", "نروحو نخلصو", "العنوان",
-        "واش راك", "الوقتية", "نجي نشوفو"
+        "كاش", "آخر سعر", "دابا", "نروحو نخلصو", "العنوان"
     ]
     
     message_lower = message.lower() if message else ""
@@ -506,7 +702,7 @@ def serious_buyer_detector(message, price_offered=0):
     return False
 
 # ==========================================
-# 11. روبوت RASSIM الذكي
+# 15. روبوت RASSIM الذكي
 # ==========================================
 def rassim_robot_logic(user_message):
     user_message = user_message.lower()
@@ -551,7 +747,7 @@ def rassim_robot_logic(user_message):
     return "رسالتك وصلت! سأرد قريباً 🌟"
 
 # ==========================================
-# 12. رادار راسم الآلي
+# 16. رادار راسم الآلي
 # ==========================================
 def robotic_alert_ui():
     st.sidebar.markdown("---")
@@ -569,7 +765,7 @@ def robotic_alert_ui():
         st.sidebar.warning("🔴 الرادار متوقف")
 
 # ==========================================
-# 13. مولد الإعلانات الذكي
+# 17. مولد الإعلانات الذكي
 # ==========================================
 def generate_auto_ads():
     hour = datetime.now().hour
@@ -581,7 +777,7 @@ def generate_auto_ads():
         st.sidebar.markdown("<p style='color:#888;'>⏳ وقت هادئ</p>", unsafe_allow_html=True)
 
 # ==========================================
-# 14. عداد وشبكة الولايات
+# 18. عداد وشبكة الولايات
 # ==========================================
 def show_wilaya_counter():
     st.markdown("""
@@ -608,7 +804,7 @@ def show_wilaya_badges():
                 st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
 
 # ==========================================
-# 15. نظام الدردشة المباشرة
+# 19. نظام الدردشة المباشرة
 # ==========================================
 def show_live_chat():
     st.markdown("""
@@ -636,7 +832,7 @@ def show_live_chat():
                 serious_buyer_detector(msg, 0)
 
 # ==========================================
-# 16. نظام التحليل التنبئي
+# 20. نظام التحليل التنبئي
 # ==========================================
 def show_market_trends(conn):
     st.markdown("### 📈 تحليلات السوق")
@@ -663,7 +859,7 @@ def show_market_trends(conn):
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 17. محرك البحث الذكي
+# 21. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2 = st.columns([3, 1])
@@ -680,29 +876,33 @@ def quantum_search_ui():
     return q, w, s
 
 # ==========================================
-# 18. دالة الإعلان مع عرض الصور
+# 22. دالة الإعلان مع عرض الصور
 # ==========================================
 def render_ad_pro(ad):
     verified = "✅ موثق" if ad.get('verified') else "⚠️ عادي"
     image_html = ""
     
-    # إذا كان هناك مسار للصورة، اعرضها
-    if ad.get('image_path') and os.path.exists(ad['image_path']):
+    # عرض الصورة من الرابط الخارجي أو الملف المحلي
+    if ad.get('image_url'):
+        image_html = f"""
+        <div style="width: 100%; height: 200px; overflow: hidden; border-radius: 15px; margin-bottom: 15px;">
+            <img src="{ad['image_url']}" alt="{ad.get('title', '')}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        """
+    elif ad.get('image_path') and os.path.exists(ad['image_path']):
         try:
             with open(ad['image_path'], 'rb') as img_file:
                 img_data = base64.b64encode(img_file.read()).decode()
                 image_html = f"""
-                <div style="width: 100%; height: 200px; overflow: hidden; border-radius: 15px; margin-bottom: 15px; background-color: #0d0d1a; border: 1px solid #00ffff;">
-                    <img src="data:image/jpeg;base64,{img_data}" 
-                         alt="{ad.get('title', 'صورة الهاتف')}" 
-                         style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.95);">
+                <div style="width: 100%; height: 200px; overflow: hidden; border-radius: 15px; margin-bottom: 15px;">
+                    <img src="data:image/jpeg;base64,{img_data}" alt="{ad.get('title', '')}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 """
         except:
             image_html = ""
     
     st.markdown(f"""
-    <div class="hologram-card" style="margin-bottom: 20px;">
+    <div class="hologram-card">
         {image_html}
         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px;">
             <span style="color: #00ffff;">📍 {ad.get('wilaya', '')}</span>
@@ -726,40 +926,29 @@ def render_ad_pro(ad):
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 19. اتفاقية الاستخدام (Terms of Service)
+# 23. اتفاقية الاستخدام
 # ==========================================
 def show_terms():
     st.markdown("""
-    <div class="terms-box hologram-card" style="border-color: #ff00ff;">
-        <h2 style="color: #ff00ff; text-align: center;">📜 قانون المنصة (RASSIM OS)</h2>
-        <p style="text-align: right;">
-        يا أهلاً بيك في RASSIM OS. باش نحافظو على نظافة السوق وثقة المستخدمين، لازم تلتزم بهاد الشروط:
-        <br><br>
-        ✅ <b>المصداقية:</b> الإعلان لازم يكون حقيقي وصور الهاتف تكون واضحة. الكذب في السلعة "ممنوع" والروبوت تاعنا يفيق بيك.
-        <br><br>
-        ✅ <b>الاحترام:</b> أي كلام غير لائق في الدردشة أو الوصف يؤدي لحظر الحساب (Ban) نهائياً بلا ما نرجعو لك.
-        <br><br>
-        ✅ <b>69 ولاية:</b> حنا نغطيو كامل الجزائر، لذا تأكد من اختيار ولايتك الصحيحة باش يوصلك المشتري الجدي اللي قريب ليك.
-        <br><br>
-        ⚠️ <b>إخلاء مسؤولية:</b> الموقع هو وسيط ذكي يجمع البائع والمشتري. التأكد من سلامة الهاتف والخلص يكون بيناتكم (برّاء للذمة).
-        <br><br>
-        🚀 <b>التفعيل الفوري:</b> عطيناكم الثقة وفعلنا الحسابات تلقائياً، حافظوا عليها باش تبقاو Verified.
-        </p>
-        <hr>
-        <p class="footer-note">
-        برمجة وتطوير: راسم (2026) • فوكة، تيبازة
+    <div class="terms-box hologram-card">
+        <h2 style="color: #ff00ff; text-align: center;">📜 قانون المنصة</h2>
+        <p>
+        ✅ <b>المصداقية:</b> الإعلان لازم يكون حقيقي.<br>
+        ✅ <b>الاحترام:</b> أي كلام غير لائق يؤدي للحظر.<br>
+        ✅ <b>69 ولاية:</b> تغطية كاملة للجزائر.<br>
+        ⚠️ <b>إخلاء مسؤولية:</b> الموقع وسيط فقط.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 20. صفحة تسجيل الدخول
+# 24. صفحة تسجيل الدخول
 # ==========================================
 def login_page(conn):
     st.markdown("""
     <div class="logo-container">
         <div class="logo-text">RASSIM OS</div>
-        <div style="color: #00ffff; letter-spacing: 2px;">ULTIMATE • 69 WILAYAS</div>
+        <div style="color: #00ffff;">ULTIMATE • 69 WILAYAS</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -771,10 +960,10 @@ def login_page(conn):
         with cols[i]:
             st.markdown(f'<div class="stat-card"><div class="stat-value">{val:,}</div><div class="stat-label">{label}</div></div>', unsafe_allow_html=True)
     
-    with st.expander("📍 الولايات المدعومة (69)"):
+    with st.expander("📍 الولايات"):
         show_wilaya_badges()
     
-    tab1, tab2 = st.tabs(["🔑 دخول", "📝 تسجيل فوري"])
+    tab1, tab2 = st.tabs(["🔑 دخول", "📝 تسجيل"])
     
     with tab1:
         with st.form("login_form"):
@@ -812,10 +1001,14 @@ def login_page(conn):
                     st.error("❌ كلمة المرور قصيرة")
 
 # ==========================================
-# 21. صفحة السوق الذكي مع عرض الإعلانات من قاعدة البيانات
+# 25. صفحة السوق الذكي
 # ==========================================
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
+    
+    # عرض الإعلانات الممولة أولاً
+    show_promoted_ads()
+    
     q, w, s = quantum_search_ui()
     
     with st.expander("📊 تحليلات السوق", expanded=False):
@@ -840,7 +1033,6 @@ def show_market():
         
         if ads:
             for ad in ads:
-                # تحويل الصف إلى قاموس للوصول السهل
                 ad_dict = {
                     'id': ad[0],
                     'title': ad[1],
@@ -855,19 +1047,26 @@ def show_market():
                     'owner': ad[10],
                     'verified': ad[11],
                     'date': ad[12],
-                    'image_path': ad[13] if len(ad) > 13 else None
+                    'image_path': ad[13] if len(ad) > 13 else None,
+                    'image_url': ad[14] if len(ad) > 14 else None
                 }
                 render_ad_pro(ad_dict)
         else:
             st.info("😕 لا توجد إعلانات")
+            
+            # زر لإضافة إعلانات تلقائية إذا كانت القاعدة فارغة
+            if st.button("🚀 إضافة إعلانات تلقائية", use_container_width=True):
+                seed_smart_ads()
+                seed_ai_promoted_ads()
+                
     except Exception as e:
         st.error(f"خطأ في تحميل الإعلانات: {e}")
 
 # ==========================================
-# 22. إضافة إعلان جديد مع رفع الصور
+# 26. إضافة إعلان جديد
 # ==========================================
 def post_ad():
-    st.markdown("### 📢 إعلان جديد - نشر فوري بالصور")
+    st.markdown("### 📢 إعلان جديد")
     
     with st.form("new_ad_form"):
         col1, col2 = st.columns(2)
@@ -878,46 +1077,38 @@ def post_ad():
             price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
             wilaya = st.selectbox("📍 الولاية *", ALGERIAN_WILAYAS[1:])
         
-        phone = st.text_input("📞 رقم الهاتف *", placeholder="مثال: 0555123456")
-        desc = st.text_area("📝 الوصف", height=100, placeholder="اكتب وصفاً مفصلاً للمنتج...")
+        phone = st.text_input("📞 رقم الهاتف *")
+        desc = st.text_area("📝 الوصف", height=100)
         
-        # إضافة حقل رفع الصورة
-        uploaded_file = st.file_uploader("🖼️ ارفع صورة للهاتف", type=["png", "jpg", "jpeg", "webp"])
+        uploaded_file = st.file_uploader("🖼️ ارفع صورة", type=["png", "jpg", "jpeg"])
         image_path = None
         
-        if uploaded_file is not None:
-            # توليد اسم فريد للصورة
+        if uploaded_file:
             file_extension = uploaded_file.name.split('.')[-1]
             unique_filename = f"{secrets.token_hex(8)}.{file_extension}"
             image_path = os.path.join(UPLOADS_DIR, unique_filename)
-            
-            # حفظ الصورة
             with open(image_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            st.success(f"✅ تم حفظ الصورة بنجاح")
-
-        if st.form_submit_button("🚀 نشر فوري بالصور", use_container_width=True):
-            if title and phone and price > 0:
-                try:
-                    conn.execute("""
-                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner, status, verified, image_path)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1, ?)
-                    """, (title, price, phone, wilaya, desc, cat, st.session_state.user, image_path))
-                    conn.commit()
-                    st.success("✅ تم نشر إعلانك فوراً بالصور! سيظهر في كل الولايات")
-                    st.balloons()
-                    time.sleep(2)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ خطأ: {e}")
-            else:
-                st.error("❌ يرجى ملء جميع الحقول المطلوبة")
+        
+        if st.form_submit_button("🚀 نشر", use_container_width=True) and title and phone and price > 0:
+            try:
+                conn.execute("""
+                    INSERT INTO ads (title, price, phone, wilaya, description, category, owner, status, verified, image_path)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1, ?)
+                """, (title, price, phone, wilaya, desc, cat, st.session_state.user, image_path))
+                conn.commit()
+                st.success("✅ تم النشر!")
+                st.balloons()
+                time.sleep(2)
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ خطأ: {e}")
 
 # ==========================================
-# 23. صفحة الحساب الشخصي
+# 27. صفحة الحساب الشخصي
 # ==========================================
 def profile_page():
-    st.markdown("### 👤 حسابي الشخصي")
+    st.markdown("### 👤 حسابي")
     
     col1, col2 = st.columns(2)
     
@@ -948,7 +1139,7 @@ def profile_page():
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 24. لوحة الإدارة
+# 28. لوحة الإدارة
 # ==========================================
 def admin_dashboard():
     st.markdown("""
@@ -970,6 +1161,27 @@ def admin_dashboard():
     with col4:
         st.metric("المشاهدات", f"{views:,}")
     
+    # أدوات الإدارة
+    st.markdown("### 🛠️ أدوات الإدارة")
+    
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        if st.button("🚀 إضافة إعلانات تلقائية", use_container_width=True):
+            seed_smart_ads()
+    
+    with col_b:
+        if st.button("🎯 إضافة إعلانات ممولة", use_container_width=True):
+            seed_ai_promoted_ads()
+            st.success("✅ تمت الإضافة")
+    
+    with col_c:
+        if st.button("🤖 بوت جلب الإعلانات", use_container_width=True):
+            st.session_state.show_scraper = True
+    
+    # بوت الجلب
+    if st.session_state.get('show_scraper', False):
+        scrape_ads_ui()
+    
     st.markdown("### 🚨 تنبيهات الرادار")
     if st.session_state.last_alert:
         st.markdown(f"""
@@ -981,7 +1193,7 @@ def admin_dashboard():
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 25. الدالة الرئيسية - المحرك النهائي
+# 29. الدالة الرئيسية
 # ==========================================
 def main():
     set_ultimate_theme()
@@ -993,11 +1205,11 @@ def main():
     if st.session_state.user:
         with st.sidebar:
             st.markdown(f"### ✨ أهلاً {st.session_state.user}")
-            choice = st.radio("القائمة الرئيسية", ["🛍️ السوق", "📢 نشر", "👤 حسابي", "🚪 خروج"])
+            choice = st.radio("القائمة", ["🛍️ السوق", "📢 نشر", "👤 حسابي", "🚪 خروج"])
             
             robotic_alert_ui()
             
-            with st.expander("📜 شروط الاستخدام"):
+            with st.expander("📜 الشروط"):
                 show_terms()
             
             if choice == "🚪 خروج":
@@ -1017,7 +1229,7 @@ def main():
         login_page(conn)
 
 # ==========================================
-# 26. تشغيل التطبيق
+# 30. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
