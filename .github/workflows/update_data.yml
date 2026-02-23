@@ -1,0 +1,33 @@
+name: Rassim DZ Auto-Bot
+
+on:
+  schedule:
+    - cron: '0 * * * *' # تشغيل الروبوت تلقائياً كل رأس ساعة
+  workflow_dispatch: # للسماح لك بتشغيله يدوياً وقتما تشاء
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas requests beautifulsoup4
+
+      - name: Run Scraper
+        run: python myscraper.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "Rassim Bot"
+          git config --global user.email "bot@rassimdz.com"
+          git add users_database.csv
+          git commit -m "تحديث تلقائي للعروض من 59 ولاية 🚀" || exit 0
+          git push
