@@ -34,7 +34,7 @@ ALGERIAN_WILAYAS = [
     "31 - وهران", "32 - البيض", "33 - إليزي", "34 - برج بوعريريج", "35 - بومرداس",
     "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت", "39 - الوادي", "40 - خنشلة",
     "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
+    "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمон", "50 - برج باجي مختار",
     "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام", "55 - توقرت",
     "56 - جانت", "57 - المغير", "58 - المنيع", "59 - الطيبات", "60 - أولاد سليمان",
     "61 - سيدي خالد", "62 - بوسعادة", "63 - عين وسارة", "64 - حاسي بحبح", "65 - عين الملح",
@@ -60,11 +60,104 @@ if 'last_alert' not in st.session_state:
     st.session_state.last_alert = None
 
 # ==========================================
-# 4. دوال التشفير - الأساسية لحل المشكلة
+# 4. إعدادات قاعدة البيانات
+# ==========================================
+DB = "rassim_os_ultimate.db"
+
+def init_db():
+    """تهيئة قاعدة البيانات"""
+    try:
+        conn = sqlite3.connect(DB, check_same_thread=False)
+        cursor = conn.cursor()
+        
+        # جدول المستخدمين
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                password TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                email TEXT,
+                phone TEXT,
+                role TEXT DEFAULT 'user',
+                verified INTEGER DEFAULT 0,
+                banned INTEGER DEFAULT 0,
+                ad_count INTEGER DEFAULT 0,
+                last_login TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # جدول الإعلانات
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                price INTEGER NOT NULL,
+                phone TEXT NOT NULL,
+                wilaya TEXT NOT NULL,
+                description TEXT,
+                category TEXT DEFAULT 'أخرى',
+                views INTEGER DEFAULT 0,
+                featured INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                owner TEXT NOT NULL,
+                verified INTEGER DEFAULT 0,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # جدول الرسائل
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sender TEXT NOT NULL,
+                receiver TEXT NOT NULL,
+                message TEXT NOT NULL,
+                read INTEGER DEFAULT 0,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # جدول الزوار
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS visitors (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT,
+                page TEXT,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # جدول التنبيهات
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                message TEXT NOT NULL,
+                price INTEGER,
+                status TEXT DEFAULT 'new',
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        conn.commit()
+        return conn
+    except Exception as e:
+        st.error(f"خطأ في قاعدة البيانات: {e}")
+        return None
+
+@st.cache_resource
+def get_connection():
+    """الحصول على اتصال بقاعدة البيانات"""
+    return sqlite3.connect(DB, check_same_thread=False)
+
+# تهيئة قاعدة البيانات
+conn = init_db()
+
+# ==========================================
+# 5. دوال التشفير
 # ==========================================
 def hash_password(password, salt):
     """تشفير كلمة المرور باستخدام salt"""
-    # نستخدم hashlib.pbkdf2_hmac كما هو مطلوب
     return hashlib.pbkdf2_hmac(
         'sha256', 
         password.encode('utf-8'), 
@@ -78,7 +171,52 @@ def verify_password(input_password, stored_hash, salt):
     return input_hash == stored_hash
 
 # ==========================================
-# 5. نظام "الذكاء العصبي" للواجهة (Neural UI)
+# 6. دوال المساعدة
+# ==========================================
+def log_visitor():
+    """تسجيل زائر جديد"""
+    try:
+        conn = get_connection()
+        conn.execute(
+            "INSERT INTO visitors (ip, page) VALUES (?, ?)",
+            (st.session_state.ip, st.session_state.get('page', 'main'))
+        )
+        conn.commit()
+    except:
+        pass
+
+def get_stats():
+    """الحصول على إحصائيات الموقع"""
+    try:
+        conn = get_connection()
+        users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
+        visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
+        views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        return users, ads, visitors, views
+    except:
+        return 0, 0, 0, 0
+
+# ==========================================
+# 7. نظام التخزين المؤقت
+# ==========================================
+@st.cache_data(ttl=600)
+def load_data_optimized():
+    """تحميل البيانات مع التخزين المؤقت"""
+    try:
+        conn = get_connection()
+        data = {
+            'users': conn.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+            'ads': conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0],
+            'visitors': conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0],
+            'views': conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        }
+        return data
+    except:
+        return None
+
+# ==========================================
+# 8. نظام "الذكاء العصبي" للواجهة
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
@@ -313,24 +451,7 @@ def set_ultimate_theme():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. نظام التخزين المؤقت (Cache System)
-# ==========================================
-@st.cache_data(ttl=600)
-def load_data_optimized():
-    try:
-        conn = get_connection()
-        data = {
-            'users': conn.execute("SELECT COUNT(*) FROM users").fetchone()[0],
-            'ads': conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0],
-            'visitors': conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0],
-            'views': conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
-        }
-        return data
-    except:
-        return None
-
-# ==========================================
-# 7. كاشف المشتري الجدي
+# 9. كاشف المشتري الجدي
 # ==========================================
 def serious_buyer_detector(message, price_offered=0):
     serious_keywords = [
@@ -360,7 +481,7 @@ def serious_buyer_detector(message, price_offered=0):
     return False
 
 # ==========================================
-# 8. روبوت RASSIM الذكي
+# 10. روبوت RASSIM الذكي
 # ==========================================
 def rassim_robot_logic(user_message):
     user_message = user_message.lower()
@@ -393,7 +514,7 @@ def rassim_robot_logic(user_message):
     return "رسالتك وصلت لراسم! سأقوم بتحليلها والرد عليك في أقرب وقت. هل تريد رقم الهاتف؟"
 
 # ==========================================
-# 9. رادار راسم الآلي
+# 11. رادار راسم الآلي
 # ==========================================
 def robotic_alert_ui():
     st.sidebar.markdown("---")
@@ -424,7 +545,7 @@ def robotic_alert_ui():
         st.sidebar.warning("الرادار مطفأ 🔴")
 
 # ==========================================
-# 10. مولد الإعلانات الذكي
+# 12. مولد الإعلانات الذكي
 # ==========================================
 def generate_auto_ads():
     current_hour = datetime.now().hour
@@ -442,7 +563,7 @@ def generate_auto_ads():
     return status
 
 # ==========================================
-# 11. عداد الولايات
+# 13. عداد الولايات
 # ==========================================
 def show_wilaya_counter():
     st.markdown("""
@@ -462,7 +583,7 @@ def show_wilaya_badges():
             st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
 
 # ==========================================
-# 12. نظام الدردشة المباشرة
+# 14. نظام الدردشة المباشرة
 # ==========================================
 def show_live_chat():
     st.markdown("""
@@ -511,7 +632,7 @@ def show_live_chat():
                 st.success(f"آخر رد: {st.session_state.last_robot_reply}")
 
 # ==========================================
-# 13. نظام التحليل التنبئي
+# 15. نظام التحليل التنبئي
 # ==========================================
 def show_market_trends(conn):
     st.markdown("### 📈 نبض السوق الجزائري")
@@ -545,7 +666,7 @@ def show_market_trends(conn):
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 14. محرك البحث الذكي
+# 16. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2, col3 = st.columns([3, 1, 1])
@@ -566,7 +687,7 @@ def quantum_search_ui():
     return search_query, wilaya, sort
 
 # ==========================================
-# 15. دالة الإعلان الذهبية
+# 17. دالة الإعلان الذهبية
 # ==========================================
 def render_ad_pro(ad):
     st.markdown(f"""
@@ -591,95 +712,10 @@ def render_ad_pro(ad):
             st.success("تم إرسال طلبك إلى البائع")
 
 # ==========================================
-# 16. إعدادات قاعدة البيانات
+# 18. صفحة تسجيل الدخول (مصححة)
 # ==========================================
-DB = "rassim_os_ultimate.db"
-
-def init_db():
-    try:
-        conn = sqlite3.connect(DB, check_same_thread=False)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                username TEXT PRIMARY KEY,
-                password TEXT NOT NULL,
-                salt TEXT NOT NULL,
-                email TEXT,
-                phone TEXT,
-                role TEXT DEFAULT 'user',
-                verified INTEGER DEFAULT 0,
-                banned INTEGER DEFAULT 0,
-                ad_count INTEGER DEFAULT 0,
-                last_login TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS ads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                price INTEGER NOT NULL,
-                phone TEXT NOT NULL,
-                wilaya TEXT NOT NULL,
-                description TEXT,
-                category TEXT DEFAULT 'أخرى',
-                views INTEGER DEFAULT 0,
-                featured INTEGER DEFAULT 0,
-                status TEXT DEFAULT 'active',
-                owner TEXT NOT NULL,
-                verified INTEGER DEFAULT 0,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sender TEXT NOT NULL,
-                receiver TEXT NOT NULL,
-                message TEXT NOT NULL,
-                read INTEGER DEFAULT 0,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS visitors (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ip TEXT,
-                page TEXT,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                message TEXT NOT NULL,
-                price INTEGER,
-                status TEXT DEFAULT 'new',
-                date TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        conn.commit()
-        return conn
-    except Exception as e:
-        st.error(f"خطأ في قاعدة البيانات: {e}")
-        return None
-
-@st.cache_resource
-def get_connection():
-    return sqlite3.connect(DB, check_same_thread=False)
-
-conn = init_db()
-
-# ==========================================
-# 17. صفحة تسجيل الدخول (مصححة بالكامل)
-# ==========================================
-def login_page():
+def login_page(conn):
+    """صفحة تسجيل الدخول - نمرر conn كمعامل"""
     st.markdown("""
     <div class="neural-header">
         <div class="neural-title">RASSIM OS ULTIMATE</div>
@@ -710,15 +746,14 @@ def login_page():
     
     tab1, tab2 = st.tabs(["🔑 دخول", "📝 حساب جديد"])
     
-    with tab1:  # 🔑 تسجيل الدخول - تم التصحيح هنا
+    with tab1:
         with st.form("login_form"):
             username = st.text_input("👤 اسم المستخدم")
             password = st.text_input("🔐 كلمة المرور", type="password")
             
             if st.form_submit_button("⚡ دخول", use_container_width=True):
                 if username and password:
-                    conn = get_connection()
-                    # جلب بيانات المستخدم والـ salt الخاص به
+                    # ✅ استخدام conn الذي تم تمريره
                     user_data = conn.execute(
                         "SELECT password, salt, role, verified FROM users WHERE username=?", 
                         (username,)
@@ -726,12 +761,9 @@ def login_page():
 
                     if user_data:
                         stored_hash, user_salt, role, verified = user_data
-                        
-                        # ✅ التصحيح: استخدام دالة hash_password مع salt
                         input_hash = hash_password(password, user_salt)
                         
                         if input_hash == stored_hash:
-                            # نجاح الدخول
                             st.session_state.user = username
                             st.session_state.role = role
                             st.session_state.verified = verified
@@ -745,7 +777,7 @@ def login_page():
                 else:
                     st.warning("⚠️ يرجى ملء جميع الحقول")
     
-    with tab2:  # 📝 حساب جديد
+    with tab2:
         with st.form("register_form"):
             new_user = st.text_input("👤 اسم المستخدم")
             new_pass = st.text_input("🔐 كلمة المرور", type="password")
@@ -754,9 +786,7 @@ def login_page():
             
             if st.form_submit_button("✨ تسجيل", use_container_width=True):
                 if new_user and new_pass:
-                    # توليد salt عشوائي
                     salt = secrets.token_hex(16)
-                    # تشفير كلمة المرور
                     hashed = hash_password(new_pass, salt)
                     
                     try:
@@ -772,31 +802,6 @@ def login_page():
                         st.error(f"❌ حدث خطأ: {e}")
                 else:
                     st.warning("⚠️ اسم المستخدم وكلمة المرور مطلوبان")
-
-# ==========================================
-# 18. دوال المساعدة الأخرى
-# ==========================================
-def log_visitor():
-    try:
-        conn = get_connection()
-        conn.execute(
-            "INSERT INTO visitors (ip, page) VALUES (?, ?)",
-            (st.session_state.ip, st.session_state.get('page', 'main'))
-        )
-        conn.commit()
-    except:
-        pass
-
-def get_stats():
-    try:
-        conn = get_connection()
-        users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
-        visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
-        views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
-        return users, ads, visitors, views
-    except:
-        return 0, 0, 0, 0
 
 # ==========================================
 # 19. صفحة السوق الذكي
@@ -920,7 +925,8 @@ def main():
     robotic_alert_ui()
 
     if st.session_state.user is None:
-        login_page()
+        # ✅ تمرير conn إلى دالة login_page
+        login_page(conn)
     else:
         with st.sidebar:
             st.markdown(f"""
