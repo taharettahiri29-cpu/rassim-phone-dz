@@ -2,38 +2,420 @@
 # نظام إدارة حالة الفلاتر الذكي (Filter State Engine)
 # ==========================================
 
+import datetime  # إضافة هذا السطر لحل المشكلة
+
 # 1. تهيئة النظام بذكاء (Default Values Registry)
 if "filters" not in st.session_state:
     st.session_state.filters = {
-        "wilaya": "الكل",       # القيمة الافتراضية الشاملة
-        "min_price": 0,        # حد السعر الأدنى
-        "max_price": 500000,   # حد السعر الأعلى
-        "search_query": "",    # نص البحث
-        "sort_by": "الأكثر شعبية", # نظام الترتيب الافتراضي
-        "featured_only": False # إظهار المميز فقط
+        "wilaya": "الكل",          # القيمة الافتراضية الشاملة
+        "min_price": 0,             # حد السعر الأدنى
+        "max_price": 10000000,      # حد السعر الأعلى (معدل)
+        "search_query": "",         # نص البحث
+        "sort_by": "الأحدث",        # نظام الترتيب الافتراضي
+        "category": "الكل",         # الفئة
+        "featured_only": False,     # إظهار المميز فقط
+        "verified_only": False,     # المستخدمين الموثقين فقط
+        "with_images": False,       # إعلانات بها صور فقط
+        "date_range": "الكل",       # نطاق زمني: اليوم، الأسبوع، الشهر، الكل
+        "price_range": [0, 10000000] # نطاق السعر المتقدم
     }
 
 # 2. تحديث القيم دون حذف البيانات الأخرى (Smart Update)
-# هنا نقوم بتعيين ولاية الجزائر (16) كمثال مع الحفاظ على بقية الفلاتر
-st.session_state.filters.update({
-    "wilaya": "16",
-    "last_updated": datetime.datetime.now().strftime("%H:%M:%S")
-})
+def update_filters(**kwargs):
+    """
+    تحديث الفلاتر مع الحفاظ على القيم الأخرى
+    مثال: update_filters(wilaya="16", min_price=10000)
+    """
+    st.session_state.filters.update(kwargs)
+    st.session_state.filters["last_updated"] = datetime.datetime.now().strftime("%H:%M:%S")
+
+# مثال على التحديث لولاية الجزائر
+update_filters(wilaya="16")
 
 # 3. أداة مساعدة لإعادة ضبط الفلاتر (Reset Tool)
 def reset_filters():
+    """إعادة ضبط جميع الفلاتر للقيم الافتراضية"""
     st.session_state.filters.update({
         "wilaya": "الكل",
         "min_price": 0,
+        "max_price": 10000000,
         "search_query": "",
-        "featured_only": False
+        "sort_by": "الأحدث",
+        "category": "الكل",
+        "featured_only": False,
+        "verified_only": False,
+        "with_images": False,
+        "date_range": "الكل",
+        "price_range": [0, 10000000]
     })
+    st.session_state.filters["last_reset"] = datetime.datetime.now().strftime("%H:%M:%S")
     st.rerun()
 
-# 4. عرض الحالة الحالية في Sidebar (للمدراء أو للتصحيح)
-with st.sidebar:
-    with st.expander("🎯 تفضيلات البحث الحالية"):
-        st.write(st.session_state.filters)
-        if st.button("♻️ إعادة ضبط الفلاتر"):
-            reset_filters()
+# 4. دالة لتطبيق الفلاتر على الاستعلام (Query Builder)
+def apply_filters_to_query(base_query, params=None):
+    """
+    بناء استعلام SQL ديناميكي بناءً على الفلاتر المحددة
+    """
+    filters = st.session_state.filters
+    if params is None:
+        params = []
+    
+    conditions = ["a.status='active'"]
+    
+    # فلتر الولاية
+    if filters["wilaya"] != "الكل":
+        conditions.append("a.wilaya LIKE ?")
+        params.append(f"%{filters['wilaya']}%")
+    
+    # فلتر الفئة
+    if filters["category"] != "الكل":
+        conditions.append("a.category = ?")
+        params.append(filters["category"])
+    
+    # فلتر السعر (النطاق الأساسي)
+    conditions.append("a.price BETWEEN ? AND ?")
+    params.append(filters["min_price"])
+    params.append(filters["max_price"])
+    
+    # فلتر السعر المتقدم
+    if filters["price_range"][0] > 0 or filters["price_range"][1] < 10000000:
+        conditions.append("a.price BETWEEN ? AND ?")
+        params.extend(filters["price_range"])
+    
+    # فلتر الإعلانات المميزة فقط
+    if filters["featured_only"]:
+        conditions.append("a.featured = 1")
+    
+    # فلتر المستخدمين الموثقين
+    if filters["verified_only"]:
+        conditions.append("EXISTS (SELECT 1 FROM users u WHERE u.username = a.owner AND u.verified = 1)")
+    
+    # فلتر الإعلانات التي تحتوي على صور
+    if filters["with_images"]:
+        conditions.append("a.images IS NOT NULL AND a.images != ''")
+    
+    # فلتر النطاق الزمني
+    if filters["date_range"] != "الكل":
+        if filters["date_range"] == "اليوم":
+            conditions.append("date(a.date) = date('now')")
+        elif filters["date_range"] == "الأسبوع":
+            conditions.append("a.date > datetime('now', '-7 days')")
+        elif filters["date_range"] == "الشهر":
+            conditions.append("a.date > datetime('now', '-30 days')")
+    
+    # بناء الاستعلام النهائي
+    where_clause = " AND ".join(conditions)
+    final_query = base_query + " WHERE " + where_clause
+    
+    return final_query, params
+
+# 5. دالة البحث الذكي (Smart Search)
+def smart_search(df, search_text):
+    """
+    بحث متقدم في الأعمدة المختلفة
+    """
+    if not search_text:
+        return df
+    
+    search_text = search_text.lower()
+    
+    # البحث في عدة أعمدة
+    mask = (
+        df["product"].str.contains(search_text, case=False, na=False) |
+        df["description"].str.contains(search_text, case=False, na=False) |
+        df["owner"].str.contains(search_text, case=False, na=False) |
+        df["phone"].str.contains(search_text, case=False, na=False)
+    )
+    
+    return df[mask]
+
+# 6. دالة الترتيب الذكي (Smart Sorting)
+def apply_smart_sorting(df, sort_by):
+    """
+    تطبيق نظام الترتيب بناءً على اختيار المستخدم
+    """
+    if sort_by == "الأحدث":
+        return df.sort_values("date", ascending=False)
+    elif sort_by == "الأقدم":
+        return df.sort_values("date", ascending=True)
+    elif sort_by == "الأعلى سعراً":
+        return df.sort_values("price", ascending=False)
+    elif sort_by == "الأقل سعراً":
+        return df.sort_values("price", ascending=True)
+    elif sort_by == "الأكثر مشاهدة":
+        return df.sort_values("views", ascending=False)
+    elif sort_by == "الأعلى تقييماً":
+        return df.sort_values("avg_r", ascending=False)
+    elif sort_by == "الأكثر تفضيلاً":
+        return df.sort_values("fav_count", ascending=False)
+    else:
+        # الترتيب الافتراضي: المميز أولاً ثم الأحدث
+        return df.sort_values(["featured", "date"], ascending=[False, False])
+
+# 7. دالة حفظ الفلاتر المفضلة (Save Favorite Filters)
+def save_filter_preset(name):
+    """
+    حفظ مجموعة الفلاتر الحالية كقالب
+    """
+    if "saved_filters" not in st.session_state:
+        st.session_state.saved_filters = {}
+    
+    st.session_state.saved_filters[name] = st.session_state.filters.copy()
+    st.session_state.saved_filters[name]["saved_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# 8. دالة تحميل قالب فلاتر (Load Filter Preset)
+def load_filter_preset(name):
+    """
+    تحميل قالب فلاتر محفوظ
+    """
+    if name in st.session_state.get("saved_filters", {}):
+        st.session_state.filters.update(st.session_state.saved_filters[name])
+        st.session_state.filters["loaded_from"] = name
+        st.session_state.filters["loaded_at"] = datetime.datetime.now().strftime("%H:%M:%S")
+        return True
+    return False
+
+# 9. دالة عرض واجهة الفلاتر في الصفحة (Filter UI)
+def render_filters_ui():
+    """
+    عرض واجهة الفلاتر التفاعلية
+    """
+    with st.expander("🔍 خيارات البحث المتقدم", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # فلتر الولاية
+            wilaya_options = ["الكل"] + [f"{i:02d}" for i in range(1, 59)]
+            selected_wilaya = st.selectbox(
+                "📍 الولاية",
+                wilaya_options,
+                index=wilaya_options.index(st.session_state.filters.get("wilaya", "الكل"))
+            )
+            
+            # فلتر الفئة
+            category_options = ["الكل", "إلكترونيات", "عقارات", "سيارات", "خدمات", "أخرى"]
+            selected_category = st.selectbox(
+                "🏷️ الفئة",
+                category_options,
+                index=category_options.index(st.session_state.filters.get("category", "الكل"))
+            )
+        
+        with col2:
+            # نطاق السعر
+            min_p, max_p = st.slider(
+                "💰 نطاق السعر (دج)",
+                min_value=0,
+                max_value=10000000,
+                value=st.session_state.filters.get("price_range", [0, 10000000]),
+                step=10000
+            )
+            
+            # خيارات إضافية
+            featured_only = st.checkbox("⭐ الإعلانات المميزة فقط", value=st.session_state.filters.get("featured_only", False))
+            verified_only = st.checkbox("✅ المستخدمين الموثقين فقط", value=st.session_state.filters.get("verified_only", False))
+        
+        with col3:
+            # النطاق الزمني
+            date_range = st.selectbox(
+                "📅 الفترة الزمنية",
+                ["الكل", "اليوم", "الأسبوع", "الشهر"],
+                index=["الكل", "اليوم", "الأسبوع", "الشهر"].index(st.session_state.filters.get("date_range", "الكل"))
+            )
+            
+            # ترتيب النتائج
+            sort_options = ["الأحدث", "الأقدم", "الأعلى سعراً", "الأقل سعراً", "الأكثر مشاهدة", "الأعلى تقييماً", "الأكثر تفضيلاً"]
+            selected_sort = st.selectbox(
+                "📊 ترتيب حسب",
+                sort_options,
+                index=sort_options.index(st.session_state.filters.get("sort_by", "الأحدث"))
+            )
+            
+            with_images = st.checkbox("🖼️ إعلانات بها صور فقط", value=st.session_state.filters.get("with_images", False))
+        
+        # البحث النصي
+        search_query = st.text_input("🔎 كلمة البحث", value=st.session_state.filters.get("search_query", ""))
+        
+        # أزرار التحكم
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            if st.button("🔍 تطبيق الفلاتر", use_container_width=True):
+                update_filters(
+                    wilaya=selected_wilaya,
+                    category=selected_category,
+                    price_range=[min_p, max_p],
+                    min_price=min_p,
+                    max_price=max_p,
+                    featured_only=featured_only,
+                    verified_only=verified_only,
+                    date_range=date_range,
+                    sort_by=selected_sort,
+                    with_images=with_images,
+                    search_query=search_query
+                )
+                st.rerun()
+        
+        with col_b:
+            if st.button("♻️ إعادة ضبط", use_container_width=True):
+                reset_filters()
+        
+        with col_c:
+            if st.button("💾 حفظ كقالب", use_container_width=True):
+                preset_name = st.text_input("اسم القالب")
+                if preset_name:
+                    save_filter_preset(preset_name)
+                    st.success(f"تم حفظ القالب: {preset_name}")
+
+# 10. دالة عرض الفلاتر المحفوظة (Saved Filters)
+def render_saved_filters():
+    """
+    عرض وإدارة قوالب الفلاتر المحفوظة
+    """
+    if "saved_filters" in st.session_state and st.session_state.saved_filters:
+        with st.expander("📁 قوالب الفلاتر المحفوظة"):
+            for name, preset in st.session_state.saved_filters.items():
+                col1, col2, col3 = st.columns([3, 1, 1])
+                with col1:
+                    st.write(f"**{name}**")
+                    if "saved_at" in preset:
+                        st.caption(f"محفوظ: {preset['saved_at']}")
+                with col2:
+                    if st.button("📂 تحميل", key=f"load_{name}"):
+                        load_filter_preset(name)
+                        st.rerun()
+                with col3:
+                    if st.button("🗑️ حذف", key=f"delete_{name}"):
+                        del st.session_state.saved_filters[name]
+                        st.rerun()
+
+# ==========================================
+# دمج نظام الفلاتر مع الصفحة الرئيسية
+# ==========================================
+def show_market_with_filters(conn):
+    """
+    نسخة محسنة من show_market مع دعم نظام الفلاتر الجديد
+    """
+    conn.execute("INSERT INTO page_views(page,view_time) VALUES('market',datetime('now'))")
+    conn.commit()
+    
+    # عرض واجهة الفلاتر
+    render_filters_ui()
+    render_saved_filters()
+    
+    # بناء الاستعلام الأساسي
+    base_query = """
+        SELECT a.*, IFNULL(AVG(r.rating),0) as avg_r, COUNT(r.rating) as count_r,
+               (SELECT COUNT(*) FROM favorites f WHERE f.ad_id = a.id) as fav_count
+        FROM ads a 
+        LEFT JOIN ratings r ON a.id = r.ad_id 
+    """
+    
+    # تطبيق الفلاتر على الاستعلام
+    query, params = apply_filters_to_query(base_query)
+    query += " GROUP BY a.id"
+    
+    # تنفيذ الاستعلام
+    ads = conn.execute(query, params).fetchall()
+    
+    # تحويل إلى DataFrame
+    df = pd.DataFrame(ads, columns=["id","product","price","phone","wilaya","description","date","owner","views","featured","category","images","status","avg_r","count_r","fav_count"])
+    
+    # تطبيق البحث الذكي
+    if st.session_state.filters["search_query"]:
+        df = smart_search(df, st.session_state.filters["search_query"])
+    
+    # تطبيق الترتيب الذكي
+    if len(df) > 0:
+        df = apply_smart_sorting(df, st.session_state.filters["sort_by"])
+        
+        # عرض النتائج
+        st.markdown(f"### 📊 نتائج البحث: {len(df)} إعلان")
+        
+        # عرض الإعلانات مع Pagination
+        items_per_page = 5
+        total_pages = max(1, (len(df) + items_per_page - 1) // items_per_page)
+        
+        if total_pages > 1:
+            page = st.number_input("الصفحة", min_value=1, max_value=total_pages, value=1)
+            start_idx = (page - 1) * items_per_page
+            end_idx = min(start_idx + items_per_page, len(df))
+            current_df = df.iloc[start_idx:end_idx]
+        else:
+            current_df = df
+        
+        # عرض الإعلانات
+        for _, ad in current_df.iterrows():
+            # عرض الإعلان (نفس كود العرض السابق)
+            with st.container():
+                st.markdown(f"""
+                    <div class="ad-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h2 style="margin:0; color:#006633;">{ad['product']} 
+                                {f'<span class="badge-premium">⭐ مميز</span>' if ad['featured'] else ''}</h2>
+                                <p>{ad['description'][:200]}...</p>
+                                <p>📍 {ad['wilaya']} | 💰 {ad['price']:,} دج | 👁️ {ad['views']}</p>
+                                <p>⭐ {ad['avg_r']:.1f} | 💖 {ad['fav_count']}</p>
+                            </div>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("😕 لا توجد إعلانات تطابق معايير البحث")
+
+# ==========================================
+# تحديث الدالة dashboard لاستخدام النظام الجديد
+# ==========================================
+def dashboard():
+    track_visitor()
+    track_session()
+    conn = get_connection()
+    
+    with st.sidebar:
+        st.markdown(f"### 🎖️ {st.session_state.user}")
+        
+        # عرض إحصائيات سريعة من الفلاتر
+        st.caption(f"🔄 آخر تحديث للفلاتر: {st.session_state.filters.get('last_updated', 'لم يحدث')}")
+        
+        # بقية القائمة كما هي...
+        unread_notif = get_unread_notif(st.session_state.user)
+        unread_msgs = get_unread_messages(st.session_state.user)
+        total_unread = unread_notif + unread_msgs
+        notif_badge = f" 🔔 ({total_unread})" if total_unread > 0 else " 🔔"
+        
+        online = conn.execute("SELECT COUNT(DISTINCT ip) FROM visitors WHERE last_seen > datetime('now','-5 minutes')").fetchone()[0]
+        st.info(f"🟢 الزوار النشطون: {online}")
+        
+        menu_options = ["🔍 السوق الذكي", "📢 نشر إعلان", "⭐ المفضلة", "💬 الرسائل", notif_badge, "🤖 المساعد الذكي", "📊 Analytics MAX"]
+        
+        if st.session_state.role == "admin":
+            menu_options.append("🛡️ الإدارة")
+        
+        choice = st.radio("القائمة", menu_options)
+        
+        if st.button("🚪 تسجيل خروج"):
+            log_activity(st.session_state.user, "logout", "User logged out")
+            st.session_state.user = None
+            st.rerun()
+        
+        # عرض الفلاتر الحالية في sidebar
+        with st.expander("🎯 الفلاتر النشطة"):
+            st.json(st.session_state.filters)
+
+    # توجيه الاختيارات
+    if choice == "🔍 السوق الذكي":
+        show_market_with_filters(conn)  # استخدام النسخة المحسنة
+    elif choice == "📢 نشر إعلان":
+        post_ad(conn)
+    elif choice == "⭐ المفضلة":
+        show_favorites(conn)
+    elif choice == "💬 الرسائل":
+        show_chat_system(conn)
+    elif choice == notif_badge:
+        show_notifications(st.session_state.user)
+    elif choice == "🤖 المساعد الذكي":
+        show_ai_assistant()
+    elif choice == "📊 Analytics MAX":
+        show_analytics(conn)
+    elif choice == "🛡️ الإدارة" and st.session_state.role == "admin":
+        admin_panel()
 
