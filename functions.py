@@ -2,12 +2,8 @@ import streamlit as st
 import base64
 import os
 import time
-import requests
 from datetime import datetime
 import pandas as pd
-import plotly.graph_objects as go
-from bs4 import BeautifulSoup
-import re
 
 # ==========================================
 # دوال التعامل مع الصور
@@ -119,50 +115,6 @@ def rassim_robot_logic(user_message, st_session=None):
     return "رسالتك وصلت! سأرد قريباً 🌟"
 
 # ==========================================
-# بوت جلب الإعلانات من واد كنيس
-# ==========================================
-def scrape_ouedkniss_url(url):
-    """جلب بيانات الإعلان من رابط واد كنيس"""
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # استخراج العنوان
-        title = soup.find('h1')
-        title = title.text.strip() if title else "عنوان غير معروف"
-        
-        # استخراج السعر
-        price_text = soup.find(text=re.compile(r'\d+[.,]?\d*\s*(دج|دينار|DA)', re.IGNORECASE))
-        price = 0
-        if price_text:
-            numbers = re.findall(r'\d+', price_text)
-            if numbers:
-                price = int(numbers[0]) * 1000 if len(numbers[0]) < 4 else int(numbers[0])
-        
-        # استخراج الوصف
-        description = soup.find('meta', {'name': 'description'})
-        description = description['content'] if description else "وصف غير متوفر"
-        
-        # استخراج الصورة
-        image = soup.find('meta', {'property': 'og:image'})
-        image_url = image['content'] if image else None
-        
-        return {
-            'success': True,
-            'title': title[:100],
-            'price': price,
-            'description': description[:200],
-            'image_url': image_url,
-            'wilaya': "16 - الجزائر",  # قيمة افتراضية
-            'url': url
-        }
-    except Exception as e:
-        return {'success': False, 'error': str(e)}
-
-# ==========================================
 # إضافة إعلانات تلقائية
 # ==========================================
 def seed_smart_ads(conn):
@@ -250,6 +202,7 @@ def show_market_trends(conn):
     try:
         df = pd.read_sql_query("SELECT category, COUNT(*) as count FROM ads WHERE status='active' GROUP BY category", conn)
         if not df.empty:
+            import plotly.graph_objects as go
             fig = go.Figure(go.Bar(
                 x=df['count'],
                 y=df['category'],
@@ -262,10 +215,7 @@ def show_market_trends(conn):
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font_color='white',
-                height=250,
-                margin=dict(l=20, r=20, t=30, b=20),
-                xaxis=dict(title="عدد الإعلانات", gridcolor='rgba(255,255,255,0.1)'),
-                yaxis=dict(title="الفئة", gridcolor='rgba(255,255,255,0.1)')
+                height=250
             )
             return fig
     except:
