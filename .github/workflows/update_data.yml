@@ -1,33 +1,56 @@
-name: Rassim DZ Auto-Bot
+name: Rassim DZ Auto-Bot (Titanium Max Edition)
 
 on:
   schedule:
-    - cron: '0 * * * *' # تشغيل الروبوت تلقائياً كل رأس ساعة
-  workflow_dispatch: # للسماح لك بتشغيله يدوياً وقتما تشاء
+    - cron: '0 * * * *' # تشغيل آلي كل ساعة بدقة متناهية
+  workflow_dispatch: # للتشغيل اليدوي الفوري عند الحاجة
 
 jobs:
-  build:
+  scrape_and_sync:
     runs-on: ubuntu-latest
+    
+    # تحديد الصلاحيات للسماح بالدفع (Push) التلقائي
+    permissions:
+      contents: write
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: 📥 سحب الكود (Checkout Code)
+        uses: actions/checkout@v4 # تحديث للإصدار الأحدث لضمان السرعة
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: 🐍 إعداد بيئة بايثون (Python 3.11)
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11' # التوافق مع بيئة الـ Dev Container
+          cache: 'pip' # تفعيل التخزين المؤقت لتسريع العملية
 
-      - name: Install dependencies
+      - name: 📦 تثبيت المكتبات (Dependencies)
         run: |
-          pip install pandas requests beautifulsoup4
+          python -m pip install --upgrade pip
+          pip install pandas requests beautifulsoup4 sqlalchemy lxml
 
-      - name: Run Scraper
+      - name: 🔍 تشغيل محرك الجمع (Run Scraper)
+        # أضفت لك متغيرات بيئة هنا في حال احتجت لاستخدام مفاتيح API مستقبلاً
         run: python myscraper.py
+        env:
+          PYTHONPATH: .
+          DB_PATH: "rassim_titanium_max_2026.db"
 
-      - name: Commit and Push changes
+      - name: 💾 حفظ وتحديث البيانات (Sync Database)
         run: |
-          git config --global user.name "Rassim Bot"
+          git config --global user.name "Rassim Titanium Bot"
           git config --global user.email "bot@rassimdz.com"
-          git add users_database.csv
-          git commit -m "تحديث تلقائي للعروض من 59 ولاية 🚀" || exit 0
-          git push
+          
+          # إضافة كل من ملف CSV وقاعدة البيانات لضمان المزامنة الكاملة
+          git add rassim_titanium_max_2026.db users_database.csv
+          
+          # التحقق مما إذا كان هناك تغييرات فعلاً لتجنب الأخطاء
+          if git diff --staged --quiet; then
+            echo "لا توجد عروض جديدة في الـ 58 ولاية حالياً."
+          else
+            git commit -m "🚀 تحديث ذكاء السوق | 📅 $(date +'%Y-%m-%d %H:%M') | 🇩🇿 58 ولاية"
+            git push origin HEAD:${{ github.ref }}
+          fi
+
+      - name: 🚨 تقرير الفشل (Failure Report)
+        if: failure()
+        run: echo "حدث خطأ في عملية الجمع التلقائي، يرجى مراجعة سجلات myscraper.py"
