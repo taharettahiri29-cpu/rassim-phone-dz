@@ -220,3 +220,54 @@ def main():
 
 if __name__ == "__main__":
     main()
+# ==========================================
+# 5. لوحة التحكم السرية (للمسؤول فقط)
+# ==========================================
+def admin_dashboard(conn):
+    st.markdown("<h2 style='color:#d21034;'>🔐 لوحة تحكم الإدارة السرية</h2>", unsafe_allow_html=True)
+    
+    tab1, tab2, tab3 = st.tabs(["👥 المستخدمين", "📈 إحصائيات الزوار", "🚫 إدارة المحتوى"])
+    
+    with tab1:
+        users_df = pd.read_sql_query("SELECT username, role FROM users", conn)
+        st.dataframe(users_df, use_container_width=True)
+        
+    with tab2:
+        visits_df = pd.read_sql_query("SELECT visit_date, ip FROM site_analytics ORDER BY visit_date DESC", conn)
+        st.line_chart(visits_df.groupby('visit_date').count())
+        st.write("أحدث الزيارات:", visits_df.head(20))
+        
+    with tab3:
+        st.subheader("حذف إعلانات مخالفة")
+        ads_to_manage = conn.execute("SELECT id, product, owner FROM ads").fetchall()
+        for ad in ads_to_manage:
+            col1, col2 = st.columns([3, 1])
+            col1.write(f"📦 {ad[1]} (بواسطة: {ad[2]})")
+            if col2.button("❌ حذف", key=f"del_{ad[0]}"):
+                conn.execute("DELETE FROM ads WHERE id=?", (ad[0],))
+                conn.commit()
+                st.error(f"تم حذف إعلان {ad[1]}")
+                st.rerun()
+
+# تعديل بسيط في جزء القائمة الجانبية (Sidebar) داخل دالة main():
+# ابحث عن الجزء الخاص بالـ sidebar واستبدله بهذا:
+with st.sidebar:
+    st.title(f"👋 مرحباً {st.session_state.user}")
+    menu = st.radio("انتقل إلى:", ["السوق الذكي", "نشر إعلان", "خروج"])
+    
+    st.divider()
+    # المنطقة السرية
+    with st.expander("🛠 خيارات متقدمة"):
+        admin_pass = st.text_input("كلمة سر الإدارة", type="password")
+        if admin_pass == "racim2026": # يمكنك تغيير كلمة السر هنا
+            show_admin = st.checkbox("فتح لوحة التحكم")
+        else:
+            show_admin = False
+
+# ثم في الجزء السفلي من main() حيث تظهر الصفحات:
+if st.session_state.user:
+    if show_admin:
+        admin_dashboard(conn)
+    else:
+        if menu == "السوق الذكي": show_market(conn)
+        elif menu == "نشر إعلان": post_ad(conn)
