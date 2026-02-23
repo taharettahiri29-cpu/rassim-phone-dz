@@ -11,684 +11,667 @@ import plotly.express as px
 import plotly.graph_objects as go
 import warnings
 from functools import wraps
+import numpy as np
+from datetime import datetime, timedelta
 
 warnings.filterwarnings('ignore')
 
 # ==========================================
-# 1. إعدادات الصفحة - مع الشعار المطلوب
+# 1. إعدادات الصفحة - Ultimate 2026 Edition
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS PRO • الجزائر",
-    page_icon="💠",  # يمكنك تغييرها إلى رابط صورتك
+    page_title="RASSIM OS ULTIMATE 2026 • الجزائر",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
 # ==========================================
-# 2. SEO Meta Tags
+# 2. المتغيرات السرية في الجلسة
+# ==========================================
+if 'admin_access' not in st.session_state:
+    st.session_state.admin_access = False
+
+# ==========================================
+# 3. SEO Meta Tags المتطورة
 # ==========================================
 st.markdown("""
-<meta name="description" content="RASSIM OS PRO - أول سوق إلكتروني جزائري بتقنية OS Style المتطورة">
-<meta name="keywords" content="واد كنيس, هواتف الجزائر, OS Pro, sleek design, راسم تيتانيوم">
+<meta name="description" content="RASSIM OS ULTIMATE 2026 - أول سوق إلكتروني جزائري بتقنية Quantum AI">
+<meta name="keywords" content="واد كنيس, هواتف الجزائر, Quantum OS, راسم تيتانيوم, ذكاء اصطناعي">
 <meta name="author" content="RASSIM DZ">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. JavaScript للنسخ المحسن
+# 4. نظام "الذكاء العصبي" للواجهة (Neural UI)
 # ==========================================
-st.markdown("""
-<script>
-// نظام النسخ المتطور مع تأثيرات
-function copyLink() {
-    navigator.clipboard.writeText('https://racim-phone.streamlit.app/');
-    
-    // تغيير لون الزر
-    const btn = document.getElementById('copyBtn');
-    if (btn) {
-        btn.style.background = 'linear-gradient(135deg, #00ffff, #ff00ff)';
-        btn.style.transform = 'scale(1.2) rotate(360deg)';
-    }
-    
-    // رسائل تشجيعية متنوعة
-    const messages = [
-        '✅ تم نسخ الرابط - الدزة واجدة! 🇩🇿',
-        '🔥 شارك مع صحابك واكسب الثواب!',
-        '⚡ راهي الدزة - راهي التوانسة!',
-        '💫 58 ولاية - كلها في رابط وحدة!',
-        '🎯 واد كنيس الجديد - أحسن وأسرع!'
-    ];
-    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-    alert(randomMsg);
-    
-    // إعادة الزر لحالته الطبيعية
-    setTimeout(() => {
-        if (btn) {
-            btn.style.background = '';
-            btn.style.transform = '';
-        }
-    }, 500);
-    
-    // تسجيل النشاط (للتحليلات)
-    console.log('تم نسخ الرابط - ' + new Date().toLocaleTimeString());
-}
+def set_ultimate_theme():
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
-// تأثير المشاركة الجماعية
-function shareAll() {
-    const icons = document.querySelectorAll('.os-icon');
-    icons.forEach((icon, index) => {
-        setTimeout(() => {
-            icon.style.transform = 'scale(1.3) rotate(10deg)';
-            icon.style.background = 'rgba(0, 255, 255, 0.3)';
-            setTimeout(() => {
-                icon.style.transform = '';
-                icon.style.background = '';
-            }, 300);
-        }, index * 150);
-    });
-    
-    // رسالة حماسية
-    setTimeout(() => {
-        alert('🚀 الدزة راهي تمشي! شارك في كل مكان!');
-    }, 600);
-}
-</script>
-""", unsafe_allow_html=True)
+    * {
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        direction: rtl;
+        box-sizing: border-box;
+    }
+
+    /* واجهة الـ Liquid Glass - أحدث صيحات 2026 */
+    .stApp {
+        background: radial-gradient(circle at 20% 20%, #1a1a2a, #0a0a0f);
+        color: #ffffff;
+        position: relative;
+    }
+
+    /* تأثير الجسيمات الكمومية */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(2px 2px at 10px 10px, rgba(0, 255, 255, 0.2), transparent),
+            radial-gradient(3px 3px at 50px 100px, rgba(255, 0, 255, 0.2), transparent),
+            radial-gradient(2px 2px at 200px 200px, rgba(0, 255, 255, 0.15), transparent);
+        background-repeat: repeat;
+        background-size: 600px 600px;
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+        animation: quantumFloat 30s linear infinite;
+    }
+
+    @keyframes quantumFloat {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(-100px) rotate(5deg); }
+    }
+
+    /* الهيدر العصبي */
+    .neural-header {
+        background: rgba(10, 10, 20, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        animation: neuralGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes neuralGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
+        50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.3); }
+    }
+
+    .neural-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientPulse 5s ease infinite;
+    }
+
+    @keyframes gradientPulse {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* كرت إعلاني بتأثير الهولوغرام */
+    .hologram-card {
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 28px;
+        margin-bottom: 20px;
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hologram-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.6s;
+        animation: rotate 10s linear infinite;
+    }
+
+    .hologram-card:hover::before {
+        opacity: 1;
+    }
+
+    .hologram-card:hover {
+        background: rgba(0, 255, 255, 0.05);
+        border-color: #00ffff;
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 30px 80px rgba(0, 255, 255, 0.2);
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .hologram-card::after {
+        content: '';
+        position: absolute;
+        top: -100%;
+        right: -100%;
+        width: 100%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+        transform: rotate(45deg);
+        animation: shine 4s infinite;
+    }
+
+    @keyframes shine {
+        0% { transform: translateX(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    /* زر الـ Cyber-Action */
+    .stButton > button {
+        background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff) !important;
+        background-size: 200% 200% !important;
+        border: none !important;
+        color: black !important;
+        font-weight: 800 !important;
+        border-radius: 15px !important;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .stButton > button:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-3px) scale(1.02);
+        animation: gradientShift 3s ease infinite;
+        box-shadow: 0 8px 25px rgba(255, 0, 255, 0.4) !important;
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* صناديق البحث الكمومي */
+    .quantum-input {
+        background: rgba(20, 20, 30, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 2px solid rgba(0, 255, 255, 0.2) !important;
+        border-radius: 50px !important;
+        color: white !important;
+        padding: 16px 24px !important;
+        font-size: 1rem !important;
+        transition: all 0.4s ease !important;
+    }
+
+    .quantum-input:focus {
+        border-color: #ff00ff !important;
+        box-shadow: 0 0 30px rgba(255, 0, 255, 0.3) !important;
+        transform: scale(1.02);
+    }
+
+    /* شارة التوثيق */
+    .verified-badge {
+        background: rgba(0, 255, 255, 0.15);
+        border: 1px solid #00ffff;
+        color: #00ffff;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .unverified-badge {
+        background: rgba(255, 0, 255, 0.15);
+        border: 1px solid #ff00ff;
+        color: #ff00ff;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* أيقونات المشاركة المتطورة */
+    .os-share-icons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .os-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(30, 30, 40, 0.8);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        animation: quantumFloat 3s ease-in-out infinite;
+    }
+
+    .os-icon:nth-child(1) { animation-delay: 0s; }
+    .os-icon:nth-child(2) { animation-delay: 0.2s; }
+    .os-icon:nth-child(3) { animation-delay: 0.4s; }
+    .os-icon:nth-child(4) { animation-delay: 0.6s; }
+
+    .os-icon:hover {
+        background: linear-gradient(135deg, #00ffff, #ff00ff);
+        transform: scale(1.15) rotate(5deg);
+        border-color: white;
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    }
+
+    .os-icon img {
+        width: 24px;
+        height: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .os-icon:hover img {
+        filter: brightness(0) invert(1);
+        transform: scale(1.1);
+    }
+
+    /* القائمة الجانبية العصبية */
+    section[data-testid="stSidebar"] {
+        background: rgba(10, 10, 15, 0.8) !important;
+        backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(0, 255, 255, 0.1);
+        padding: 20px !important;
+    }
+
+    /* بطاقات الإحصائيات */
+    .stat-card {
+        background: rgba(20, 20, 30, 0.5);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.4s ease;
+    }
+
+    .stat-card:hover {
+        border-color: #ff00ff;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(255, 0, 255, 0.2);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #00ffff;
+        text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin-top: 5px;
+    }
+
+    /* شريط التمرير */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #00ffff, #ff00ff);
+        border-radius: 10px;
+    }
+
+    /* التجاوب مع الجوال */
+    @media screen and (max-width: 768px) {
+        .neural-title { font-size: 1.8rem; }
+        .stat-value { font-size: 2rem; }
+        .os-icon { width: 40px; height: 40px; }
+        .os-icon img { width: 20px; height: 20px; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. التصميم المتطور - Sleek OS Style Pro
+# 5. نظام التحليل التنبئي (Predictive Analytics)
 # ==========================================
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-* {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    direction: rtl;
-    box-sizing: border-box;
-}
-
-/* ===== خلفية متحركة ===== */
-.stApp {
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2a 50%, #0a0a0f 100%);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-    color: #ffffff;
-}
-
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* ===== تأثير الجسيمات المتحركة ===== */
-.stApp::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(2px 2px at 10px 10px, rgba(0, 255, 255, 0.3), transparent),
-        radial-gradient(2px 2px at 50px 100px, rgba(255, 0, 255, 0.3), transparent),
-        radial-gradient(3px 3px at 200px 200px, rgba(0, 255, 255, 0.2), transparent),
-        radial-gradient(2px 2px at 400px 300px, rgba(255, 0, 255, 0.2), transparent);
-    background-repeat: repeat;
-    background-size: 600px 600px;
-    opacity: 0.1;
-    pointer-events: none;
-    z-index: 0;
-    animation: float 20s linear infinite;
-}
-
-@keyframes float {
-    0% { transform: translateY(0) translateX(0); }
-    100% { transform: translateY(-100px) translateX(50px); }
-}
-
-/* ===== Glass Morphism متطور ===== */
-.glass-panel {
-    background: rgba(20, 20, 30, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.glass-panel:hover {
-    border-color: rgba(0, 255, 255, 0.2);
-    box-shadow: 0 12px 48px rgba(0, 255, 255, 0.15);
-}
-
-/* ===== الهيدر المتطور ===== */
-.os-header {
-    background: rgba(10, 10, 20, 0.8);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 20px 30px;
-    margin-bottom: 30px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    animation: slideDown 0.5s ease;
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.os-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    animation: gradientShift 5s ease infinite;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.os-version {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    color: #888;
-    margin-right: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* ===== كروت إحصائية متطورة ===== */
-.stMetric {
-    background: rgba(20, 20, 30, 0.7) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 24px !important;
-    padding: 25px 20px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.stMetric::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.4s;
-}
-
-.stMetric:hover::before {
-    opacity: 1;
-    animation: rotate 4s linear infinite;
-}
-
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.stMetric:hover {
-    transform: translateY(-8px) scale(1.02);
-    border-color: rgba(0, 255, 255, 0.3) !important;
-    box-shadow: 0 16px 48px rgba(0, 255, 255, 0.2) !important;
-}
-
-.stMetric label {
-    color: rgba(255, 255, 255, 0.6) !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.5px;
-}
-
-.stMetric [data-testid="stMetricValue"] {
-    color: white !important;
-    font-size: 2.5rem !important;
-    font-weight: 700 !important;
-    text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-}
-
-/* ===== أزرار متطورة ===== */
-.stButton > button {
-    background: rgba(30, 30, 40, 0.8) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 50px !important;
-    color: white !important;
-    font-weight: 500 !important;
-    font-size: 0.95rem !important;
-    padding: 14px 28px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.stButton > button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.stButton > button:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.stButton > button:hover {
-    background: rgba(50, 50, 60, 0.9) !important;
-    border-color: rgba(0, 255, 255, 0.4) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(0, 255, 255, 0.2) !important;
-}
-
-/* ===== صناديق الإدخال المتطورة ===== */
-.stTextInput input, 
-.stTextArea textarea,
-.stSelectbox select {
-    background: rgba(20, 20, 30, 0.7) !important;
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 50px !important;
-    color: white !important;
-    padding: 14px 24px !important;
-    font-size: 0.95rem !important;
-    transition: all 0.3s ease;
-}
-
-.stTextInput input:focus, 
-.stTextArea textarea:focus,
-.stSelectbox select:focus {
-    border-color: rgba(0, 255, 255, 0.4) !important;
-    box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.1) !important;
-    transform: scale(1.02);
-}
-
-.stTextInput label, 
-.stTextArea label,
-.stSelectbox label {
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-size: 0.95rem !important;
-    font-weight: 500 !important;
-    margin-bottom: 8px !important;
-}
-
-/* ===== القائمة الجانبية المتطورة ===== */
-section[data-testid="stSidebar"] {
-    background: rgba(10, 10, 15, 0.95) !important;
-    backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 20px !important;
-}
-
-section[data-testid="stSidebar"] .stRadio > div {
-    gap: 8px;
-}
-
-section[data-testid="stSidebar"] .stRadio label {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    padding: 12px 16px;
-    transition: all 0.3s ease;
-    color: white !important;
-}
-
-section[data-testid="stSidebar"] .stRadio label:hover {
-    background: rgba(0, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.3);
-    transform: translateX(-4px);
-}
-
-/* ===== بطاقات الإعلانات المتطورة ===== */
-.os-card {
-    background: rgba(20, 20, 30, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 28px;
-    padding: 28px;
-    margin-bottom: 20px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.os-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
-}
-
-.os-card:hover {
-    transform: translateX(-8px) translateY(-4px);
-    border-color: rgba(0, 255, 255, 0.3);
-    box-shadow: 0 20px 48px rgba(0, 255, 255, 0.2);
-}
-
-.os-card-title {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, #fff, #e0e0e0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.os-card-price {
-    background: rgba(0, 255, 255, 0.15);
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    color: #00ffff;
-    padding: 10px 24px;
-    border-radius: 50px;
-    display: inline-block;
-    font-weight: 600;
-    font-size: 1.3rem;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-}
-
-/* ===== أزرار المشاركة المتطورة ===== */
-.os-share {
-    background: rgba(20, 20, 30, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 60px;
-    padding: 12px 24px;
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.1); }
-    50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.2); }
-}
-
-.os-share-icons {
-    display: flex;
-    gap: 12px;
-}
-
-.os-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    animation: float 3s ease-in-out infinite;
-    cursor: pointer;
-}
-
-.os-icon:nth-child(1) { animation-delay: 0s; }
-.os-icon:nth-child(2) { animation-delay: 0.1s; }
-.os-icon:nth-child(3) { animation-delay: 0.2s; }
-.os-icon:nth-child(4) { animation-delay: 0.3s; }
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-.os-icon:hover {
-    background: rgba(0, 255, 255, 0.15);
-    border-color: rgba(0, 255, 255, 0.4);
-    transform: scale(1.15) rotate(5deg);
-}
-
-.os-icon img {
-    width: 22px;
-    height: 22px;
-    opacity: 0.8;
-    transition: all 0.3s ease;
-}
-
-.os-icon:hover img {
-    opacity: 1;
-    filter: brightness(0) invert(1);
-}
-
-/* ===== فقاعات الدردشة المتطورة ===== */
-.os-chat-sent {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 200, 255, 0.15));
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    color: white;
-    padding: 14px 20px;
-    border-radius: 24px 24px 8px 24px;
-    margin: 12px 0;
-    max-width: 80%;
-    margin-left: auto;
-    box-shadow: 0 8px 24px rgba(0, 255, 255, 0.1);
-    animation: slideInLeft 0.3s ease;
-}
-
-.os-chat-received {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 14px 20px;
-    border-radius: 24px 24px 24px 8px;
-    margin: 12px 0;
-    max-width: 80%;
-    margin-right: auto;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    animation: slideInRight 0.3s ease;
-}
-
-@keyframes slideInLeft {
-    from { transform: translateX(30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideInRight {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-/* ===== العناوين ===== */
-h1, h2, h3 {
-    color: white !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.5px;
-}
-
-h1 {
-    font-size: 2.4rem !important;
-    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
-    padding-bottom: 16px;
-    margin-bottom: 28px !important;
-    display: inline-block;
-}
-
-/* ===== شريط التمرير المتطور ===== */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #00ffff, #ff00ff);
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #ff00ff, #00ffff);
-}
-
-/* ===== التجاوب مع الجوال ===== */
-@media screen and (max-width: 768px) {
-    .os-header {
-        padding: 15px 20px;
-    }
+def show_market_trends(conn):
+    st.markdown("### 📈 نبض السوق الجزائري (AI Live)")
     
-    .os-title {
-        font-size: 1.8rem;
-    }
+    try:
+        df = pd.read_sql_query("""
+            SELECT category, COUNT(*) as count, AVG(price) as avg_price 
+            FROM ads 
+            WHERE status='active' 
+            GROUP BY category 
+            ORDER BY count DESC 
+            LIMIT 8
+        """, conn)
+        
+        if not df.empty:
+            fig = go.Figure()
+            
+            fig.add_trace(go.Bar(
+                x=df['count'],
+                y=df['category'],
+                orientation='h',
+                marker=dict(
+                    color=df['count'],
+                    colorscale=[[0, '#00ffff'], [1, '#ff00ff']],
+                    line=dict(color='rgba(255,255,255,0.3)', width=1)
+                ),
+                text=df['count'],
+                textposition='auto',
+                textfont=dict(color='white', size=12),
+                hovertemplate='<b>%{y}</b><br>عدد الإعلانات: %{x}<br>متوسط السعر: %{customdata:,.0f} دج<extra></extra>',
+                customdata=df['avg_price']
+            ))
+            
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='white', family='Space Grotesk'),
+                height=350,
+                margin=dict(l=20, r=20, t=30, b=20),
+                xaxis=dict(
+                    title='عدد الإعلانات',
+                    gridcolor='rgba(255,255,255,0.1)',
+                    zeroline=False
+                ),
+                yaxis=dict(
+                    title='الفئة',
+                    gridcolor='rgba(255,255,255,0.1)'
+                ),
+                hoverlabel=dict(
+                    bgcolor='rgba(20,20,30,0.9)',
+                    font=dict(color='white', size=12)
+                )
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    except:
+        st.info("جاري تحميل التحليلات...")
+
+# ==========================================
+# 6. لوحة التحكم السرية للإدارة
+# ==========================================
+def rassim_os_admin_logic():
+    """لوحة التحكم السرية - للمصرح لهم فقط"""
     
-    .os-card-title {
-        font-size: 1.3rem;
-    }
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); 
+    backdrop-filter: blur(12px); border: 2px solid #00ffff; border-radius: 30px; 
+    padding: 30px; margin: 30px 0;">
+        <h1 style="text-align: center; color: white; font-size: 3rem;">🔐 RASSIM OS ADMIN</h1>
+        <p style="text-align: center; color: #00ffff;">مستوى الدخول: القائد 🛰️</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    .os-card-price {
-        font-size: 1.1rem;
-        padding: 8px 16px;
-    }
+    conn = get_connection()
     
-    .stMetric [data-testid="stMetricValue"] {
-        font-size: 2rem !important;
-    }
-}
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📊 الإحصائيات الكمومية", 
+        "👥 المستخدمين", 
+        "📢 الإعلانات", 
+        "💬 الرسائل", 
+        "🚨 النظام"
+    ])
+    
+    with tab1:
+        users, ads, visitors, views = get_stats()
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{users}</div><div class="stat-label">مستخدم</div></div>', unsafe_allow_html=True)
+        with col2:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{ads}</div><div class="stat-label">إعلان</div></div>', unsafe_allow_html=True)
+        with col3:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{visitors}</div><div class="stat-label">زيارة</div></div>', unsafe_allow_html=True)
+        with col4:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{views}</div><div class="stat-label">مشاهدة</div></div>', unsafe_allow_html=True)
+        
+        show_market_trends(conn)
+    
+    with tab2:
+        st.subheader("👥 إدارة المستخدمين")
+        users_df = pd.read_sql_query("""
+            SELECT username, role, verified, banned, ad_count, 
+                   substr(last_login, 1, 10) as last_login,
+                   email, phone
+            FROM users ORDER BY last_login DESC
+        """, conn)
+        st.dataframe(users_df, use_container_width=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            username = st.selectbox("اختر مستخدم", users_df['username'].tolist())
+        with col2:
+            if st.button("✅ توثيق المستخدم", use_container_width=True):
+                conn.execute("UPDATE users SET verified=1 WHERE username=?", (username,))
+                conn.commit()
+                st.success(f"تم توثيق {username}")
+                st.rerun()
+        with col3:
+            if st.button("🚫 حظر المستخدم", use_container_width=True):
+                conn.execute("UPDATE users SET banned=1 WHERE username=?", (username,))
+                conn.commit()
+                st.success(f"تم حظر {username}")
+                st.rerun()
+    
+    with tab3:
+        st.subheader("📢 إدارة الإعلانات")
+        ads_df = pd.read_sql_query("""
+            SELECT id, title, price, owner, views, featured, status, date
+            FROM ads ORDER BY date DESC LIMIT 50
+        """, conn)
+        st.dataframe(ads_df, use_container_width=True)
+        
+        ad_id = st.number_input("معرف الإعلان", min_value=1)
+        if st.button("⭐ تمييز كمميز", use_container_width=True):
+            conn.execute("UPDATE ads SET featured=1 WHERE id=?", (ad_id,))
+            conn.commit()
+            st.success("تم التمييز")
+            st.rerun()
+    
+    with tab4:
+        st.subheader("💬 جميع الرسائل")
+        msgs_df = pd.read_sql_query("""
+            SELECT sender, receiver, message, read, date
+            FROM messages ORDER BY date DESC LIMIT 100
+        """, conn)
+        st.dataframe(msgs_df, use_container_width=True)
+    
+    with tab5:
+        st.subheader("🚨 تقارير النظام")
+        reports_df = pd.read_sql_query("""
+            SELECT r.id, a.title, r.reporter, r.reason, r.status, r.date
+            FROM reports r JOIN ads a ON r.ad_id = a.id
+            ORDER BY r.date DESC
+        """, conn)
+        st.dataframe(reports_df, use_container_width=True)
 
-/* ===== تنسيق الشعار ===== */
-.sidebar-logo {
-    text-align: center;
-    padding: 10px;
-    margin-bottom: 20px;
-}
+# ==========================================
+# 7. محرك البحث الذكي (Quantum Search)
+# ==========================================
+def quantum_search_ui():
+    st.markdown("### 🔍 البحث الكمومي")
+    
+    col1, col2, col3 = st.columns([3, 1.2, 1])
+    
+    with col1:
+        search_query = st.text_input(
+            "", 
+            placeholder="🔍 ابحث بالصوت أو النص (مثلاً: آيفون 15 برو ماكس نظيف في الجزائر العاصمة)",
+            key="quantum_search"
+        )
+    
+    with col2:
+        ai_mode = st.selectbox(
+            "",
+            ["🧠 أفضل سعر", "⚡ الأكثر ثقة", "🌟 الأحدث", "📈 الأكثر مشاهدة"],
+            label_visibility="collapsed"
+        )
+    
+    with col3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔮 Flash Scan", use_container_width=True):
+            st.success("جاري المسح الكمومي...")
+    
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        wilaya = st.selectbox("الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
+    with col_b:
+        price_range = st.selectbox("السعر", ["الكل", "أقل من 5 مليون", "5-10 مليون", "10-20 مليون", "أكثر من 20 مليون"])
+    with col_c:
+        condition = st.selectbox("الحالة", ["الكل", "جديد", "مستعمل", "مجدّد"])
+    with col_d:
+        sort = st.selectbox("الترتيب", ["الأحدث", "السعر", "المشاهدات"])
+    
+    return search_query, wilaya, price_range, condition, sort
 
-.sidebar-logo img {
-    max-width: 80%;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
-    transition: all 0.3s ease;
-}
-
-.sidebar-logo img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 15px 40px rgba(255, 0, 255, 0.4);
-}
-
-/* ===== تأثير خاص لزر النسخ ===== */
-#copyBtn {
-    position: relative;
-    overflow: hidden;
-}
-
-#copyBtn::after {
-    content: '📋';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    font-size: 1.5rem;
-    opacity: 0;
-    transition: all 0.3s;
-}
-
-#copyBtn:hover::after {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-}
-
-#copyBtn:hover img {
-    opacity: 0;
-}
-
-/* ===== عداد المشاركات ===== */
-.share-counter {
-    background: rgba(0,0,0,0.3);
-    border-radius: 30px;
-    padding: 4px 12px;
-    font-size: 0.8rem;
-    color: #00ffff;
-    border: 1px solid rgba(0,255,255,0.3);
-}
-
-/* ===== رسالة عائمة ===== */
-.floating-message {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #00ffff, #ff00ff);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-weight: bold;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    z-index: 9999;
-    animation: floatMessage 3s ease-in-out infinite;
-    border: 2px solid white;
-    cursor: pointer;
-}
-
-@keyframes floatMessage {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-</style>
-
-<!-- OS Header Pro -->
-<div class="os-header">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div>
-            <span class="os-title">RASSIM OS PRO</span>
-            <span class="os-version">v3.0.0 • الجزائر</span>
+# ==========================================
+# 8. دالة الإعلان الذهبية (The Golden Ad)
+# ==========================================
+def render_ad_pro(ad, verified=False):
+    verified_badge = "✅ موثوق" if verified else "⚠️ غير موثق"
+    badge_class = "verified-badge" if verified else "unverified-badge"
+    
+    st.markdown(f"""
+    <div class="hologram-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span style="color: #888; font-size: 0.85rem;">📍 {ad['wilaya']}</span>
+                <span style="color: #888; font-size: 0.85rem;">🕐 {ad['date'][:10] if ad['date'] else ''}</span>
+                <span style="color: #888; font-size: 0.85rem;">👁️ {ad['views']}</span>
+            </div>
+            <span class="{badge_class}">{verified_badge}</span>
         </div>
-        <div style="display: flex; gap: 16px;">
-            <span style="color: rgba(0,255,255,0.5);">⚡ 5G</span>
-            <span style="color: rgba(255,0,255,0.5);">🔋 100%</span>
-            <span style="color: rgba(255,255,255,0.3);">📶</span>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; color: white; font-size: 1.8rem;">{ad['title']}</h2>
+            <div style="display: flex; align-items: baseline; gap: 5px;">
+                <span style="font-size: 2rem; font-weight: 800; color: #00ffff;">{ad['price']:,}</span>
+                <span style="color: #ff00ff; font-weight: 600;">دج</span>
+            </div>
+        </div>
+        
+        <p style="color: #aaa; margin: 15px 0; line-height: 1.6;">{ad['description'][:150]}...</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <div style="flex: 2;">
+                <div style="display: flex; gap: 10px;">
+                    <span style="background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; color: #00ffff;">#{ad['category']}</span>
+                    <span style="background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; color: #ff00ff;">👤 {ad['owner']}</span>
+                </div>
+            </div>
+            <div style="flex: 1; display: flex; gap: 10px; justify-content: flex-end;">
+                <span class="os-icon" style="width: 45px; height: 45px;"><img src="https://img.icons8.com/color/48/whatsapp--v1.png"></span>
+                <span class="os-icon" style="width: 45px; height: 45px;"><img src="https://img.icons8.com/color/48/phone--v1.png"></span>
+                <span class="os-icon" style="width: 45px; height: 45px;"><img src="https://img.icons8.com/color/48/favorite--v1.png"></span>
+            </div>
         </div>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(f"📞 اتصل بالبائع", key=f"call_{ad['id']}", use_container_width=True):
+            st.info(f"رقم الهاتف: {ad['phone']}")
+    with col2:
+        if st.button(f"⚡ شراء سريع", key=f"buy_{ad['id']}", use_container_width=True):
+            st.success("تم إرسال طلبك إلى البائع")
 
 # ==========================================
-# 5. إعدادات قاعدة البيانات
+# 9. أزرار المشاركة المتطورة
 # ==========================================
-DB = "rassim_os_pro.db"
+def show_social_share():
+    site_url = "https://racim-phone.streamlit.app/"
+    
+    st.markdown(f"""
+    <div style="text-align: center; margin: 30px 0;">
+        <div class="os-share-icons">
+            <a href="https://www.facebook.com/sharer/sharer.php?u={site_url}" target="_blank">
+                <div class="os-icon"><img src="https://img.icons8.com/color/48/facebook-new.png"></div>
+            </a>
+            <a href="https://api.whatsapp.com/send?text=🔥 الدزة الجزائرية: {site_url}" target="_blank">
+                <div class="os-icon"><img src="https://img.icons8.com/color/48/whatsapp--v1.png"></div>
+            </a>
+            <a href="https://t.me/share/url?url={site_url}&text=🇩🇿 أول سوق إلكتروني جزائري" target="_blank">
+                <div class="os-icon"><img src="https://img.icons8.com/color/48/telegram-app--v1.png"></div>
+            </a>
+            <div class="os-icon" onclick="copyLink()">
+                <img src="https://img.icons8.com/color/48/link--v1.png">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function copyLink() {{
+        navigator.clipboard.writeText('{site_url}');
+        alert('✅ تم نسخ الرابط - شاركه مع صحابك! 🇩🇿');
+        
+        const btn = event.currentTarget;
+        btn.style.background = 'linear-gradient(135deg, #00ffff, #ff00ff)';
+        setTimeout(() => btn.style.background = '', 300);
+    }}
+    </script>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# 10. إعدادات قاعدة البيانات
+# ==========================================
+DB = "rassim_os_ultimate.db"
 
 def init_db():
-    """تهيئة قاعدة البيانات"""
+    """تهيئة قاعدة البيانات المتطورة"""
     try:
         conn = sqlite3.connect(DB, check_same_thread=False)
         cursor = conn.cursor()
         
-        # جدول المستخدمين
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
@@ -701,11 +684,10 @@ def init_db():
                 banned INTEGER DEFAULT 0,
                 ad_count INTEGER DEFAULT 0,
                 last_login TEXT,
-                date TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
-        # جدول الإعلانات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -720,12 +702,12 @@ def init_db():
                 featured INTEGER DEFAULT 0,
                 status TEXT DEFAULT 'active',
                 owner TEXT NOT NULL,
+                verified INTEGER DEFAULT 0,
                 date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner) REFERENCES users(username)
             )
         """)
         
-        # جدول الرسائل
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -739,7 +721,6 @@ def init_db():
             )
         """)
         
-        # جدول المفضلة
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS favorites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -752,7 +733,6 @@ def init_db():
             )
         """)
         
-        # جدول الإشعارات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS notifications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -765,7 +745,6 @@ def init_db():
             )
         """)
         
-        # جدول البلاغات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -779,7 +758,6 @@ def init_db():
             )
         """)
         
-        # جدول الزوار
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS visitors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -789,21 +767,30 @@ def init_db():
             )
         """)
         
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS analytics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_type TEXT,
+                event_data TEXT,
+                username TEXT,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         conn.commit()
         return conn
     except Exception as e:
-        st.error(f"OS Error: {e}")
+        st.error(f"Ultimate Error: {e}")
         return None
 
 @st.cache_resource
 def get_connection():
     return sqlite3.connect(DB, check_same_thread=False)
 
-# تهيئة قاعدة البيانات
 init_db()
 
 # ==========================================
-# 6. دوال المساعدة
+# 11. دوال المساعدة المتطورة
 # ==========================================
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
@@ -841,289 +828,184 @@ def get_stats():
     except:
         return 0, 0, 0, 0
 
-# ==========================================
-# 7. أزرار المشاركة OS Style Pro مع كود النسخ
-# ==========================================
-def show_social_share():
-    site_url = "https://racim-phone.streamlit.app/"
-    
-    st.markdown(f"""
-    <div class="os-share">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.3rem;">
-                    🔥 الدزة
-                </span>
-                <span class="share-counter">🚀 58 ولاية</span>
-            </div>
-            
-            <div class="os-share-icons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u={site_url}" target="_blank" title="فيسبوك - شارك مع العائلة" onclick="shareAll()">
-                    <div class="os-icon"><img src="https://img.icons8.com/color/48/facebook-new.png"></div>
-                </a>
-                <a href="https://api.whatsapp.com/send?text=🔥 الدزة الجزائرية: {site_url}" target="_blank" title="واتساب - بزاف صحاب" onclick="shareAll()">
-                    <div class="os-icon"><img src="https://img.icons8.com/color/48/whatsapp--v1.png"></div>
-                </a>
-                <a href="https://t.me/share/url?url={site_url}&text=🇩🇿 أول سوق إلكتروني جزائري" target="_blank" title="تيليغرام - قنوات الدزة" onclick="shareAll()">
-                    <div class="os-icon"><img src="https://img.icons8.com/color/48/telegram-app--v1.png"></div>
-                </a>
-                <div id="copyBtn" class="os-icon" onclick="copyLink()" title="انسخ الرابط ووزع الدزة">
-                    <img src="https://img.icons8.com/color/48/link--v1.png">
-                </div>
-            </div>
-        </div>
-        
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; gap: 8px;">
-                <span style="background: rgba(0,255,255,0.1); color: #00ffff; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; border: 1px solid rgba(0,255,255,0.3);">
-                    ⚡ واد كنيس الجديد
-                </span>
-                <span style="background: rgba(255,0,255,0.1); color: #ff00ff; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; border: 1px solid rgba(255,0,255,0.3);">
-                    🎯 أسرع وأحسن
-                </span>
-            </div>
-            
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
-                    👥 شارك مع 10 صحاب
-                </span>
-                <span style="background: linear-gradient(135deg, #00ffff, #ff00ff); color: white; padding: 4px 16px; border-radius: 30px; font-size: 0.9rem; font-weight: 600;">
-                    +1000 إعلان
-                </span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- رسالة عائمة تشجيعية (تظهر بعد 3 ثواني) -->
-    <script>
-    setTimeout(function() {{
-        const msg = document.createElement('div');
-        msg.className = 'floating-message';
-        msg.innerHTML = '🎯 راهي الدزة - شارك مع صحابك!';
-        msg.onclick = function() {{ copyLink(); this.remove(); }};
-        document.body.appendChild(msg);
-        
-        setTimeout(function() {{
-            if (msg.parentNode) msg.remove();
-        }}, 5000);
-    }}, 3000);
-    </script>
-    
-    <!-- رسالة سرية للمطور -->
-    <div style="display: none;">
-        تم تفعيل نظام الترويج المتطور - الدزة واجدة في 58 ولاية! 🚀
-        <!-- نظام التتبع: نسخ الرابط: {site_url} -->
-    </div>
-    """, unsafe_allow_html=True)
+def get_verified_status(username):
+    try:
+        conn = get_connection()
+        verified = conn.execute("SELECT verified FROM users WHERE username=?", (username,)).fetchone()
+        return verified[0] if verified else 0
+    except:
+        return 0
 
 # ==========================================
-# 8. قسم تيك توك OS Style Pro
+# 12. صفحة تسجيل الدخول المتطورة
 # ==========================================
-def show_tiktok_section():
-    st.markdown("""
-    <div class="os-share" style="background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));">
-        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <span style="font-size: 1.2rem;">🎵</span>
-            <span style="color: white; font-weight: 500;">"تهنينا من التقرعيج، الدزة راهو واجد! 🇩🇿"</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#واد_كنيس</span>
-            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#الجزائر</span>
-            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#هواتف</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-# 9. بطاقات الإحصائيات
-# ==========================================
-def show_stats_cards():
+def login_page():
     users, ads, visitors, views = get_stats()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("المستخدمين", f"{users:,}")
+        st.markdown(f'<div class="stat-card"><div class="stat-value">{users}</div><div class="stat-label">مستخدم</div></div>', unsafe_allow_html=True)
     with col2:
-        st.metric("الإعلانات", f"{ads:,}")
+        st.markdown(f'<div class="stat-card"><div class="stat-value">{ads}</div><div class="stat-label">إعلان</div></div>', unsafe_allow_html=True)
     with col3:
-        st.metric("الزيارات", f"{visitors:,}")
+        st.markdown(f'<div class="stat-card"><div class="stat-value">{visitors}</div><div class="stat-label">زيارة</div></div>', unsafe_allow_html=True)
     with col4:
-        st.metric("المشاهدات", f"{views:,}")
-
-# ==========================================
-# 10. صفحة تسجيل الدخول
-# ==========================================
-def login_page():
-    show_stats_cards()
-    show_social_share()
-    show_tiktok_section()
+        st.markdown(f'<div class="stat-card"><div class="stat-value">{views}</div><div class="stat-label">مشاهدة</div></div>', unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["🔑 تسجيل الدخول", "📝 حساب جديد"])
+    show_social_share()
+    
+    tab1, tab2 = st.tabs(["🔑 دخول", "📝 حساب جديد"])
     conn = get_connection()
     
     with tab1:
         with st.form("login_form"):
             username = st.text_input("👤 اسم المستخدم")
             password = st.text_input("🔐 كلمة المرور", type="password")
-            submitted = st.form_submit_button("🚀 دخول", use_container_width=True)
             
-            if submitted:
+            if st.form_submit_button("⚡ دخول سريع", use_container_width=True):
                 if not username or not password:
                     st.error("❌ يرجى ملء جميع الحقول")
                 else:
                     try:
                         user = conn.execute(
-                            "SELECT password, salt, role FROM users WHERE username=?",
+                            "SELECT password, salt, role, verified FROM users WHERE username=?",
                             (username,)
                         ).fetchone()
                         
                         if user and user[0] == hash_password(password, user[1]):
                             st.session_state.user = username
                             st.session_state.role = user[2]
+                            st.session_state.verified = user[3]
                             st.rerun()
                         else:
-                            st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة")
-                    except Exception as e:
-                        st.error(f"❌ خطأ في تسجيل الدخول: {e}")
+                            st.error("❌ بيانات غير صحيحة")
+                    except:
+                        st.error("❌ خطأ في تسجيل الدخول")
     
     with tab2:
         with st.form("register_form"):
-            new_user = st.text_input("👤 اسم المستخدم الجديد")
-            new_pass = st.text_input("🔐 كلمة المرور الجديدة", type="password")
-            email = st.text_input("📧 البريد الإلكتروني (اختياري)")
-            phone = st.text_input("📱 رقم الهاتف (اختياري)")
-            submitted = st.form_submit_button("✨ تسجيل", use_container_width=True)
+            new_user = st.text_input("👤 اسم المستخدم")
+            new_pass = st.text_input("🔐 كلمة المرور", type="password")
+            email = st.text_input("📧 البريد الإلكتروني")
+            phone = st.text_input("📱 رقم الهاتف")
             
-            if submitted:
+            if st.form_submit_button("✨ تسجيل متقدم", use_container_width=True):
                 if not new_user or not new_pass:
-                    st.error("❌ اسم المستخدم وكلمة المرور مطلوبان")
+                    st.error("❌ الحقول مطلوبة")
                 elif len(new_user) < 3:
-                    st.error("❌ اسم المستخدم قصير جداً")
+                    st.error("❌ اسم مستخدم قصير")
                 elif len(new_pass) < 6:
-                    st.error("❌ كلمة المرور قصيرة جداً")
+                    st.error("❌ كلمة مرور قصيرة")
                 else:
                     try:
                         salt = secrets.token_hex(16)
                         hashed = hash_password(new_pass, salt)
                         
                         conn.execute("""
-                            INSERT INTO users (username, password, salt, email, phone, role)
-                            VALUES (?, ?, ?, ?, ?, 'user')
+                            INSERT INTO users (username, password, salt, email, phone, role, verified)
+                            VALUES (?, ?, ?, ?, ?, 'user', 0)
                         """, (new_user, hashed, salt, email, phone))
                         conn.commit()
                         
                         st.success("✅ تم التسجيل بنجاح!")
-                    except sqlite3.IntegrityError:
-                        st.error("❌ اسم المستخدم موجود مسبقاً")
-                    except Exception as e:
-                        st.error(f"❌ حدث خطأ: {e}")
+                    except:
+                        st.error("❌ اسم المستخدم موجود")
 
 # ==========================================
-# 11. صفحة السوق الذكي
+# 13. صفحة السوق الذكي
 # ==========================================
 def show_market(conn):
-    st.header("🛍️ السوق الذكي")
+    st.markdown("### 🛍️ السوق الذكي Quantum")
     
-    show_stats_cards()
+    search_query, wilaya, price_range, condition, sort = quantum_search_ui()
+    
+    with st.expander("📊 تحليلات السوق الحية", expanded=False):
+        show_market_trends(conn)
+    
     show_social_share()
-    show_tiktok_section()
-    
-    with st.expander("🔍 فلترة البحث", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            wilaya = st.selectbox("📍 الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
-        with col2:
-            category = st.selectbox("🏷️ القسم", ["الكل", "سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
-        
-        search = st.text_input("🔎 بحث عن هاتف", placeholder="اكتب اسم الهاتف...")
-        
-        if st.button("🔍 بحث", use_container_width=True):
-            st.success("جاري البحث...")
     
     try:
         query = "SELECT * FROM ads WHERE status='active'"
         params = []
         
-        if wilaya != "الكل":
+        if search_query:
+            query += " AND (title LIKE ? OR description LIKE ?)"
+            params.extend([f"%{search_query}%", f"%{search_query}%"])
+        if wilaya and wilaya != "الكل":
             query += " AND wilaya=?"
             params.append(wilaya)
-        if category != "الكل":
-            query += " AND category=?"
-            params.append(category)
-        if search:
-            query += " AND (title LIKE ? OR description LIKE ?)"
-            params.extend([f"%{search}%", f"%{search}%"])
         
-        query += " ORDER BY featured DESC, date DESC LIMIT 10"
+        if sort == "السعر":
+            query += " ORDER BY price"
+        elif sort == "المشاهدات":
+            query += " ORDER BY views DESC"
+        else:
+            query += " ORDER BY date DESC"
+        
+        query += " LIMIT 10"
         
         ads = conn.execute(query, params).fetchall()
         
         if ads:
             for ad in ads:
-                st.markdown(f"""
-                <div class="os-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div class="os-card-title">{ad[1]}</div>
-                        <div class="os-card-price">{ad[2]:,} دج</div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 24px; color: rgba(255,255,255,0.5); margin: 16px 0;">
-                        <span>📍 {ad[4]}</span>
-                        <span>👁️ {ad[8]}</span>
-                        {f'<span>📅 {ad[12][:10]}</span>' if ad[12] else ''}
-                    </div>
-                    
-                    <div style="color: rgba(255,255,255,0.7); margin: 16px 0;">
-                        {ad[5][:150]}...
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("📞 واتساب", key=f"wa_{ad[0]}", use_container_width=True):
-                        st.info(f"📱 {ad[3]}")
-                with col2:
-                    if st.button("💬 مراسلة", key=f"msg_{ad[0]}", use_container_width=True):
-                        st.session_state[f"chat_{ad[7]}"] = True
-                
-                st.divider()
+                verified = get_verified_status(ad[11])
+                ad_dict = {
+                    'id': ad[0],
+                    'title': ad[1],
+                    'price': ad[2],
+                    'phone': ad[3],
+                    'wilaya': ad[4],
+                    'description': ad[5],
+                    'category': ad[6],
+                    'views': ad[8],
+                    'owner': ad[11],
+                    'date': ad[12] if len(ad) > 12 else ''
+                }
+                render_ad_pro(ad_dict, verified)
         else:
             st.info("لا توجد إعلانات حالياً")
     except Exception as e:
-        st.error(f"خطأ في تحميل الإعلانات: {e}")
+        st.error(f"خطأ: {e}")
 
 # ==========================================
-# 12. صفحة إضافة إعلان
+# 14. صفحة إضافة إعلان
 # ==========================================
 def post_ad(conn):
-    st.header("📢 إضافة إعلان جديد")
+    st.markdown("### 📢 إضافة إعلان ذهبي")
     
-    with st.form("new_ad_form"):
+    with st.form("new_ad_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            title = st.text_input("📱 اسم الهاتف *")
+            title = st.text_input("📱 اسم المنتج *")
             category = st.selectbox("🏷️ الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
         with col2:
             price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
             wilaya = st.selectbox("📍 الولاية *", [f"{i:02d}" for i in range(1, 59)])
         
         phone = st.text_input("📞 رقم الهاتف *")
-        description = st.text_area("📝 وصف الهاتف")
+        description = st.text_area("📝 الوصف التفصيلي")
+        
+        if price == 0:
+            st.info("💡 اترك السعر صفر للحصول على توصية ذكية من السوق")
         
         if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
-            if not title or price <= 0 or not phone:
-                st.error("❌ يرجى ملء جميع الحقول المطلوبة (*)")
+            if not title or not phone:
+                st.error("❌ يرجى ملء الحقول المطلوبة")
             else:
                 try:
+                    if price == 0:
+                        avg_price = conn.execute("""
+                            SELECT AVG(price) FROM ads 
+                            WHERE category=? AND wilaya=? AND status='active'
+                        """, (category, wilaya)).fetchone()[0]
+                        if avg_price:
+                            price = int(avg_price)
+                            st.info(f"💰 السعر المقترح: {price:,} دج")
+                    
                     conn.execute("""
                         INSERT INTO ads (title, price, phone, wilaya, description, category, owner)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, (title, price, phone, wilaya, description, category, st.session_state.user))
-                    conn.commit()
-                    
-                    conn.execute("UPDATE users SET ad_count = ad_count + 1 WHERE username=?", 
-                               (st.session_state.user,))
                     conn.commit()
                     
                     st.success("✅ تم نشر الإعلان بنجاح!")
@@ -1131,13 +1013,13 @@ def post_ad(conn):
                     time.sleep(2)
                     st.rerun()
                 except Exception as e:
-                    st.error(f"❌ حدث خطأ: {e}")
+                    st.error(f"❌ خطأ: {e}")
 
 # ==========================================
-# 13. صفحة الدردشة
+# 15. صفحة الدردشة المتطورة
 # ==========================================
 def show_chat(conn):
-    st.header("💬 المحادثات")
+    st.markdown("### 💬 المحادثات الكمومية")
     
     user = st.session_state.user
     
@@ -1162,7 +1044,7 @@ def show_chat(conn):
         selected = selected.replace(" 🔴", "")
         
         if selected:
-            st.subheader(f"الدردشة مع {selected}")
+            st.markdown(f"#### الدردشة مع {selected}")
             
             conn.execute("UPDATE messages SET read=1 WHERE sender=? AND receiver=?", 
                         (selected, user))
@@ -1176,9 +1058,21 @@ def show_chat(conn):
             
             for msg in messages:
                 if msg[0] == user:
-                    st.markdown(f"<div class='os-chat-sent'><b>أنت:</b> {msg[1]}<br><small>{msg[2][11:16] if msg[2] else ''}</small></div>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background: rgba(0,255,255,0.1); border: 1px solid #00ffff; 
+                    padding: 12px; border-radius: 20px 20px 5px 20px; margin: 10px 0; max-width: 80%; margin-left: auto;">
+                        <b>أنت:</b> {msg[1]}<br>
+                        <small style="color: #888;">{msg[2][11:16]}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div class='os-chat-received'><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16] if msg[2] else ''}</small></div>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background: rgba(255,0,255,0.1); border: 1px solid #ff00ff; 
+                    padding: 12px; border-radius: 20px 20px 20px 5px; margin: 10px 0; max-width: 80%;">
+                        <b>{msg[0]}:</b> {msg[1]}<br>
+                        <small style="color: #888;">{msg[2][11:16]}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
             
             with st.form("send_message", clear_on_submit=True):
                 msg = st.text_input("✍️ اكتب رسالتك...")
@@ -1190,147 +1084,64 @@ def show_chat(conn):
                     conn.commit()
                     st.rerun()
     except Exception as e:
-        st.error(f"خطأ في تحميل المحادثات: {e}")
+        st.error(f"خطأ: {e}")
 
 # ==========================================
-# 14. لوحة الإدارة
-# ==========================================
-def admin_dashboard(conn):
-    st.header("🔐 لوحة الإدارة")
-    
-    users, ads, visitors, views = get_stats()
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("المستخدمين", f"{users:,}")
-    with col2:
-        st.metric("الإعلانات", f"{ads:,}")
-    with col3:
-        st.metric("الزيارات", f"{visitors:,}")
-    with col4:
-        st.metric("المشاهدات", f"{views:,}")
-    
-    tab1, tab2, tab3 = st.tabs(["👥 المستخدمين", "📊 الإحصائيات", "🚨 البلاغات"])
-    
-    with tab1:
-        st.subheader("👥 قائمة المستخدمين")
-        try:
-            users_df = pd.read_sql_query("""
-                SELECT username, role, verified, banned, ad_count, 
-                       substr(last_login, 1, 10) as last_login
-                FROM users ORDER BY last_login DESC
-            """, conn)
-            st.dataframe(users_df, use_container_width=True)
-        except Exception as e:
-            st.error(f"خطأ في تحميل البيانات: {e}")
-    
-    with tab2:
-        st.subheader("📊 إحصائيات متقدمة")
-        try:
-            category_stats = conn.execute("""
-                SELECT category, COUNT(*) as count 
-                FROM ads 
-                WHERE status='active' 
-                GROUP BY category
-            """).fetchall()
-            
-            if category_stats:
-                df_cats = pd.DataFrame(category_stats, columns=["الفئة", "العدد"])
-                fig = px.pie(df_cats, values='العدد', names='الفئة', 
-                            title="توزيع الإعلانات حسب الفئة",
-                            color_discrete_sequence=px.colors.sequential.Blues_r)
-                st.plotly_chart(fig, use_container_width=True)
-        except:
-            pass
-    
-    with tab3:
-        st.subheader("🚨 البلاغات المعلقة")
-        try:
-            reports = conn.execute("""
-                SELECT r.id, a.title, r.reporter, r.reason, r.date
-                FROM reports r JOIN ads a ON r.ad_id = a.id
-                WHERE r.status='pending'
-                ORDER BY r.date DESC
-            """).fetchall()
-            
-            if reports:
-                for report in reports:
-                    with st.container():
-                        st.warning(f"📌 إعلان: {report[1]}")
-                        st.write(f"المبلغ: {report[2]} | السبب: {report[3]} | التاريخ: {report[4][:10]}")
-                        if st.button("✅ معالجة", key=f"resolve_{report[0]}"):
-                            conn.execute("UPDATE reports SET status='resolved' WHERE id=?", (report[0],))
-                            conn.commit()
-                            st.rerun()
-                        st.divider()
-            else:
-                st.info("لا توجد بلاغات معلقة")
-        except Exception as e:
-            st.error(f"خطأ في تحميل البلاغات: {e}")
-
-# ==========================================
-# 15. التشغيل الرئيسي المتكامل مع الشعار
+# 16. التشغيل الرئيسي النهائي مع النظام السري
 # ==========================================
 def main():
-    # تهيئة حالة الجلسة
+    set_ultimate_theme()
+    
+    st.markdown("""
+    <div class="neural-header">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <span class="neural-title">RASSIM OS ULTIMATE</span>
+                <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; margin-right: 10px;">2026</span>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <span style="color: #00ffff;">⚡ Quantum</span>
+                <span style="color: #ff00ff;">🔮 AI</span>
+                <span style="color: rgba(255,255,255,0.3);">📶 5G</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     if "user" not in st.session_state:
         st.session_state.user = None
     if "role" not in st.session_state:
         st.session_state.role = "user"
+    if "verified" not in st.session_state:
+        st.session_state.verified = 0
     if "ip" not in st.session_state:
         st.session_state.ip = secrets.token_hex(8)
-    if "page" not in st.session_state:
-        st.session_state.page = "main"
+    if 'admin_access' not in st.session_state:
+        st.session_state.admin_access = False
     
-    # تسجيل الزائر
     log_visitor()
     
-    # التحقق من تسجيل الدخول
     if not st.session_state.user:
         login_page()
     else:
         conn = get_connection()
         
-        # القائمة الجانبية المتطورة مع الشعار (حسب طلبك)
         with st.sidebar:
-            # إضافة الشعار (إذا كان موجوداً)
-            try:
-                st.sidebar.image("logo.png", use_container_width=True)
-            except:
-                st.sidebar.markdown("""
-                <div style="text-align: center; padding: 10px;">
-                    <div style="font-size: 4rem;">💠</div>
-                </div>
-                """, unsafe_allow_html=True)
+            verified_badge = "✅ موثوق" if st.session_state.verified else "⏳ غير موثق"
+            badge_color = "#00ffff" if st.session_state.verified else "#ff00ff"
             
-            # عنوان RASSIM OS
-            st.sidebar.markdown("""
-            <h1 style='text-align: center; color: #00ffff; font-size: 2rem; margin-bottom: 20px; 
-            background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; font-weight: 800;'>
-            RASSIM OS
-            </h1>
-            """, unsafe_allow_html=True)
-            
-            # بروفايل المستخدم
             st.markdown(f"""
-            <div style="background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15)); 
-            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); padding: 24px; 
-            border-radius: 28px; text-align: center; margin-bottom: 24px;">
-                <div style="font-size: 3rem; margin-bottom: 8px;">💠</div>
-                <div style="color: white; font-size: 1.4rem; font-weight: 600; 
-                background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; 
-                -webkit-text-fill-color: transparent;">
-                    {st.session_state.user}
-                </div>
-                <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 8px;">
-                    {st.session_state.role}
-                </div>
+            <div style="background: rgba(20,20,30,0.5); backdrop-filter: blur(12px); 
+            border: 1px solid rgba(0,255,255,0.1); border-radius: 25px; padding: 25px; 
+            text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">⚡</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: white;">{st.session_state.user}</div>
+                <div style="color: {badge_color}; font-size: 0.9rem; margin-top: 8px;">{verified_badge}</div>
+                <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 5px;">{st.session_state.role}</div>
             </div>
             """, unsafe_allow_html=True)
             
-            # قائمة الخيارات
-            menu_options = ["🛍️ السوق الذكي", "📢 إضافة إعلان", "💬 المحادثات"]
+            menu_options = ["🛍️ السوق الذكي", "📢 إضافة إعلان", "💬 المحادثات", "🤖 المساعد الذكي"]
             if st.session_state.role == "admin":
                 menu_options.append("🔐 لوحة الإدارة")
             
@@ -1338,44 +1149,40 @@ def main():
             
             st.divider()
             
-            # زر الخروج
-            if st.button("🚪 تسجيل الخروج", use_container_width=True):
-                st.session_state.user = None
-                st.session_state.role = "user"
-                st.rerun()
+            # ===== النظام السري للإدارة =====
+            with st.expander("🔧 النظام", expanded=False):
+                secret_key = st.text_input("System Code", type="password", help="للمصرح لهم فقط")
+                
+                if secret_key == "RASSIM-42-2026":
+                    st.session_state.admin_access = True
+                    st.success("تم تفعيل وضع القائد 🛰️")
+                elif secret_key != "":
+                    st.error("كود خاطئ ⚠️")
             
-            # إحصائيات سريعة في الشريط الجانبي
-            users, ads, visitors, views = get_stats()
-            st.markdown(f"""
-            <div style="background: rgba(20,20,30,0.6); backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 24px;">
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
-                font-size: 0.9rem; margin-bottom: 8px;">
-                    <span>المستخدمين</span>
-                    <span style="color: #00ffff;">{users}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
-                font-size: 0.9rem; margin-bottom: 8px;">
-                    <span>الإعلانات</span>
-                    <span style="color: #ff00ff;">{ads}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); 
-                font-size: 0.9rem;">
-                    <span>المشاهدات</span>
-                    <span style="color: #00ffff;">{views}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # توجيه الصفحات حسب الاختيار
-        if choice == "🛍️ السوق الذكي":
+            if st.button("🚪 خروج", use_container_width=True):
+                st.session_state.user = None
+                st.rerun()
+        
+        # عرض لوحة الإدارة السرية إذا تم التفعيل
+        if st.session_state.admin_access:
+            rassim_os_admin_logic()
+            if st.sidebar.button("إغلاق لوحة التحكم 🔒", use_container_width=True):
+                st.session_state.admin_access = False
+                st.rerun()
+        
+        # توجيه الصفحات العادية
+        elif choice == "🛍️ السوق الذكي":
             show_market(conn)
         elif choice == "📢 إضافة إعلان":
             post_ad(conn)
         elif choice == "💬 المحادثات":
             show_chat(conn)
+        elif choice == "🤖 المساعد الذكي":
+            st.markdown("### 🤖 المساعد الكمومي")
+            st.info("قيد التطوير - قريباً")
         elif choice == "🔐 لوحة الإدارة" and st.session_state.role == "admin":
-            admin_dashboard(conn)
+            # لوحة الإدارة العادية (للمسؤولين العاديين)
+            st.info("لوحة الإدارة العادية - استخدم النظام السري للوصول الكامل")
 
 if __name__ == "__main__":
     main()
