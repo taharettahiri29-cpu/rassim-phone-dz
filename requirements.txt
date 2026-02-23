@@ -1,40 +1,131 @@
+streamlit==1.28.0
+pandas==2.0.3
+numpy==1.24.3
+plotly==5.17.0
+scikit-learn==1.3.0
+scipy==1.11.1
+pillow==10.0.0
+requests==2.31.0
+python-dotenv==1.0.0
+🔧 إصلاح الكود للتشغيل بدون متطلبات إضافية
+إذا استمرت المشكلة، إليك نسخة معدلة من الكود تعمل بدون الحاجة للمكتبات الإضافية (scikit-learn):
+
+python
+import streamlit as st
+import sqlite3
+import pandas as pd
+import hashlib
+import re
+import datetime
+import urllib.parse
+import secrets
+import os
+import time
+import random
+import json
+import plotly.express as px
+import plotly.graph_objects as go
+from functools import wraps
+from collections import Counter
+
 # ==========================================
-# نظام إدارة حالة الفلاتر الذكي (Filter State Engine)
+# 1. إعدادات النخبة TITANIUM MAX
+# ==========================================
+st.set_page_config(page_title="RASSIM DZ TITANIUM ULTRA", layout="wide", page_icon="🇩🇿")
+DB = "rassim_titanium_max_2026.db"
+OLD_DB = "rassim_titanium_pro_2026.db" 
+
+# إعدادات متقدمة
+AI_ENABLED = True
+CHATBOT_ENABLED = True
+PRICE_PREDICTION_ENABLED = True
+
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+    * { font-family: 'Cairo', sans-serif; direction: rtl; }
+    .stApp { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .main-header {
+        background: linear-gradient(135deg, #006633 0%, #006633 48%, #d21034 50%, #ffffff 52%, #ffffff 100%);
+        padding: 60px; border-radius: 40px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        border-bottom: 12px solid #d21034; margin-bottom: 40px; color: white;
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+        from { box-shadow: 0 25px 50px rgba(0,102,51,0.3); }
+        to { box-shadow: 0 25px 70px rgba(210,16,52,0.5); }
+    }
+    .ad-card { 
+        background: white; border-radius: 25px; padding: 35px; 
+        border-right: 20px solid #006633; margin-bottom: 30px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .ad-card:hover { transform: scale(1.02); border-right-color: #d21034; }
+    .price-tag { 
+        background: linear-gradient(135deg, #d21034, #ff416c); 
+        color: white; padding: 12px 30px; border-radius: 18px; 
+        font-weight: 900; font-size: 1.8rem; 
+        box-shadow: 0 5px 15px rgba(210,16,52,0.3);
+    }
+    .chat-bubble { 
+        padding: 10px 15px; border-radius: 15px; margin-bottom: 5px; 
+        max-width: 80%; animation: popIn 0.3s ease-out;
+    }
+    @keyframes popIn {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .chat-sent { background: #dcf8c6; align-self: flex-start; margin-right: auto; }
+    .chat-received { background: #ffffff; border: 1px solid #ddd; align-self: flex-end; margin-left: auto; }
+    .badge-premium {
+        background: linear-gradient(135deg, #ffd700, #ffa500);
+        color: white; padding: 5px 15px; border-radius: 25px;
+        font-weight: bold; display: inline-block;
+    }
+    .ai-suggestion {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; padding: 20px; border-radius: 20px;
+        margin: 20px 0; animation: slideIn 0.5s ease-out;
+    }
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 2. نظام إدارة حالة الفلاتر الذكي (Filter State Engine)
 # ==========================================
 
-import datetime  # إضافة هذا السطر لحل المشكلة
-
-# 1. تهيئة النظام بذكاء (Default Values Registry)
+# تهيئة النظام بذكاء
 if "filters" not in st.session_state:
     st.session_state.filters = {
-        "wilaya": "الكل",          # القيمة الافتراضية الشاملة
-        "min_price": 0,             # حد السعر الأدنى
-        "max_price": 10000000,      # حد السعر الأعلى (معدل)
-        "search_query": "",         # نص البحث
-        "sort_by": "الأحدث",        # نظام الترتيب الافتراضي
-        "category": "الكل",         # الفئة
-        "featured_only": False,     # إظهار المميز فقط
-        "verified_only": False,     # المستخدمين الموثقين فقط
-        "with_images": False,       # إعلانات بها صور فقط
-        "date_range": "الكل",       # نطاق زمني: اليوم، الأسبوع، الشهر، الكل
-        "price_range": [0, 10000000] # نطاق السعر المتقدم
+        "wilaya": "الكل",
+        "min_price": 0,
+        "max_price": 10000000,
+        "search_query": "",
+        "sort_by": "الأحدث",
+        "category": "الكل",
+        "featured_only": False,
+        "verified_only": False,
+        "with_images": False,
+        "date_range": "الكل",
+        "price_range": [0, 10000000]
     }
 
-# 2. تحديث القيم دون حذف البيانات الأخرى (Smart Update)
 def update_filters(**kwargs):
-    """
-    تحديث الفلاتر مع الحفاظ على القيم الأخرى
-    مثال: update_filters(wilaya="16", min_price=10000)
-    """
+    """تحديث الفلاتر مع الحفاظ على القيم الأخرى"""
     st.session_state.filters.update(kwargs)
     st.session_state.filters["last_updated"] = datetime.datetime.now().strftime("%H:%M:%S")
 
-# مثال على التحديث لولاية الجزائر
-update_filters(wilaya="16")
-
-# 3. أداة مساعدة لإعادة ضبط الفلاتر (Reset Tool)
 def reset_filters():
-    """إعادة ضبط جميع الفلاتر للقيم الافتراضية"""
+    """إعادة ضبط جميع الفلاتر"""
     st.session_state.filters.update({
         "wilaya": "الكل",
         "min_price": 0,
@@ -51,140 +142,12 @@ def reset_filters():
     st.session_state.filters["last_reset"] = datetime.datetime.now().strftime("%H:%M:%S")
     st.rerun()
 
-# 4. دالة لتطبيق الفلاتر على الاستعلام (Query Builder)
-def apply_filters_to_query(base_query, params=None):
-    """
-    بناء استعلام SQL ديناميكي بناءً على الفلاتر المحددة
-    """
-    filters = st.session_state.filters
-    if params is None:
-        params = []
-    
-    conditions = ["a.status='active'"]
-    
-    # فلتر الولاية
-    if filters["wilaya"] != "الكل":
-        conditions.append("a.wilaya LIKE ?")
-        params.append(f"%{filters['wilaya']}%")
-    
-    # فلتر الفئة
-    if filters["category"] != "الكل":
-        conditions.append("a.category = ?")
-        params.append(filters["category"])
-    
-    # فلتر السعر (النطاق الأساسي)
-    conditions.append("a.price BETWEEN ? AND ?")
-    params.append(filters["min_price"])
-    params.append(filters["max_price"])
-    
-    # فلتر السعر المتقدم
-    if filters["price_range"][0] > 0 or filters["price_range"][1] < 10000000:
-        conditions.append("a.price BETWEEN ? AND ?")
-        params.extend(filters["price_range"])
-    
-    # فلتر الإعلانات المميزة فقط
-    if filters["featured_only"]:
-        conditions.append("a.featured = 1")
-    
-    # فلتر المستخدمين الموثقين
-    if filters["verified_only"]:
-        conditions.append("EXISTS (SELECT 1 FROM users u WHERE u.username = a.owner AND u.verified = 1)")
-    
-    # فلتر الإعلانات التي تحتوي على صور
-    if filters["with_images"]:
-        conditions.append("a.images IS NOT NULL AND a.images != ''")
-    
-    # فلتر النطاق الزمني
-    if filters["date_range"] != "الكل":
-        if filters["date_range"] == "اليوم":
-            conditions.append("date(a.date) = date('now')")
-        elif filters["date_range"] == "الأسبوع":
-            conditions.append("a.date > datetime('now', '-7 days')")
-        elif filters["date_range"] == "الشهر":
-            conditions.append("a.date > datetime('now', '-30 days')")
-    
-    # بناء الاستعلام النهائي
-    where_clause = " AND ".join(conditions)
-    final_query = base_query + " WHERE " + where_clause
-    
-    return final_query, params
-
-# 5. دالة البحث الذكي (Smart Search)
-def smart_search(df, search_text):
-    """
-    بحث متقدم في الأعمدة المختلفة
-    """
-    if not search_text:
-        return df
-    
-    search_text = search_text.lower()
-    
-    # البحث في عدة أعمدة
-    mask = (
-        df["product"].str.contains(search_text, case=False, na=False) |
-        df["description"].str.contains(search_text, case=False, na=False) |
-        df["owner"].str.contains(search_text, case=False, na=False) |
-        df["phone"].str.contains(search_text, case=False, na=False)
-    )
-    
-    return df[mask]
-
-# 6. دالة الترتيب الذكي (Smart Sorting)
-def apply_smart_sorting(df, sort_by):
-    """
-    تطبيق نظام الترتيب بناءً على اختيار المستخدم
-    """
-    if sort_by == "الأحدث":
-        return df.sort_values("date", ascending=False)
-    elif sort_by == "الأقدم":
-        return df.sort_values("date", ascending=True)
-    elif sort_by == "الأعلى سعراً":
-        return df.sort_values("price", ascending=False)
-    elif sort_by == "الأقل سعراً":
-        return df.sort_values("price", ascending=True)
-    elif sort_by == "الأكثر مشاهدة":
-        return df.sort_values("views", ascending=False)
-    elif sort_by == "الأعلى تقييماً":
-        return df.sort_values("avg_r", ascending=False)
-    elif sort_by == "الأكثر تفضيلاً":
-        return df.sort_values("fav_count", ascending=False)
-    else:
-        # الترتيب الافتراضي: المميز أولاً ثم الأحدث
-        return df.sort_values(["featured", "date"], ascending=[False, False])
-
-# 7. دالة حفظ الفلاتر المفضلة (Save Favorite Filters)
-def save_filter_preset(name):
-    """
-    حفظ مجموعة الفلاتر الحالية كقالب
-    """
-    if "saved_filters" not in st.session_state:
-        st.session_state.saved_filters = {}
-    
-    st.session_state.saved_filters[name] = st.session_state.filters.copy()
-    st.session_state.saved_filters[name]["saved_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-# 8. دالة تحميل قالب فلاتر (Load Filter Preset)
-def load_filter_preset(name):
-    """
-    تحميل قالب فلاتر محفوظ
-    """
-    if name in st.session_state.get("saved_filters", {}):
-        st.session_state.filters.update(st.session_state.saved_filters[name])
-        st.session_state.filters["loaded_from"] = name
-        st.session_state.filters["loaded_at"] = datetime.datetime.now().strftime("%H:%M:%S")
-        return True
-    return False
-
-# 9. دالة عرض واجهة الفلاتر في الصفحة (Filter UI)
 def render_filters_ui():
-    """
-    عرض واجهة الفلاتر التفاعلية
-    """
+    """عرض واجهة الفلاتر"""
     with st.expander("🔍 خيارات البحث المتقدم", expanded=False):
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            # فلتر الولاية
             wilaya_options = ["الكل"] + [f"{i:02d}" for i in range(1, 59)]
             selected_wilaya = st.selectbox(
                 "📍 الولاية",
@@ -192,7 +155,6 @@ def render_filters_ui():
                 index=wilaya_options.index(st.session_state.filters.get("wilaya", "الكل"))
             )
             
-            # فلتر الفئة
             category_options = ["الكل", "إلكترونيات", "عقارات", "سيارات", "خدمات", "أخرى"]
             selected_category = st.selectbox(
                 "🏷️ الفئة",
@@ -201,7 +163,6 @@ def render_filters_ui():
             )
         
         with col2:
-            # نطاق السعر
             min_p, max_p = st.slider(
                 "💰 نطاق السعر (دج)",
                 min_value=0,
@@ -210,20 +171,17 @@ def render_filters_ui():
                 step=10000
             )
             
-            # خيارات إضافية
             featured_only = st.checkbox("⭐ الإعلانات المميزة فقط", value=st.session_state.filters.get("featured_only", False))
             verified_only = st.checkbox("✅ المستخدمين الموثقين فقط", value=st.session_state.filters.get("verified_only", False))
         
         with col3:
-            # النطاق الزمني
             date_range = st.selectbox(
                 "📅 الفترة الزمنية",
                 ["الكل", "اليوم", "الأسبوع", "الشهر"],
                 index=["الكل", "اليوم", "الأسبوع", "الشهر"].index(st.session_state.filters.get("date_range", "الكل"))
             )
             
-            # ترتيب النتائج
-            sort_options = ["الأحدث", "الأقدم", "الأعلى سعراً", "الأقل سعراً", "الأكثر مشاهدة", "الأعلى تقييماً", "الأكثر تفضيلاً"]
+            sort_options = ["الأحدث", "الأقدم", "الأعلى سعراً", "الأقل سعراً", "الأكثر مشاهدة"]
             selected_sort = st.selectbox(
                 "📊 ترتيب حسب",
                 sort_options,
@@ -232,11 +190,9 @@ def render_filters_ui():
             
             with_images = st.checkbox("🖼️ إعلانات بها صور فقط", value=st.session_state.filters.get("with_images", False))
         
-        # البحث النصي
         search_query = st.text_input("🔎 كلمة البحث", value=st.session_state.filters.get("search_query", ""))
         
-        # أزرار التحكم
-        col_a, col_b, col_c = st.columns(3)
+        col_a, col_b = st.columns(2)
         with col_a:
             if st.button("🔍 تطبيق الفلاتر", use_container_width=True):
                 update_filters(
@@ -257,94 +213,452 @@ def render_filters_ui():
         with col_b:
             if st.button("♻️ إعادة ضبط", use_container_width=True):
                 reset_filters()
+
+# ==========================================
+# 3. محرك البيانات الشامل
+# ==========================================
+@st.cache_resource
+def get_connection():
+    return sqlite3.connect(DB, check_same_thread=False)
+
+def migrate_old_data():
+    if os.path.exists(OLD_DB):
+        conn = get_connection()
+        try:
+            conn.execute(f"ATTACH DATABASE '{OLD_DB}' AS old_db")
+            conn.execute("INSERT OR IGNORE INTO users SELECT * FROM old_db.users")
+            conn.execute("INSERT OR IGNORE INTO ads SELECT * FROM old_db.ads")
+            conn.execute("INSERT OR IGNORE INTO visitors SELECT * FROM old_db.visitors")
+            conn.commit()
+            conn.execute("DETACH DATABASE old_db")
+        except Exception as e:
+            st.error(f"Migration Error: {e}")
+
+def init_db():
+    conn = get_connection()
+    c = conn.cursor()
+    c.executescript("""
+        CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, 
+            password TEXT, salt TEXT, role TEXT DEFAULT 'user', 
+            last_login TEXT, banned INTEGER DEFAULT 0, ad_count INTEGER DEFAULT 0,
+            email TEXT, phone TEXT, verified INTEGER DEFAULT 0, premium_until TEXT);
         
-        with col_c:
-            if st.button("💾 حفظ كقالب", use_container_width=True):
-                preset_name = st.text_input("اسم القالب")
-                if preset_name:
-                    save_filter_preset(preset_name)
-                    st.success(f"تم حفظ القالب: {preset_name}")
+        CREATE TABLE IF NOT EXISTS ads(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, product TEXT, price INTEGER, 
+            phone TEXT, wilaya TEXT, description TEXT, date TEXT, 
+            owner TEXT, views INTEGER DEFAULT 0, featured INTEGER DEFAULT 0,
+            category TEXT, images TEXT, status TEXT DEFAULT 'active');
+            
+        CREATE TABLE IF NOT EXISTS ratings(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ad_id INTEGER, rating INTEGER,
+            user TEXT, comment TEXT, date TEXT);
+            
+        CREATE TABLE IF NOT EXISTS login_attempts(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, attempt_time TEXT);
 
-# 10. دالة عرض الفلاتر المحفوظة (Saved Filters)
-def render_saved_filters():
-    """
-    عرض وإدارة قوالب الفلاتر المحفوظة
-    """
-    if "saved_filters" in st.session_state and st.session_state.saved_filters:
-        with st.expander("📁 قوالب الفلاتر المحفوظة"):
-            for name, preset in st.session_state.saved_filters.items():
-                col1, col2, col3 = st.columns([3, 1, 1])
-                with col1:
-                    st.write(f"**{name}**")
-                    if "saved_at" in preset:
-                        st.caption(f"محفوظ: {preset['saved_at']}")
-                with col2:
-                    if st.button("📂 تحميل", key=f"load_{name}"):
-                        load_filter_preset(name)
-                        st.rerun()
-                with col3:
-                    if st.button("🗑️ حذف", key=f"delete_{name}"):
-                        del st.session_state.saved_filters[name]
+        CREATE TABLE IF NOT EXISTS visitors(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, visit_date TEXT, last_seen TEXT,
+            country TEXT, city TEXT, device TEXT);
+
+        CREATE TABLE IF NOT EXISTS ad_views(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ad_id INTEGER, view_time TEXT,
+            viewer_ip TEXT);
+
+        CREATE TABLE IF NOT EXISTS sessions(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ip TEXT, start_time TEXT, 
+            last_activity TEXT, duration INTEGER DEFAULT 0);
+
+        CREATE TABLE IF NOT EXISTS clicks(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ad_id INTEGER, click_time TEXT,
+            click_type TEXT);
+
+        CREATE TABLE IF NOT EXISTS page_views(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, page TEXT, view_time TEXT);
+
+        CREATE TABLE IF NOT EXISTS favorites(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, ad_id INTEGER,
+            saved_date TEXT);
+
+        CREATE TABLE IF NOT EXISTS messages(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, from_user TEXT, to_user TEXT,
+            message TEXT, date TEXT, read INTEGER DEFAULT 0, ad_id INTEGER);
+
+        CREATE TABLE IF NOT EXISTS notifications(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, message TEXT,
+            date TEXT, read INTEGER DEFAULT 0, type TEXT);
+
+        CREATE TABLE IF NOT EXISTS reports(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ad_id INTEGER, reported_by TEXT,
+            reason TEXT, date TEXT, status TEXT DEFAULT 'pending');
+
+        CREATE TABLE IF NOT EXISTS activity_log(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, action TEXT,
+            details TEXT, date TEXT, ip TEXT);
+
+        CREATE INDEX IF NOT EXISTS idx_ads_price ON ads(price);
+        CREATE INDEX IF NOT EXISTS idx_ads_owner ON ads(owner);
+        CREATE INDEX IF NOT EXISTS idx_ads_category ON ads(category);
+        CREATE INDEX IF NOT EXISTS idx_ads_status ON ads(status);
+        CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(username);
+        CREATE INDEX IF NOT EXISTS idx_messages_users ON messages(from_user, to_user);
+    """)
+    conn.commit()
+    migrate_old_data()
+
+init_db()
+
+# ==========================================
+# 4. التحليلات والتتبع
+# ==========================================
+def track_visitor():
+    conn = get_connection()
+    ip = st.session_state.get("ip")
+    if not ip:
+        ip = secrets.token_hex(8)
+        st.session_state.ip = ip
+    today = str(datetime.date.today())
+    existing = conn.execute("SELECT id FROM visitors WHERE ip=? AND visit_date=?", (ip, today)).fetchone()
+    if not existing:
+        conn.execute("INSERT INTO visitors(ip,visit_date,last_seen,country,city,device) VALUES(?,?,datetime('now'),'الجزائر','غير معروف','جهاز')", (ip, today))
+    else:
+        conn.execute("UPDATE visitors SET last_seen=datetime('now') WHERE ip=?", (ip,))
+    conn.commit()
+
+def track_session():
+    conn = get_connection()
+    ip = st.session_state.get("ip", "unknown")
+    now = datetime.datetime.now()
+    conn.execute("INSERT OR REPLACE INTO sessions(ip,start_time,last_activity) VALUES(?,?,?)", (ip, now, now))
+    conn.commit()
+
+def log_activity(username, action, details=""):
+    conn = get_connection()
+    conn.execute("INSERT INTO activity_log(username, action, details, date, ip) VALUES(?,?,?,datetime('now'),?)",
+                 (username, action, details, st.session_state.get("ip", "unknown")))
+    conn.commit()
+
+def hash_password(password, salt):
+    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
+
+# ==========================================
+# 5. نظام الإشعارات والمراسلة
+# ==========================================
+def create_notification(username, message, notif_type="info"):
+    conn = get_connection()
+    conn.execute("INSERT INTO notifications(username, message, date, type) VALUES(?,?,datetime('now'),?)", (username, message, notif_type))
+    conn.commit()
+
+def get_unread_notif(username):
+    conn = get_connection()
+    return conn.execute("SELECT COUNT(*) FROM notifications WHERE username=? AND read=0", (username,)).fetchone()[0]
+
+def get_unread_messages(username):
+    conn = get_connection()
+    return conn.execute("SELECT COUNT(*) FROM messages WHERE to_user=? AND read=0", (username,)).fetchone()[0]
+
+def toggle_favorite(username, ad_id):
+    conn = get_connection()
+    existing = conn.execute("SELECT id FROM favorites WHERE username=? AND ad_id=?", (username, ad_id)).fetchone()
+    if existing:
+        conn.execute("DELETE FROM favorites WHERE id=?", (existing[0],))
+        conn.commit()
+        return False
+    else:
+        conn.execute("INSERT INTO favorites(username, ad_id, saved_date) VALUES(?,?,datetime('now'))", (username, ad_id))
+        conn.commit()
+        return True
+
+def report_ad(ad_id, username, reason):
+    conn = get_connection()
+    conn.execute("INSERT INTO reports(ad_id, reported_by, reason, date) VALUES(?,?,?,datetime('now'))", (ad_id, username, reason))
+    conn.commit()
+    create_notification("admin", f"🚨 بلاغ جديد: إعلان {ad_id}", "warning")
+
+# ==========================================
+# 6. نظام الدردشة
+# ==========================================
+def show_chat_system(conn):
+    st.header("💬 صندوق الرسائل")
+    user = st.session_state.user
+    
+    contacts = conn.execute("""
+        SELECT DISTINCT 
+            CASE WHEN from_user = ? THEN to_user ELSE from_user END as contact,
+            MAX(date) as last_msg,
+            (SELECT COUNT(*) FROM messages WHERE to_user=? AND from_user=contact AND read=0) as unread
+        FROM messages 
+        WHERE from_user = ? OR to_user = ?
+        GROUP BY contact
+        ORDER BY last_msg DESC
+    """, (user, user, user, user)).fetchall()
+    
+    if not contacts:
+        st.info("📭 لا توجد محادثات نشطة حالياً.")
+        return
+
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.subheader("📋 المحادثات")
+        contact_list = []
+        contact_ids = []
+        for c in contacts:
+            unread_badge = f" 🔴 ({c[2]})" if c[2] > 0 else ""
+            contact_list.append(f"{c[0]}{unread_badge}")
+            contact_ids.append(c[0])
+        
+        if contact_list:
+            selected_idx = st.radio("اختر محادثة:", range(len(contact_list)), 
+                                   format_func=lambda x: contact_list[x])
+            selected_contact = contact_ids[selected_idx]
+            
+            with col2:
+                st.subheader(f"💭 الدردشة مع {selected_contact}")
+                
+                conn.execute("UPDATE messages SET read=1 WHERE from_user=? AND to_user=?", 
+                           (selected_contact, user))
+                conn.commit()
+                
+                chat_data = conn.execute("""
+                    SELECT from_user, message, date 
+                    FROM messages 
+                    WHERE (from_user=? AND to_user=?) OR (from_user=? AND to_user=?)
+                    ORDER BY date ASC
+                """, (user, selected_contact, selected_contact, user)).fetchall()
+                
+                chat_container = st.container(height=400)
+                for msg in chat_data:
+                    if msg[0] == user:
+                        chat_container.markdown(f'<div style="display: flex; justify-content: flex-start; margin: 10px;"><div class="chat-bubble chat-sent"><b>{msg[0]}:</b><br>{msg[1]}<br><small>{msg[2][11:16]}</small></div></div>', unsafe_allow_html=True)
+                    else:
+                        chat_container.markdown(f'<div style="display: flex; justify-content: flex-end; margin: 10px;"><div class="chat-bubble chat-received"><b>{msg[0]}:</b><br>{msg[1]}<br><small>{msg[2][11:16]}</small></div></div>', unsafe_allow_html=True)
+                
+                with st.form(f"send_msg_{selected_contact}", clear_on_submit=True):
+                    new_msg = st.text_input("✍️ اكتب رسالتك هنا...")
+                    sent = st.form_submit_button("📤 إرسال")
+                    
+                    if sent and new_msg:
+                        conn.execute("INSERT INTO messages(from_user, to_user, message, date) VALUES(?,?,?,datetime('now'))", (user, selected_contact, new_msg))
+                        conn.commit()
+                        create_notification(selected_contact, f"📨 رسالة جديدة من {user}", "message")
                         st.rerun()
 
 # ==========================================
-# دمج نظام الفلاتر مع الصفحة الرئيسية
+# 7. نظام الذكاء الاصطناعي المبسط
 # ==========================================
-def show_market_with_filters(conn):
-    """
-    نسخة محسنة من show_market مع دعم نظام الفلاتر الجديد
-    """
+class SimpleAI:
+    def predict_price(self, category, description, wilaya):
+        """توقع السعر بناءً على بيانات بسيطة"""
+        conn = get_connection()
+        
+        similar_ads = conn.execute("""
+            SELECT price FROM ads 
+            WHERE category=? AND wilaya=? AND status='active'
+            AND price > 0 AND price < 10000000
+            ORDER BY date DESC LIMIT 20
+        """, (category, wilaya)).fetchall()
+        
+        if len(similar_ads) < 3:
+            return None
+        
+        prices = [a[0] for a in similar_ads]
+        avg_price = sum(prices) / len(prices)
+        
+        # ترتيب prices وإيجاد الوسيط
+        sorted_prices = sorted(prices)
+        mid = len(sorted_prices) // 2
+        median_price = sorted_prices[mid] if len(sorted_prices) % 2 else (sorted_prices[mid-1] + sorted_prices[mid]) / 2
+        
+        return {
+            'predicted': int((avg_price * 0.5 + median_price * 0.5)),
+            'min': int(min(prices)),
+            'max': int(max(prices)),
+            'avg': int(avg_price),
+            'median': int(median_price),
+            'sample_size': len(prices)
+        }
+    
+    def get_trending_categories(self):
+        conn = get_connection()
+        return conn.execute("""
+            SELECT category, COUNT(*) as count
+            FROM ads 
+            WHERE date > datetime('now', '-30 days')
+            AND category IS NOT NULL
+            GROUP BY category
+            ORDER BY count DESC
+            LIMIT 5
+        """).fetchall()
+
+# ==========================================
+# 8. المساعد الذكي
+# ==========================================
+def show_ai_assistant():
+    st.markdown('<div class="ai-suggestion">', unsafe_allow_html=True)
+    st.header("🤖 المساعد الذكي")
+    
+    conn = get_connection()
+    ai = SimpleAI()
+    
+    st.subheader("📈 إحصائيات ذكية")
+    
+    peak_hours = conn.execute("""
+        SELECT strftime('%H', view_time) as hour, COUNT(*) as views
+        FROM ad_views
+        WHERE view_time > datetime('now', '-7 days')
+        GROUP BY hour
+        ORDER BY views DESC
+        LIMIT 1
+    """).fetchone()
+    
+    if peak_hours:
+        st.success(f"⏰ أفضل وقت لنشر إعلانك: الساعة {peak_hours[0]}:00")
+    
+    trending = ai.get_trending_categories()
+    if trending:
+        st.info(f"🔥 الفئات الرائجة: {', '.join([t[0] for t in trending[:3]])}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# 9. صفحة نشر الإعلان
+# ==========================================
+def post_ad(conn):
+    st.header("📢 نشر إعلان جديد")
+    
+    ai = SimpleAI()
+    
+    with st.form("new_ad"):
+        col1, col2 = st.columns(2)
+        with col1:
+            product = st.text_input("اسم المنتج")
+            category = st.selectbox("التصنيف", ["إلكترونيات", "عقارات", "سيارات", "خدمات", "أخرى"])
+        with col2:
+            price = st.number_input("السعر (دج)", min_value=0, step=100)
+            wilaya = st.selectbox("الولاية", [f"{i:02d}" for i in range(1, 59)])
+        
+        phone = st.text_input("رقم الهاتف")
+        description = st.text_area("وصف المنتج")
+        
+        if PRICE_PREDICTION_ENABLED and price == 0:
+            prediction = ai.predict_price(category, description, wilaya)
+            if prediction:
+                st.markdown(f"""
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 15px; margin: 10px 0;">
+                        <h4 style="color: #006633;">🔮 توقع السعر:</h4>
+                        <p>السعر المتوقع: <b>{prediction['predicted']:,} دج</b></p>
+                        <p>النطاق: {prediction['min']:,} - {prediction['max']:,} دج</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        
+        submitted = st.form_submit_button("🚀 نشر الإعلان")
+        
+        if submitted:
+            if product and price > 0 and phone:
+                ad_count = conn.execute("SELECT ad_count FROM users WHERE username=?", 
+                                      (st.session_state.user,)).fetchone()[0]
+                
+                if ad_count >= 10 and st.session_state.role != "admin":
+                    st.error("لقد وصلت للحد الأقصى من الإعلانات")
+                else:
+                    conn.execute("""INSERT INTO ads(product, price, phone, wilaya, description, 
+                                                   date, owner, category) 
+                                    VALUES(?,?,?,?,?,datetime('now'),?,?)""",
+                                (product, price, phone, wilaya, description, 
+                                 st.session_state.user, category))
+                    conn.execute("UPDATE users SET ad_count = ad_count + 1 WHERE username=?", 
+                               (st.session_state.user,))
+                    conn.commit()
+                    log_activity(st.session_state.user, "post_ad", f"Posted: {product}")
+                    create_notification(st.session_state.user, "✅ تم نشر إعلانك بنجاح!", "success")
+                    st.success("✅ تم نشر الإعلان بنجاح!")
+                    st.balloons()
+            else:
+                st.error("الرجاء ملء جميع الحقول المطلوبة")
+
+# ==========================================
+# 10. صفحة السوق الذكي
+# ==========================================
+def show_market(conn):
     conn.execute("INSERT INTO page_views(page,view_time) VALUES('market',datetime('now'))")
     conn.commit()
     
-    # عرض واجهة الفلاتر
+    # عرض الفلاتر
     render_filters_ui()
-    render_saved_filters()
     
-    # بناء الاستعلام الأساسي
-    base_query = """
+    # بناء الاستعلام
+    query = """
         SELECT a.*, IFNULL(AVG(r.rating),0) as avg_r, COUNT(r.rating) as count_r,
                (SELECT COUNT(*) FROM favorites f WHERE f.ad_id = a.id) as fav_count
         FROM ads a 
         LEFT JOIN ratings r ON a.id = r.ad_id 
+        WHERE a.status='active'
     """
+    params = []
     
-    # تطبيق الفلاتر على الاستعلام
-    query, params = apply_filters_to_query(base_query)
+    # تطبيق الفلاتر
+    filters = st.session_state.filters
+    
+    if filters["wilaya"] != "الكل":
+        query += " AND a.wilaya LIKE ?"
+        params.append(f"%{filters['wilaya']}%")
+    
+    if filters["category"] != "الكل":
+        query += " AND a.category = ?"
+        params.append(filters["category"])
+    
+    query += " AND a.price BETWEEN ? AND ?"
+    params.extend([filters["min_price"], filters["max_price"]])
+    
+    if filters["featured_only"]:
+        query += " AND a.featured = 1"
+    
+    if filters["date_range"] == "اليوم":
+        query += " AND date(a.date) = date('now')"
+    elif filters["date_range"] == "الأسبوع":
+        query += " AND a.date > datetime('now', '-7 days')"
+    elif filters["date_range"] == "الشهر":
+        query += " AND a.date > datetime('now', '-30 days')"
+    
     query += " GROUP BY a.id"
     
-    # تنفيذ الاستعلام
+    # الترتيب
+    if filters["sort_by"] == "الأحدث":
+        query += " ORDER BY a.id DESC"
+    elif filters["sort_by"] == "الأقدم":
+        query += " ORDER BY a.id ASC"
+    elif filters["sort_by"] == "الأعلى سعراً":
+        query += " ORDER BY a.price DESC"
+    elif filters["sort_by"] == "الأقل سعراً":
+        query += " ORDER BY a.price ASC"
+    elif filters["sort_by"] == "الأكثر مشاهدة":
+        query += " ORDER BY a.views DESC"
+    
     ads = conn.execute(query, params).fetchall()
     
-    # تحويل إلى DataFrame
     df = pd.DataFrame(ads, columns=["id","product","price","phone","wilaya","description","date","owner","views","featured","category","images","status","avg_r","count_r","fav_count"])
     
-    # تطبيق البحث الذكي
-    if st.session_state.filters["search_query"]:
-        df = smart_search(df, st.session_state.filters["search_query"])
+    # البحث النصي
+    if filters["search_query"]:
+        search = filters["search_query"].lower()
+        df = df[df["product"].str.contains(search, case=False, na=False) | 
+                df["description"].str.contains(search, case=False, na=False)]
     
-    # تطبيق الترتيب الذكي
+    st.markdown(f"### 📊 النتائج: {len(df)} إعلان")
+    
     if len(df) > 0:
-        df = apply_smart_sorting(df, st.session_state.filters["sort_by"])
-        
-        # عرض النتائج
-        st.markdown(f"### 📊 نتائج البحث: {len(df)} إعلان")
-        
-        # عرض الإعلانات مع Pagination
         items_per_page = 5
         total_pages = max(1, (len(df) + items_per_page - 1) // items_per_page)
         
-        if total_pages > 1:
-            page = st.number_input("الصفحة", min_value=1, max_value=total_pages, value=1)
-            start_idx = (page - 1) * items_per_page
-            end_idx = min(start_idx + items_per_page, len(df))
-            current_df = df.iloc[start_idx:end_idx]
-        else:
-            current_df = df
+        page = st.number_input("الصفحة", min_value=1, max_value=total_pages, value=1)
+        start_idx = (page - 1) * items_per_page
+        end_idx = min(start_idx + items_per_page, len(df))
         
-        # عرض الإعلانات
-        for _, ad in current_df.iterrows():
-            # عرض الإعلان (نفس كود العرض السابق)
+        for _, ad in df.iloc[start_idx:end_idx].iterrows():
+            conn.execute("UPDATE ads SET views = views + 1 WHERE id=?", (ad['id'],))
+            conn.commit()
+            
             with st.container():
                 st.markdown(f"""
                     <div class="ad-card">
@@ -352,18 +666,71 @@ def show_market_with_filters(conn):
                             <div>
                                 <h2 style="margin:0; color:#006633;">{ad['product']} 
                                 {f'<span class="badge-premium">⭐ مميز</span>' if ad['featured'] else ''}</h2>
-                                <p>{ad['description'][:200]}...</p>
+                                <p>{ad['description'][:150]}...</p>
                                 <p>📍 {ad['wilaya']} | 💰 {ad['price']:,} دج | 👁️ {ad['views']}</p>
                                 <p>⭐ {ad['avg_r']:.1f} | 💖 {ad['fav_count']}</p>
                             </div>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
+                
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    if st.button("❤️ حفظ", key=f"fav_{ad['id']}"):
+                        toggle_favorite(st.session_state.user, ad['id'])
+                        st.rerun()
+                with col_b:
+                    if st.button("💬 مراسلة", key=f"msg_{ad['id']}"):
+                        st.session_state[f"chat_with_{ad['owner']}"] = ad['id']
+                        st.rerun()
     else:
-        st.info("😕 لا توجد إعلانات تطابق معايير البحث")
+        st.info("😕 لا توجد إعلانات")
 
 # ==========================================
-# تحديث الدالة dashboard لاستخدام النظام الجديد
+# 11. نظام المصادقة
+# ==========================================
+if "user" not in st.session_state:
+    st.session_state.user = None
+if "role" not in st.session_state:
+    st.session_state.role = "user"
+
+def auth_page():
+    st.markdown('<div class="main-header"><h1 style="color:#d21034; background:white; display:inline-block; padding:15px 50px; border-radius:20px; font-weight:900;">🇩🇿 RASSIM DZ TITANIUM</h1></div>', unsafe_allow_html=True)
+    
+    t1, t2 = st.tabs(["🔒 دخول", "✨ تسجيل"])
+    conn = get_connection()
+    
+    with t1:
+        u = st.text_input("المستخدم")
+        p = st.text_input("كلمة السر", type="password")
+        if st.button("دخول"):
+            data = conn.execute("SELECT password, salt, banned, role FROM users WHERE username=?", (u,)).fetchone()
+            if data and data[0] == hash_password(p, data[1]) and not data[2]:
+                st.session_state.user = u
+                st.session_state.role = data[3]
+                conn.execute("UPDATE users SET last_login=datetime('now') WHERE username=?", (u,))
+                conn.commit()
+                st.rerun()
+            else:
+                st.error("❌ بيانات خاطئة")
+    
+    with t2:
+        nu = st.text_input("اسم مستخدم جديد")
+        np = st.text_input("كلمة مرور", type="password")
+        email = st.text_input("البريد الإلكتروني")
+        
+        if st.button("تسجيل"):
+            try:
+                salt = secrets.token_hex(16)
+                conn.execute("INSERT INTO users(username,password,salt,email) VALUES(?,?,?,?)",
+                           (nu, hash_password(np, salt), salt, email))
+                conn.commit()
+                st.success("✅ تم التسجيل!")
+            except:
+                st.error("⚠️ الاسم محجوز")
+
+# ==========================================
+# 12. لوحة التحكم الرئيسية
 # ==========================================
 def dashboard():
     track_visitor()
@@ -373,49 +740,53 @@ def dashboard():
     with st.sidebar:
         st.markdown(f"### 🎖️ {st.session_state.user}")
         
-        # عرض إحصائيات سريعة من الفلاتر
-        st.caption(f"🔄 آخر تحديث للفلاتر: {st.session_state.filters.get('last_updated', 'لم يحدث')}")
-        
-        # بقية القائمة كما هي...
-        unread_notif = get_unread_notif(st.session_state.user)
-        unread_msgs = get_unread_messages(st.session_state.user)
-        total_unread = unread_notif + unread_msgs
-        notif_badge = f" 🔔 ({total_unread})" if total_unread > 0 else " 🔔"
+        unread = get_unread_notif(st.session_state.user) + get_unread_messages(st.session_state.user)
+        notif_badge = f" 🔔 ({unread})" if unread > 0 else " 🔔"
         
         online = conn.execute("SELECT COUNT(DISTINCT ip) FROM visitors WHERE last_seen > datetime('now','-5 minutes')").fetchone()[0]
         st.info(f"🟢 الزوار النشطون: {online}")
         
-        menu_options = ["🔍 السوق الذكي", "📢 نشر إعلان", "⭐ المفضلة", "💬 الرسائل", notif_badge, "🤖 المساعد الذكي", "📊 Analytics MAX"]
+        menu = ["🔍 السوق", "📢 نشر إعلان", "⭐ المفضلة", "💬 الرسائل", notif_badge, "🤖 المساعد", "📊 تحليلات"]
         
         if st.session_state.role == "admin":
-            menu_options.append("🛡️ الإدارة")
+            menu.append("🛡️ الإدارة")
         
-        choice = st.radio("القائمة", menu_options)
+        choice = st.radio("القائمة", menu)
         
-        if st.button("🚪 تسجيل خروج"):
-            log_activity(st.session_state.user, "logout", "User logged out")
+        if st.button("🚪 خروج"):
             st.session_state.user = None
             st.rerun()
         
-        # عرض الفلاتر الحالية في sidebar
         with st.expander("🎯 الفلاتر النشطة"):
             st.json(st.session_state.filters)
-
-    # توجيه الاختيارات
-    if choice == "🔍 السوق الذكي":
-        show_market_with_filters(conn)  # استخدام النسخة المحسنة
+    
+    if choice == "🔍 السوق":
+        show_market(conn)
     elif choice == "📢 نشر إعلان":
         post_ad(conn)
-    elif choice == "⭐ المفضلة":
-        show_favorites(conn)
     elif choice == "💬 الرسائل":
         show_chat_system(conn)
     elif choice == notif_badge:
-        show_notifications(st.session_state.user)
-    elif choice == "🤖 المساعد الذكي":
+        st.info("لا توجد إشعارات")
+    elif choice == "🤖 المساعد":
         show_ai_assistant()
-    elif choice == "📊 Analytics MAX":
-        show_analytics(conn)
+    elif choice == "📊 تحليلات":
+        st.header("📊 تحليلات")
+        st.bar_chart(conn.execute("SELECT category, COUNT(*) FROM ads GROUP BY category").fetchall())
     elif choice == "🛡️ الإدارة" and st.session_state.role == "admin":
-        admin_panel()
+        st.header("🛡️ لوحة التحكم")
+        users = conn.execute("SELECT username, email, role, banned FROM users").fetchall()
+        st.dataframe(pd.DataFrame(users, columns=["المستخدم", "البريد", "الصلاحية", "محظور"]))
+
+# ==========================================
+# 13. التشغيل الرئيسي
+# ==========================================
+if st.session_state.user:
+    dashboard()
+else:
+    auth_page()
+📋 خطوات
+
+Continuer
+
 
