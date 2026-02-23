@@ -60,7 +60,25 @@ if 'last_alert' not in st.session_state:
     st.session_state.last_alert = None
 
 # ==========================================
-# 4. نظام "الذكاء العصبي" للواجهة (Neural UI)
+# 4. دوال التشفير - الأساسية لحل المشكلة
+# ==========================================
+def hash_password(password, salt):
+    """تشفير كلمة المرور باستخدام salt"""
+    # نستخدم hashlib.pbkdf2_hmac كما هو مطلوب
+    return hashlib.pbkdf2_hmac(
+        'sha256', 
+        password.encode('utf-8'), 
+        salt.encode('utf-8'), 
+        100000
+    ).hex()
+
+def verify_password(input_password, stored_hash, salt):
+    """التحقق من صحة كلمة المرور"""
+    input_hash = hash_password(input_password, salt)
+    return input_hash == stored_hash
+
+# ==========================================
+# 5. نظام "الذكاء العصبي" للواجهة (Neural UI)
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
@@ -79,7 +97,6 @@ def set_ultimate_theme():
         min-height: 100vh;
     }
 
-    /* تأثير الجسيمات المتحركة */
     .stApp::before {
         content: '';
         position: fixed;
@@ -103,7 +120,6 @@ def set_ultimate_theme():
         100% { transform: translateY(-100px) rotate(5deg); }
     }
 
-    /* الهيدر العصبي */
     .neural-header {
         background: rgba(10, 10, 20, 0.7);
         backdrop-filter: blur(20px);
@@ -136,7 +152,6 @@ def set_ultimate_theme():
         50% { background-position: 100% 50%; }
     }
 
-    /* كرت إعلاني بتأثير الهولوغرام */
     .hologram-card {
         background: rgba(20, 20, 30, 0.4);
         backdrop-filter: blur(12px);
@@ -154,7 +169,6 @@ def set_ultimate_theme():
         box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
     }
 
-    /* زر الـ Cyber-Action */
     .stButton > button {
         background: linear-gradient(90deg, #00ffff, #ff00ff) !important;
         border: none !important;
@@ -170,7 +184,6 @@ def set_ultimate_theme():
         box-shadow: 0 8px 25px rgba(255, 0, 255, 0.4) !important;
     }
 
-    /* بطاقات الإحصائيات */
     .stat-card {
         background: rgba(20, 20, 30, 0.5);
         backdrop-filter: blur(12px);
@@ -200,7 +213,6 @@ def set_ultimate_theme():
         margin-top: 5px;
     }
 
-    /* فقاعة الدردشة العائمة */
     .chat-bubble {
         position: fixed;
         bottom: 30px;
@@ -235,7 +247,6 @@ def set_ultimate_theme():
         50% { transform: translateY(-15px); }
     }
 
-    /* تنبيه الرادار */
     .radar-alert {
         background: rgba(255, 0, 0, 0.2);
         border: 2px solid #ff00ff;
@@ -250,7 +261,6 @@ def set_ultimate_theme():
         50% { box-shadow: 0 0 40px #ff0000; }
     }
 
-    /* شريط الولايات */
     .wilaya-badge {
         display: inline-block;
         background: rgba(0, 255, 255, 0.1);
@@ -269,7 +279,6 @@ def set_ultimate_theme():
         transform: scale(1.05);
     }
 
-    /* عداد الولايات */
     .wilaya-counter {
         background: linear-gradient(135deg, #00ffff, #ff00ff);
         border-radius: 60px;
@@ -293,7 +302,6 @@ def set_ultimate_theme():
         margin: 5px 0 0 0;
     }
 
-    /* التجاوب مع الجوال */
     @media screen and (max-width: 768px) {
         .neural-title { font-size: 2rem; }
         .stat-value { font-size: 1.8rem; }
@@ -305,11 +313,10 @@ def set_ultimate_theme():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. نظام التخزين المؤقت (Cache System)
+# 6. نظام التخزين المؤقت (Cache System)
 # ==========================================
 @st.cache_data(ttl=600)
 def load_data_optimized():
-    """تحميل البيانات مع التخزين المؤقت"""
     try:
         conn = get_connection()
         data = {
@@ -323,11 +330,9 @@ def load_data_optimized():
         return None
 
 # ==========================================
-# 6. كاشف المشتري الجدي (Serious Buyer Detector)
+# 7. كاشف المشتري الجدي
 # ==========================================
 def serious_buyer_detector(message, price_offered=0):
-    """يكشف المشتري الجدي ويطلق إنذاراً"""
-    
     serious_keywords = [
         "حاب نشري", "نخلصك توت سويت", "وين نسكنو", 
         "كاش", "آخر سعر", "دابا", "الوقتية", "نروحو نخلصو",
@@ -355,10 +360,9 @@ def serious_buyer_detector(message, price_offered=0):
     return False
 
 # ==========================================
-# 7. روبوت RASSIM الذكي (AI Robot)
+# 8. روبوت RASSIM الذكي
 # ==========================================
 def rassim_robot_logic(user_message):
-    """محرك الردود الذكي للروبوت"""
     user_message = user_message.lower()
     
     responses = {
@@ -389,10 +393,9 @@ def rassim_robot_logic(user_message):
     return "رسالتك وصلت لراسم! سأقوم بتحليلها والرد عليك في أقرب وقت. هل تريد رقم الهاتف؟"
 
 # ==========================================
-# 8. رادار راسم الآلي (Robotic Alert)
+# 9. رادار راسم الآلي
 # ==========================================
 def robotic_alert_ui():
-    """واجهة الرادار في لوحة التحكم"""
     st.sidebar.markdown("---")
     st.sidebar.subheader("🛰️ رادار راسم الآلي")
     
@@ -421,10 +424,9 @@ def robotic_alert_ui():
         st.sidebar.warning("الرادار مطفأ 🔴")
 
 # ==========================================
-# 9. مولد الإعلانات الذكي (Auto Ads Generator)
+# 10. مولد الإعلانات الذكي
 # ==========================================
 def generate_auto_ads():
-    """يحدد أفضل وقت للنشر"""
     current_hour = datetime.now().hour
     if 18 <= current_hour <= 22:
         status = "🔥 وقت الذروة! انشر الآن لجلب آلاف المشاهدات."
@@ -440,10 +442,9 @@ def generate_auto_ads():
     return status
 
 # ==========================================
-# 10. عداد الولايات (Wilaya Counter)
+# 11. عداد الولايات
 # ==========================================
 def show_wilaya_counter():
-    """عرض عداد الولايات في الواجهة"""
     st.markdown("""
     <div class="wilaya-counter">
         <h2>69</h2>
@@ -452,7 +453,6 @@ def show_wilaya_counter():
     """, unsafe_allow_html=True)
 
 def show_wilaya_badges():
-    """عرض شارات الولايات"""
     st.markdown("### 📍 الولايات الـ 69")
     
     cols = st.columns(5)
@@ -462,11 +462,9 @@ def show_wilaya_badges():
             st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
 
 # ==========================================
-# 11. نظام الدردشة المباشرة المتطور (Live Chat)
+# 12. نظام الدردشة المباشرة
 # ==========================================
 def show_live_chat():
-    """نظام الدردشة المباشرة مع روبوت RASSIM"""
-    
     st.markdown("""
     <div class="chat-bubble" onclick="document.getElementById('chat-trigger').click();">
         <img src="https://img.icons8.com/ios-filled/30/000000/speech-bubble.png"/>
@@ -513,7 +511,7 @@ def show_live_chat():
                 st.success(f"آخر رد: {st.session_state.last_robot_reply}")
 
 # ==========================================
-# 12. نظام التحليل التنبئي
+# 13. نظام التحليل التنبئي
 # ==========================================
 def show_market_trends(conn):
     st.markdown("### 📈 نبض السوق الجزائري")
@@ -547,7 +545,7 @@ def show_market_trends(conn):
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 13. محرك البحث الذكي
+# 14. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2, col3 = st.columns([3, 1, 1])
@@ -568,7 +566,7 @@ def quantum_search_ui():
     return search_query, wilaya, sort
 
 # ==========================================
-# 14. دالة الإعلان الذهبية
+# 15. دالة الإعلان الذهبية
 # ==========================================
 def render_ad_pro(ad):
     st.markdown(f"""
@@ -593,7 +591,7 @@ def render_ad_pro(ad):
             st.success("تم إرسال طلبك إلى البائع")
 
 # ==========================================
-# 15. إعدادات قاعدة البيانات
+# 16. إعدادات قاعدة البيانات
 # ==========================================
 DB = "rassim_os_ultimate.db"
 
@@ -672,34 +670,6 @@ def init_db():
         st.error(f"خطأ في قاعدة البيانات: {e}")
         return None
 
-# ==========================================
-# 16. دوال المساعدة
-# ==========================================
-def hash_password(password, salt):
-    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
-
-def log_visitor():
-    try:
-        conn = get_connection()
-        conn.execute(
-            "INSERT INTO visitors (ip, page) VALUES (?, ?)",
-            (st.session_state.ip, st.session_state.get('page', 'main'))
-        )
-        conn.commit()
-    except:
-        pass
-
-def get_stats():
-    try:
-        conn = get_connection()
-        users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
-        visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
-        views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
-        return users, ads, visitors, views
-    except:
-        return 0, 0, 0, 0
-
 @st.cache_resource
 def get_connection():
     return sqlite3.connect(DB, check_same_thread=False)
@@ -707,7 +677,7 @@ def get_connection():
 conn = init_db()
 
 # ==========================================
-# 17. صفحة تسجيل الدخول
+# 17. صفحة تسجيل الدخول (مصححة بالكامل)
 # ==========================================
 def login_page():
     st.markdown("""
@@ -740,20 +710,42 @@ def login_page():
     
     tab1, tab2 = st.tabs(["🔑 دخول", "📝 حساب جديد"])
     
-    with tab1:
+    with tab1:  # 🔑 تسجيل الدخول - تم التصحيح هنا
         with st.form("login_form"):
             username = st.text_input("👤 اسم المستخدم")
             password = st.text_input("🔐 كلمة المرور", type="password")
             
             if st.form_submit_button("⚡ دخول", use_container_width=True):
-                if username == "admin" and password == "admin":
-                    st.session_state.user = "admin"
-                    st.session_state.role = "admin"
-                    st.rerun()
+                if username and password:
+                    conn = get_connection()
+                    # جلب بيانات المستخدم والـ salt الخاص به
+                    user_data = conn.execute(
+                        "SELECT password, salt, role, verified FROM users WHERE username=?", 
+                        (username,)
+                    ).fetchone()
+
+                    if user_data:
+                        stored_hash, user_salt, role, verified = user_data
+                        
+                        # ✅ التصحيح: استخدام دالة hash_password مع salt
+                        input_hash = hash_password(password, user_salt)
+                        
+                        if input_hash == stored_hash:
+                            # نجاح الدخول
+                            st.session_state.user = username
+                            st.session_state.role = role
+                            st.session_state.verified = verified
+                            st.success(f"✅ تم الدخول بنجاح! أهلاً {username}")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ كلمة المرور غير صحيحة")
+                    else:
+                        st.error("❌ اسم المستخدم غير موجود")
                 else:
-                    st.error("❌ بيانات غير صحيحة")
+                    st.warning("⚠️ يرجى ملء جميع الحقول")
     
-    with tab2:
+    with tab2:  # 📝 حساب جديد
         with st.form("register_form"):
             new_user = st.text_input("👤 اسم المستخدم")
             new_pass = st.text_input("🔐 كلمة المرور", type="password")
@@ -762,20 +754,52 @@ def login_page():
             
             if st.form_submit_button("✨ تسجيل", use_container_width=True):
                 if new_user and new_pass:
+                    # توليد salt عشوائي
                     salt = secrets.token_hex(16)
+                    # تشفير كلمة المرور
                     hashed = hash_password(new_pass, salt)
+                    
                     try:
                         conn.execute("""
                             INSERT INTO users (username, password, salt, email, phone, role, verified)
                             VALUES (?, ?, ?, ?, ?, 'user', 0)
                         """, (new_user, hashed, salt, email, phone))
                         conn.commit()
-                        st.success("✅ تم التسجيل بنجاح!")
-                    except:
-                        st.error("❌ اسم المستخدم موجود")
+                        st.success("✅ تم التسجيل بنجاح! يمكنك الدخول الآن")
+                    except sqlite3.IntegrityError:
+                        st.error("❌ اسم المستخدم موجود مسبقاً")
+                    except Exception as e:
+                        st.error(f"❌ حدث خطأ: {e}")
+                else:
+                    st.warning("⚠️ اسم المستخدم وكلمة المرور مطلوبان")
 
 # ==========================================
-# 18. صفحة السوق الذكي
+# 18. دوال المساعدة الأخرى
+# ==========================================
+def log_visitor():
+    try:
+        conn = get_connection()
+        conn.execute(
+            "INSERT INTO visitors (ip, page) VALUES (?, ?)",
+            (st.session_state.ip, st.session_state.get('page', 'main'))
+        )
+        conn.commit()
+    except:
+        pass
+
+def get_stats():
+    try:
+        conn = get_connection()
+        users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
+        visitors = conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
+        views = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        return users, ads, visitors, views
+    except:
+        return 0, 0, 0, 0
+
+# ==========================================
+# 19. صفحة السوق الذكي
 # ==========================================
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
@@ -798,7 +822,7 @@ def show_market():
         render_ad_pro(ad)
 
 # ==========================================
-# 19. صفحة إضافة إعلان
+# 20. صفحة إضافة إعلان
 # ==========================================
 def post_ad():
     st.markdown("### 📢 إضافة إعلان جديد")
@@ -833,7 +857,7 @@ def post_ad():
                 st.error("❌ يرجى ملء الحقول المطلوبة")
 
 # ==========================================
-# 20. لوحة الإدارة السرية المتطورة
+# 21. لوحة الإدارة السرية
 # ==========================================
 def admin_dashboard():
     st.markdown("""
@@ -887,7 +911,7 @@ def admin_dashboard():
         st.error(f"خطأ في عرض الرسائل: {e}")
 
 # ==========================================
-# 21. المحرك الرئيسي (Main Controller) - مصحح بالكامل
+# 22. المحرك الرئيسي
 # ==========================================
 def main():
     set_ultimate_theme()
@@ -898,7 +922,6 @@ def main():
     if st.session_state.user is None:
         login_page()
     else:
-        # شريط جانبي للتنقل
         with st.sidebar:
             st.markdown(f"""
             <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); 
@@ -916,7 +939,6 @@ def main():
                 st.session_state.admin_access = False
                 st.rerun()
         
-        # توجيه الصفحات
         if page == "🛍️ السوق":
             show_market()
         elif page == "📢 أضف إعلان":
@@ -930,7 +952,7 @@ def main():
                 st.error("عذراً، هذه اللوحة خاصة بالطاهر الطاهري فقط!")
 
 # ==========================================
-# 22. تشغيل التطبيق - القلب النابض (تم تصحيح الخطأ)
+# 23. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
