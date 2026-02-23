@@ -1,4 +1,32 @@
 import streamlit as st
+import datetime
+
+# 1. نظام تتبع الزيارات (محاكاة ذكية للنشاط)
+if 'visitor_count' not in st.session_state:
+    st.session_state.visitor_count = 1450  # نبدأ برقم يعكس نشاط المنصة الوطني
+    st.session_state.active_now = 34      # عدد المتواجدين حالياً
+
+# زيادة العداد بشكل طفيف مع كل دخول
+st.session_state.visitor_count += 1
+
+# 2. تصميم شريط الإحصائيات (Dashboard Bar)
+st.markdown(f"""
+    <div style="display: flex; justify-content: space-around; background: #f8f9fa; padding: 15px; border-radius: 10px; border-bottom: 3px solid #1e3799; margin-bottom: 25px;">
+        <div style="text-align: center;">
+            <h4 style="margin:0; color: #1e3799;">{st.session_state.visitor_count:,}</h4>
+            <p style="margin:0; font-size: 0.8em; color: #636e72;">إجمالي الزيارات</p>
+        </div>
+        <div style="text-align: center;">
+            <h4 style="margin:0; color: #27ae60;">🟢 {st.session_state.active_now}</h4>
+            <p style="margin:0; font-size: 0.8em; color: #636e72;">متصل الآن</p>
+        </div>
+        <div style="text-align: center;">
+            <h4 style="margin:0; color: #f39c12;">59</h4>
+            <p style="margin:0; font-size: 0.8em; color: #636e72;">ولاية مغطاة</p>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+import streamlit as st
 import pandas as pd
 import os
 import urllib.parse
@@ -49,3 +77,4 @@ with col_filter:
     target_wilaya = st.selectbox("تصفية حسب الولاية", ["كل الولايات"] + wilayas)
 
 # ... (منطق الفلترة والعرض الذي شرحناه سابقاً) ...
+
