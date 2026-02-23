@@ -20,12 +20,47 @@ wilayas = [
 
 # تنسيق CSS احترافي
 st.markdown("""
+   # تنسيق CSS احترافي بألوان العلم الجزائري
+st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
     * { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
-    .hero { background: linear-gradient(45deg, #1e3799, #0984e3); padding: 40px; text-align: center; color: white; border-radius: 20px; margin-bottom: 20px; }
-    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border-bottom: 3px solid #1e3799; text-align: center; }
-    .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-right: 5px solid #1e3799; }
+    
+    /* واجهة العلم الجزائري */
+    .hero { 
+        background: linear-gradient(to left, #006633 50%, #ffffff 50%); /* تقسيم الأخضر والأبيض */
+        padding: 40px; 
+        text-align: center; 
+        color: white; 
+        border-radius: 20px; 
+        margin-bottom: 20px; 
+        border-bottom: 8px solid #d21034; /* الخط الأحمر في الأسفل */
+        position: relative;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* جعل النص يظهر بوضوح فوق الألوان */
+    .hero h1 { 
+        color: #d21034; /* اسم رسيم ديزاد بالأحمر */
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        background: rgba(255,255,255,0.8);
+        display: inline-block;
+        padding: 5px 20px;
+        border-radius: 10px;
+    }
+    
+    .hero p { 
+        color: #333; 
+        font-weight: bold;
+        background: rgba(255,255,255,0.6);
+        display: table;
+        margin: 10px auto;
+        padding: 2px 15px;
+        border-radius: 5px;
+    }
+
+    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border-bottom: 3px solid #006633; text-align: center; }
+    .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-right: 5px solid #006633; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -114,4 +149,5 @@ with tab2:
                 df.to_csv(DB_FILE, index=False)
                 st.success("✅ تم استلام عرضك بنجاح ونشره في الـ 59 ولاية!")
                     
+
 
