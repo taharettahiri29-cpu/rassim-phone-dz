@@ -29,46 +29,46 @@ wilayas = [
 
 # ==========================================
 # 2. محرك التنسيق CSS (هوية العلم الجزائري)
-# ==========================================
+# --- بداية جزء التنسيق والهيدر المصحح ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
     * { font-family: 'Cairo', sans-serif; direction: rtl; text-align: right; }
     
-    /* خلفية العلم الجزائري للقسم العلوي */
     .hero-container {
         background: linear-gradient(to left, #006633 50%, #ffffff 50%);
-        padding: 60px 20px;
+        padding: 50px 20px;
         text-align: center;
-        border-radius: 30px;
-        margin-bottom: 30px;
-        border-bottom: 12px solid #d21034;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        position: relative;
-        overflow: hidden;
+        border-radius: 25px;
+        margin-bottom: 25px;
+        border-bottom: 10px solid #d21034;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
     }
     
     .hero-title {
         color: #d21034;
         background: rgba(255,255,255,0.95);
         display: inline-block;
-        padding: 20px 50px;
-        border-radius: 25px;
-        border: 4px solid #d21034;
-        font-size: 3.5em;
-        font-weight: 900;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        padding: 15px 40px;
+        border-radius: 20px;
+        border: 3px solid #d21034;
+        font-size: 2.5em;
+        font-weight: bold;
     }
     
     .hero-subtitle {
         color: #1a1a1a;
-        background: rgba(255,255,255,0.85);
+        background: rgba(255,255,255,0.8);
         display: table;
-        margin: 25px auto;
-        padding: 10px 30px;
-        border-radius: 12px;
-        font-size: 1.2em;
-        font-weight: bold;
+        margin: 15px auto;
+        padding: 8px 20px;
+        border-radius: 10px;
     }
-
-    /*
+    </style>
+    
+    <div class="hero-container">
+        <h1 class="hero-title">🇩🇿 RASSIM DZ</h1>
+        <p class="hero-subtitle">المنصة الوطنية الأولى لتداول الهواتف في 59 ولاية</p>
+    </div>
+""", unsafe_allow_html=True)
+# --- نهاية جزء التنسيق ---
