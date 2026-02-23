@@ -46,9 +46,18 @@ with col_s3: st.markdown(f'<div class="stat-box"><h3 style="margin:0;">59</h3><p
 # 4. قاعدة البيانات
 DB_FILE = "users_database.csv"
 def load_data():
-    if os.path.exists(DB_FILE): return pd.read_csv(DB_FILE)
-    return pd.DataFrame(columns=["Product", "Price", "Phone", "Wilaya", "Description", "Date"])
-
+    cols = ["Product", "Price", "Phone", "Wilaya", "Description", "Date"]
+    if os.path.exists(DB_FILE):
+        try:
+            temp_df = pd.read_csv(DB_FILE)
+            # التأكد من أن كل الأعمدة المطلوبة موجودة، وإذا نقص أحدها يتم إنشاؤه
+            for c in cols:
+                if c not in temp_df.columns:
+                    temp_df[c] = "غير متوفر"
+            return temp_df[cols] # إعادة الأعمدة بالترتيب الصحيح فقط
+        except:
+            return pd.DataFrame(columns=cols)
+    return pd.DataFrame(columns=cols)
 # 5. التبويبات الرئيسية
 tab1, tab2 = st.tabs(["🔍 البحث عن همزة", "📢 أنشر عرضك"])
 
@@ -105,3 +114,4 @@ with tab2:
                 df.to_csv(DB_FILE, index=False)
                 st.success("✅ تم استلام عرضك بنجاح ونشره في الـ 59 ولاية!")
                     
+
