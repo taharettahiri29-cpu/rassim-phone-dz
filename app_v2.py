@@ -1,175 +1,240 @@
 import streamlit as st
+import sqlite3
 import pandas as pd
-import os
-import urllib.parse
-import datetime
-import random
-import logging
+import hashlib
 import re
-from PIL import Image
+import datetime
+import urllib.parse
+import secrets
+import os
+import time
 
 # ==========================================
-# 1. الإعدادات العليا والهوية (تصميم متطور)
+# 1. إعدادات النظام العليا (2026)
 # ==========================================
-st.set_page_config(page_title="RASSIM DZ | Pro Max 2026", layout="wide", page_icon="🇩🇿")
+st.set_page_config(page_title="RASSIM DZ TITANIUM V2", layout="wide", page_icon="🇩🇿")
+DB = "rassim_titanium_v2.db"
 
-# CSS المتقدم - واجهة العلم الجزائري مع Glassmorphism
+# تصميم CSS لرفع مستوى الواجهة (Algerian Excellence)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
     * { font-family: 'Cairo', sans-serif; direction: rtl; }
-    
-    .main-header {
-        background: linear-gradient(135deg, #006633 0%, #006633 45%, #ffffff 55%, #ffffff 100%);
-        padding: 60px; text-align: center; border-radius: 30px;
-        border-bottom: 12px solid #d21034; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        position: relative; overflow: hidden; margin-bottom: 30px;
+    .titan-header {
+        background: linear-gradient(135deg, #006633 0%, #006633 45%, #d21034 50%, #ffffff 55%, #ffffff 100%);
+        padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-bottom: 6px solid #d21034; margin-bottom: 25px;
     }
-    .header-title {
-        color: #d21034; background: rgba(255,255,255,0.9);
-        display: inline-block; padding: 15px 45px; border-radius: 50px;
-        font-size: 3.5rem; font-weight: 900; border: 4px solid #d21034;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    .price-badge { background: #d21034; color: white; padding: 5px 15px; border-radius: 10px; font-weight: 900; }
+    .ad-card { 
+        background: white; border-radius: 15px; padding: 20px; 
+        border-right: 10px solid #006633; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px;
     }
-    .stMetric { background: white; padding: 15px; border-radius: 15px; border-bottom: 5px solid #006633; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .phone-card {
-        background: white; border-radius: 20px; padding: 20px;
-        border-right: 15px solid #006633; margin-bottom: 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05); transition: 0.3s;
-    }
-    .phone-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-    .price-tag { color: white; background: #d21034; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. نظام الـ Core المحسن (بناءً على تحديك)
+# 2. محرك البيانات المطور (Database Engine)
 # ==========================================
-DB_FILE = "users_database.csv"
-COLUMNS = ["Product", "Price", "Phone", "Wilaya", "Description", "Date", "Category"]
+@st.cache_resource
+def get_connection():
+    return sqlite3.connect(DB, check_same_thread=False)
 
-logging.basicConfig(filename="system_master.log", level=logging.INFO, format="%(asctime)s - %(message)s")
+def init_db():
+    conn = get_connection()
+    c = conn.cursor()
+    c.executescript("""
+        CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, 
+            password TEXT, salt TEXT, role TEXT DEFAULT 'user', 
+            last_login TEXT, banned INTEGER DEFAULT 0, ad_count INTEGER DEFAULT 0);
+        
+        CREATE TABLE IF NOT EXISTS ads(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, product TEXT, price INTEGER, 
+            phone TEXT, wilaya TEXT, description TEXT, date TEXT, 
+            owner TEXT, views INTEGER DEFAULT 0, featured INTEGER DEFAULT 0);
+            
+        CREATE TABLE IF NOT EXISTS ratings(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ad_id INTEGER, rating INTEGER);
+            
+        CREATE TABLE IF NOT EXISTS login_attempts(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, attempt_time TEXT);
 
-def get_category(name):
-    name = name.lower()
-    if "iphone" in name: return "Apple 🍎"
-    if "samsung" in name: return "Samsung 📱"
-    if "pixel" in name: return "Google 🤖"
-    return "أخرى 📦"
+        CREATE INDEX IF NOT EXISTS idx_ads_price ON ads(price);
+        CREATE INDEX IF NOT EXISTS idx_ads_wilaya ON ads(wilaya);
+    """)
+    conn.commit()
+
+init_db()
+
+# ==========================================
+# 3. الأدوات الأمنية (Security)
+# ==========================================
+def hash_password(password, salt):
+    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
 def clean_phone(phone):
-    digits = re.sub(r'\D', '', phone)
-    return digits[-9:] # نأخذ آخر 9 أرقام لضمان الصيغة الجزائري
-
-@st.cache_data(ttl=60)
-def load_data():
-    if os.path.exists(DB_FILE):
-        df = pd.read_csv(DB_FILE)
-        return df
-    return pd.DataFrame(columns=COLUMNS)
+    return re.sub(r'\D', '', phone)[-9:]
 
 # ==========================================
-# 3. الواجهة الأمامية (The UX)
+# 4. بوابة الدخول (Anti-Brute Force Protection)
 # ==========================================
-st.markdown("""
-    <div class="main-header">
-        <h1 class="header-title">🇩🇿 RASSIM DZ</h1>
-        <h3 style="color:#333; margin-top:20px;">الجيل الثالث من منصة الهواتف الوطنية</h3>
-    </div>
-""", unsafe_allow_html=True)
+if "user" not in st.session_state: st.session_state.user = None
 
-if "visitors" not in st.session_state:
-    st.session_state.visitors = random.randint(5000, 7000)
-st.session_state.visitors += 1
-
-m1, m2, m3 = st.columns(3)
-m1.metric("إجمالي الزيارات", f"{st.session_state.visitors:,}", "🚀 +12%")
-m2.metric("تغطية وطنية", "59 ولاية", "🔥 نشط")
-m3.metric("تحديثات اليوم", f"{len(load_data()):,}", "📦 جديد")
-
-st.divider()
-
-# ==========================================
-# 4. التبويبات والمحرك
-# ==========================================
-tab1, tab2, tab3, tab4 = st.tabs(["🔍 رادار البحث", "📢 إضافة عرض", "🤖 ذكاء اصطناعي", "📊 تحليل السوق"])
-
-df = load_data()
-
-with tab1:
-    col_a, col_b, col_c = st.columns([2, 1, 1])
-    q = col_a.text_input("بحث سريع", placeholder="مثال: iPhone 15 Pro Max")
-    w = col_b.selectbox("الولاية", ["كل القطر الوطني"] + [f"{i:02d}" for i in range(1, 60)])
-    cat = col_c.selectbox("الفئة", ["الكل", "Apple 🍎", "Samsung 📱", "Google 🤖", "أخرى 📦"])
-
-    results = df.copy()
-    if q: results = results[results["Product"].str.contains(q, case=False, na=False)]
-    if cat != "الكل": results = results[results["Category"] == cat]
+def auth_page():
+    st.markdown('<div class="titan-header"><h1 style="color:#d21034; background:white; display:inline-block; padding:10px 30px; border-radius:15px;">🇩🇿 RASSIM DZ TITANIUM</h1></div>', unsafe_allow_html=True)
+    t1, t2 = st.tabs(["🔐 دخول", "✨ تسجيل جديد"])
     
-    if not results.empty:
-        for _, row in results.iloc[::-1].iterrows():
-            with st.container():
-                st.markdown(f"""
-                <div class="phone-card">
+    conn = get_connection()
+    with t1:
+        u = st.text_input("اسم المستخدم", key="login_u")
+        p = st.text_input("كلمة المرور", type="password", key="login_p")
+        if st.button("دخول آمن"):
+            # 🛡️ Anti Brute Force
+            attempts = conn.execute("""
+                SELECT COUNT(*) FROM login_attempts 
+                WHERE username=? AND attempt_time > datetime('now','-5 minutes')
+            """, (u,)).fetchone()[0]
+
+            if attempts >= 5:
+                st.error("🚫 تم حظر الدخول مؤقتاً لمدة 5 دقائق (أكثر من 5 محاولات).")
+                return
+
+            data = conn.execute("SELECT password, salt, banned FROM users WHERE username=?", (u,)).fetchone()
+            if data and data[0] == hash_password(p, data[1]):
+                if data[2]: st.error("🚫 حساب محظور")
+                else:
+                    st.session_state.user = u
+                    conn.execute("UPDATE users SET last_login=datetime('now') WHERE username=?", (u,))
+                    conn.commit()
+                    st.rerun()
+            else:
+                conn.execute("INSERT INTO login_attempts(username,attempt_time) VALUES(?,datetime('now'))", (u,))
+                conn.commit()
+                st.error(f"❌ بيانات خاطئة. محاولة {attempts+1}/5")
+
+    with t2:
+        nu = st.text_input("اسم المستخدم")
+        np = st.text_input("كلمة السر", type="password")
+        if st.button("فتح الحساب"):
+            try:
+                salt = secrets.token_hex(16)
+                conn.execute("INSERT INTO users(username,password,salt) VALUES(?,?,?)", (nu, hash_password(np, salt), salt))
+                conn.commit()
+                st.success("✅ تم التسجيل!")
+            except: st.error("⚠️ الاسم محجوز")
+
+# ==========================================
+# 5. لوحة التحكم والتحليلات (Dashboard)
+# ==========================================
+def dashboard():
+    conn = get_connection()
+    with st.sidebar:
+        st.success(f"👤 {st.session_state.user}")
+        if st.button("تسجيل الخروج"):
+            st.session_state.user = None
+            st.rerun()
+        st.divider()
+        wilaya_f = st.selectbox("تصفية حسب الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
+
+    tab1, tab2, tab3, tab4 = st.tabs(["🔥 السوق", "➕ نشر إعلان", "📊 التحليلات", "👑 الإدارة"])
+
+    # --- 🧠 Smart Score Engine & Market ---
+    with tab1:
+        search = st.text_input("🔍 ابحث عن هاتفك...")
+        
+        # استعلام Smart Score Engine
+        query = """
+            SELECT a.*, IFNULL(AVG(r.rating),0) as avg_r, COUNT(r.rating) as count_r
+            FROM ads a LEFT JOIN ratings r ON a.id = r.ad_id 
+            GROUP BY a.id 
+            ORDER BY 
+                a.featured DESC,
+                (a.views*0.3 + IFNULL(AVG(r.rating),0)*25) DESC,
+                a.id DESC
+        """
+        ads = conn.execute(query).fetchall()
+        df = pd.DataFrame(ads, columns=["id","product","price","phone","wilaya","description","date","owner","views","featured","avg_r","count_r"])
+        
+        if search: df = df[df["product"].str.contains(search, case=False)]
+        if wilaya_f != "الكل": df = df[df["wilaya"] == wilaya_f]
+
+        # --- 📄 Pagination احترافي ---
+        items_per_page = 5
+        total_pages = max(1, len(df) // items_per_page + (1 if len(df) % items_per_page > 0 else 0))
+        page = st.number_input(f"الصفحة (إجمالي {total_pages})", min_value=1, max_value=total_pages, value=1)
+        
+        start = (page-1) * items_per_page
+        end = start + items_per_page
+        current_df = df.iloc[start:end]
+
+        for _, ad in current_df.iterrows():
+            wa = f"https://wa.me/213{clean_phone(ad['phone'])}"
+            st.markdown(f"""
+                <div class="ad-card">
                     <div style="display:flex; justify-content:space-between;">
                         <div>
-                            <span style="color:#666; font-size:0.8rem;">{row['Category']}</span>
-                            <h2 style="margin:0; color:#006633;">{row['Product']}</h2>
-                            <p>📍 ولاية: {row['Wilaya']} | 📅 {row['Date']}</p>
-                            <p style="color:#444;">{row['Description']}</p>
+                            <h3 style="margin:0;">{ad['product']} {'⭐' if ad['featured'] else ''}</h3>
+                            <p style="color:#666;">📍 {ad['wilaya']} | 📅 {ad['date']} | 👤 {ad['owner']}</p>
+                            <p>{ad['description']}</p>
+                            <span style="color:#f39c12;">★ {round(ad['avg_r'],1)} ({ad['count_r']})</span> | 
+                            <span style="color:#2980b9;">👁️ {ad['views']}</span>
                         </div>
                         <div style="text-align:left;">
-                            <div class="price-tag">{row['Price']:,} دج</div>
-                            <br><br>
-                            <a href="https://wa.me/213{row['Phone']}" target="_blank" 
-                               style="background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:bold;">
-                               تواصل الآن 💬
-                            </a>
+                            <div class="price-badge">{ad['price']:,} دج</div>
+                            <br><a href="{wa}" target="_blank" style="text-decoration:none; color:#25d366; font-weight:bold;">واتساب 💬</a>
                         </div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("لا توجد همزات تطابق بحثك حالياً.")
+            """, unsafe_allow_html=True)
 
-with tab2:
-    with st.form("pro_publish", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        p_name = c1.text_input("اسم الجهاز بالكامل")
-        p_price = c2.number_input("السعر النهائي (دج)", min_value=0)
-        p_phone = c1.text_input("رقم الهاتف (واتساب)")
-        p_city = c2.selectbox("ولاية التوفر", [f"{i:02d}" for i in range(1, 60)])
-        p_desc = st.text_area("تفاصيل الحالة (الخدوش، البطارية، الملحقات)")
+    # --- 📢 نشر الإعلان ---
+    with tab2:
+        with st.form("publish"):
+            p1, p2 = st.columns(2)
+            name = p1.text_input("اسم الهاتف")
+            pr = p2.number_input("السعر", min_value=0)
+            ph = p1.text_input("رقم الهاتف")
+            wl = p2.selectbox("الولاية", [f"{i:02d}" for i in range(1, 59)])
+            ds = st.text_area("الوصف")
+            if st.form_submit_button("نشر الآن"):
+                if name and ph:
+                    conn.execute("INSERT INTO ads(product,price,phone,wilaya,description,date,owner) VALUES(?,?,?,?,?,?,?)",
+                                 (name, pr, ph, wl, ds, str(datetime.date.today()), st.session_state.user))
+                    conn.commit()
+                    st.success("✅ تم النشر")
+
+    # --- 📊 Analytics Pro Upgrade ---
+    with tab3:
+        st.subheader("📊 إحصائيات المنصة")
+        col_a, col_b, col_c = st.columns(3)
         
-        if st.form_submit_button("🚀 إطلاق العرض في المنصة"):
-            if p_name and p_phone and p_price > 0:
-                new_row = pd.DataFrame([[
-                    p_name, p_price, clean_phone(p_phone), p_city, 
-                    p_desc, datetime.date.today(), get_category(p_name)
-                ]], columns=COLUMNS)
-                df = pd.concat([df, new_row], ignore_index=True)
-                df.to_csv(DB_FILE, index=False)
-                st.balloons()
-                st.success("تم التحقق والنشر بنجاح!")
-            else:
-                st.warning("الرجاء إكمال البيانات الأساسية.")
+        top_seller = conn.execute("SELECT owner, COUNT(*) c FROM ads GROUP BY owner ORDER BY c DESC LIMIT 1").fetchone()
+        avg_price = conn.execute("SELECT AVG(price) FROM ads").fetchone()[0]
+        total_v = conn.execute("SELECT SUM(views) FROM ads").fetchone()[0]
 
-with tab3:
-    st.subheader("🤖 محلل الصور الذكي")
-    img_file = st.file_uploader("ارفع صورة لنعطيك السعر المقترح", type=['jpg', 'png'])
-    if img_file:
-        st.image(img_file, width=300)
-        st.write("🔍 جاري التحليل عبر تقنية Vision...")
-        time_sim = st.progress(0)
-        # محاكاة ذكاء اصطناعي
-        st.info(f"النتيجة: هذا الجهاز يطابق فئة {get_category('iphone')} وحالته ممتازة.")
+        if top_seller: col_a.metric("أكثر بائع نشاطاً", top_seller[0])
+        if avg_price: col_b.metric("متوسط السعر الوطني", f"{int(avg_price):,} دج")
+        col_c.metric("إجمالي المشاهدات", f"{total_v if total_v else 0:,}")
 
-with tab4:
-    st.subheader("📊 إحصائيات السوق اليوم")
-    if not df.empty:
-        st.line_chart(df.set_index('Date')['Price'])
-        st.write("أكثر الماركات طلباً:")
-        st.bar_chart(df['Category'].value_counts())
+    # --- 👑 Admin & 💎 Featured System ---
+    with tab4:
+        role = conn.execute("SELECT role FROM users WHERE username=?", (st.session_state.user,)).fetchone()[0]
+        if role == "admin":
+            st.subheader("💎 إدارة تمييز الإعلانات")
+            ads_db = pd.read_sql("SELECT id, product, owner, featured FROM ads", conn)
+            edited_ads = st.data_editor(ads_db, key="editor")
 
-st.markdown("---")
-st.markdown("<p style='text-align:center;'>RASSIM DZ 2026 - تكنولوجيا فوكة، تيبازة نحو العالمية 🇩🇿</p>", unsafe_allow_html=True)
+            if st.button("تحديث الإعلانات المميزة"):
+                for _, row in edited_ads.iterrows():
+                    conn.execute("UPDATE ads SET featured=? WHERE id=?", (row['featured'], row['id']))
+                conn.commit()
+                st.success("✅ تم التحديث بنجاح")
+        else:
+            st.warning("هذه المنطقة للمديرين فقط")
+
+# ==========================================
+# الانطلاق
+# ==========================================
+if st.session_state.user: dashboard()
+else: auth_page()
