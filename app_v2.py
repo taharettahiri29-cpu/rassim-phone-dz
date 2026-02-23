@@ -72,9 +72,26 @@ df = pd.read_csv("users_database.csv") if os.path.exists("users_database.csv") e
 
 col_search, col_filter = st.columns([3, 1])
 with col_search:
+    # شريط البحث الرئيسي
+    search_query = st.text_input("", placeholder="🔍 ابحث عن موديل (iPhone, Pixel...)", key="main_search")
+    
+    # --- هنا نضع نظام التنبيهات الذكي مباشرة تحت شريط البحث ---
+    with st.expander("🔔 لم تجد ما تبحث عنه؟ فعل رادار التنبيهات"):
+        st.markdown("<small>سيرسل لك الروبوت رسالة فور توفر هذا الهاتف في ولايتك</small>", unsafe_allow_html=True)
+        e_col1, e_col2 = st.columns([2, 1])
+        with e_col1:
+            email_input = st.text_input("بريدك الإلكتروني", key="notif_email", placeholder="example@mail.com")
+        with e_col2:
+            if st.button("تفعيل الرادار", use_container_width=True):
+                if "@" in email_input:
+                    st.success("تم التفعيل! 🚀")
+                else:
+                    st.error("الإيميل غير صحيح")
+    # -------------------------------------------------------
     query = st.text_input("🔍 ابحث عن موديل (iPhone, Pixel, Oppo...)", placeholder="اكتب هنا...")
 with col_filter:
     target_wilaya = st.selectbox("تصفية حسب الولاية", ["كل الولايات"] + wilayas)
 
 # ... (منطق الفلترة والعرض الذي شرحناه سابقاً) ...
+
 
