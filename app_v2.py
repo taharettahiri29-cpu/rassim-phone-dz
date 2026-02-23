@@ -14,14 +14,35 @@ warnings.filterwarnings('ignore')
 # 1. إعدادات الصفحة المتقدمة
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS ULTIMATE 2026 • الجزائر",
+    page_title="RASSIM OS ULTIMATE 2026 • 69 ولاية",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
 # ==========================================
-# 2. المتغيرات السرية في الجلسة
+# 2. قائمة الولايات الجزائرية (69 ولاية)
+# ==========================================
+ALGERIAN_WILAYAS = [
+    "الكل",
+    "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
+    "06 - بجاية", "07 - بسكرة", "08 - بشار", "09 - البليدة", "10 - البويرة",
+    "11 - تمنراست", "12 - تبسة", "13 - تلمسان", "14 - تيارت", "15 - تيزي وزو",
+    "16 - الجزائر", "17 - الجلفة", "18 - جيجل", "19 - سطيف", "20 - سعيدة",
+    "21 - سكيكدة", "22 - سيدي بلعباس", "23 - عنابة", "24 - قالمة", "25 - قسنطينة",
+    "26 - المدية", "27 - مستغانم", "28 - المسيلة", "29 - معسكر", "30 - ورقلة",
+    "31 - وهران", "32 - البيض", "33 - إليزي", "34 - برج بوعريريج", "35 - بومرداس",
+    "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت", "39 - الوادي", "40 - خنشلة",
+    "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
+    "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
+    "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام", "55 - توقرت",
+    "56 - جانت", "57 - المغير", "58 - المنيع", "59 - الطيبات", "60 - أولاد سليمان",
+    "61 - سيدي خالد", "62 - بوسعادة", "63 - عين وسارة", "64 - حاسي بحبح", "65 - عين الملح",
+    "66 - سيدي عيسى", "67 - عين الباردة", "68 - عين آزال", "69 - عين الحجر"
+]
+
+# ==========================================
+# 3. المتغيرات السرية في الجلسة
 # ==========================================
 if 'admin_access' not in st.session_state:
     st.session_state.admin_access = False
@@ -33,9 +54,13 @@ if 'verified' not in st.session_state:
     st.session_state.verified = 0
 if 'ip' not in st.session_state:
     st.session_state.ip = secrets.token_hex(8)
+if 'robot_active' not in st.session_state:
+    st.session_state.robot_active = False
+if 'last_alert' not in st.session_state:
+    st.session_state.last_alert = None
 
 # ==========================================
-# 3. نظام "الذكاء العصبي" للواجهة (Neural UI)
+# 4. نظام "الذكاء العصبي" للواجهة (Neural UI)
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
@@ -175,31 +200,320 @@ def set_ultimate_theme():
         margin-top: 5px;
     }
 
-    /* شريط التمرير */
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    ::-webkit-scrollbar-thumb {
+    /* فقاعة الدردشة العائمة */
+    .chat-bubble {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
         background: linear-gradient(135deg, #00ffff, #ff00ff);
-        border-radius: 10px;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+        cursor: pointer;
+        z-index: 9999;
+        transition: all 0.3s ease;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .chat-bubble:hover {
+        transform: scale(1.15) rotate(10deg);
+        box-shadow: 0 20px 40px rgba(255, 0, 255, 0.6);
+    }
+
+    .chat-bubble img {
+        width: 35px;
+        height: 35px;
+        filter: brightness(0) invert(1);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    /* تنبيه الرادار */
+    .radar-alert {
+        background: rgba(255, 0, 0, 0.2);
+        border: 2px solid #ff00ff;
+        border-radius: 20px;
+        padding: 15px;
+        margin: 10px 0;
+        animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 20px #ff00ff; }
+        50% { box-shadow: 0 0 40px #ff0000; }
+    }
+
+    /* شريط الولايات */
+    .wilaya-badge {
+        display: inline-block;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid #00ffff;
+        border-radius: 50px;
+        padding: 5px 15px;
+        margin: 3px;
+        font-size: 0.8rem;
+        color: #00ffff;
+        transition: all 0.3s ease;
+    }
+
+    .wilaya-badge:hover {
+        background: #00ffff;
+        color: black;
+        transform: scale(1.05);
+    }
+
+    /* عداد الولايات */
+    .wilaya-counter {
+        background: linear-gradient(135deg, #00ffff, #ff00ff);
+        border-radius: 60px;
+        padding: 20px 40px;
+        text-align: center;
+        margin: 20px 0;
+        animation: glow 2s ease-in-out infinite;
+    }
+
+    .wilaya-counter h2 {
+        color: black;
+        font-size: 3rem;
+        font-weight: 900;
+        margin: 0;
+    }
+
+    .wilaya-counter p {
+        color: black;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 5px 0 0 0;
     }
 
     /* التجاوب مع الجوال */
     @media screen and (max-width: 768px) {
         .neural-title { font-size: 2rem; }
         .stat-value { font-size: 1.8rem; }
+        .chat-bubble { width: 60px; height: 60px; bottom: 20px; right: 20px; }
+        .chat-bubble img { width: 30px; height: 30px; }
+        .wilaya-counter h2 { font-size: 2rem; }
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. نظام التحليل التنبئي
+# 5. نظام التخزين المؤقت (Cache System)
+# ==========================================
+@st.cache_data(ttl=600)
+def load_data_optimized():
+    """تحميل البيانات مع التخزين المؤقت"""
+    try:
+        conn = get_connection()
+        data = {
+            'users': conn.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+            'ads': conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0],
+            'visitors': conn.execute("SELECT COUNT(*) FROM visitors").fetchone()[0],
+            'views': conn.execute("SELECT SUM(views) FROM ads").fetchone()[0] or 0
+        }
+        return data
+    except:
+        return None
+
+# ==========================================
+# 6. كاشف المشتري الجدي (Serious Buyer Detector)
+# ==========================================
+def serious_buyer_detector(message, price_offered=0):
+    """يكشف المشتري الجدي ويطلق إنذاراً"""
+    
+    serious_keywords = [
+        "حاب نشري", "نخلصك توت سويت", "وين نسكنو", 
+        "كاش", "آخر سعر", "دابا", "الوقتية", "نروحو نخلصو",
+        "باش نجي", "العنوان", "وين مكانكم"
+    ]
+    
+    message_lower = message.lower() if message else ""
+    is_serious = any(word in message_lower for word in serious_keywords)
+    
+    if is_serious or price_offered > 0:
+        st.session_state.last_alert = {
+            'message': message,
+            'price': price_offered,
+            'time': datetime.now().strftime("%H:%M:%S")
+        }
+        
+        st.toast("🚨 تنبيه: مشتري جدي في الانتظار!", icon="💰")
+        
+        st.markdown("""
+            <audio autoplay>
+                <source src="https://www.soundjay.com/buttons/beep-01a.mp3" type="audio/mpeg">
+            </audio>
+        """, unsafe_allow_html=True)
+        return True
+    return False
+
+# ==========================================
+# 7. روبوت RASSIM الذكي (AI Robot)
+# ==========================================
+def rassim_robot_logic(user_message):
+    """محرك الردود الذكي للروبوت"""
+    user_message = user_message.lower()
+    
+    responses = {
+        "سعر": "أسعارنا هي الأفضل في السوق الجزائري 🇩🇿، تفقد قائمة الإعلانات الموثقة!",
+        "متوفر": "كل ما تراه في الواجهة 'Live' متوفر حالياً. هل تريد حجز هاتف؟",
+        "تيبازة": "مقرنا الرئيسي في فوكة، تيبازة (42). التوصيل متوفر لـ 69 ولاية! 🚚",
+        "سلام": "وعليكم السلام! أنا روبوت RASSIM OS، كيف يمكنني مساعدتك في العثور على هاتفك القادم؟",
+        "آيفون": "لدينا تشكيلة واسعة من هواتف iPhone Titanium. ابحث عنها في خانة البحث الكمومي 🔮",
+        "سامسونج": "S24 Ultra متوفر بذاكرة 512GB، السعر 185,000 دج شامل الضمان ✅",
+        "هواوي": "هواتف هواوي متوفرة بكثرة في السوق الجزائري، ابحث عن P60 Pro!",
+        "شاومي": "Xiaomi 14 Pro بأفضل سعر 95,000 دج فقط!",
+        "واد كنيس": "نحن البديل العصري لواد كنيس، أسرع وأذكى وأكثر أماناً ✨",
+        "الدزة": "الدزة الجزائرية واجدة! هذا هو مستقبل التجارة الإلكترونية في بلادنا",
+        "شحال": "لأي سؤال عن الأسعار، اكتب اسم الهاتف في البحث الكمومي وسيظهر لك كل شيء",
+        "وين": f"مقرنا الرئيسي في فوكة، تيبازة (42). نغطي 69 ولاية جزائرية كاملة! 🇩🇿",
+        "كيفاش": "بسيطة! سجل دخول، دوّز على الإعلان اللي حابو، وضغط على 'اتصل بالبائع'",
+        "69": "نعم! نحن نغطي 69 ولاية جزائرية كاملة. حتى الولايات الجديدة مشمولة في خدماتنا 🚀",
+        "ولايات": "69 ولاية جزائرية مدعومة بالكامل. من تندوف إلى الطارف، كل الولايات موجودة!",
+        "توصيل": "التوصيل متوفر لجميع الولايات الـ 69. نتعامل مع شركات توصيل موثوقة في كل ولاية 📦"
+    }
+    
+    for key in responses:
+        if key in user_message:
+            if key in ["حاب نشري", "كاش", "آخر سعر", "وين"]:
+                serious_buyer_detector(user_message)
+            return responses[key]
+    
+    return "رسالتك وصلت لراسم! سأقوم بتحليلها والرد عليك في أقرب وقت. هل تريد رقم الهاتف؟"
+
+# ==========================================
+# 8. رادار راسم الآلي (Robotic Alert)
+# ==========================================
+def robotic_alert_ui():
+    """واجهة الرادار في لوحة التحكم"""
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🛰️ رادار راسم الآلي")
+    
+    hunter_mode = st.sidebar.toggle("تفعيل وضع الصياد (Hunter Mode)")
+    st.session_state.robot_active = hunter_mode
+    
+    if hunter_mode:
+        st.sidebar.success("الروبوت يراقب الصفقات الآن... 🟢")
+        
+        if st.session_state.last_alert:
+            with st.sidebar.expander("🚨 آخر عرض جدي", expanded=True):
+                st.markdown(f"""
+                <div class="radar-alert">
+                    <p>🔥 <b>رسالة:</b> {st.session_state.last_alert['message']}</p>
+                    <p>💰 <b>السعر:</b> {st.session_state.last_alert['price']} دج</p>
+                    <p>⏰ <b>الوقت:</b> {st.session_state.last_alert['time']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("[📞 تواصل عبر واتساب](https://wa.me/213555555555)")
+        
+        if st.sidebar.button("🔍 اختبار الرادار"):
+            test_msg = "حاب نشري التليفون كاش اليوم في فوكة"
+            if serious_buyer_detector(test_msg, 220000):
+                st.sidebar.error(f"🔥 عرض جدي: {test_msg}")
+    else:
+        st.sidebar.warning("الرادار مطفأ 🔴")
+
+# ==========================================
+# 9. مولد الإعلانات الذكي (Auto Ads Generator)
+# ==========================================
+def generate_auto_ads():
+    """يحدد أفضل وقت للنشر"""
+    current_hour = datetime.now().hour
+    if 18 <= current_hour <= 22:
+        status = "🔥 وقت الذروة! انشر الآن لجلب آلاف المشاهدات."
+        color = "#00ffff"
+    elif 9 <= current_hour <= 12:
+        status = "☀️ وقت الصباح الذهبي، انشر إعلانك الآن!"
+        color = "#ff00ff"
+    else:
+        status = "⏳ وقت هادئ، جهز منشوراتك للظهيرة."
+        color = "#888888"
+    
+    st.sidebar.markdown(f"<p style='color: {color}; font-weight: bold;'>🤖 حالة الروبوت: {status}</p>", unsafe_allow_html=True)
+    return status
+
+# ==========================================
+# 10. عداد الولايات (Wilaya Counter)
+# ==========================================
+def show_wilaya_counter():
+    """عرض عداد الولايات في الواجهة"""
+    st.markdown("""
+    <div class="wilaya-counter">
+        <h2>69</h2>
+        <p>ولاية جزائرية مدعومة بالكامل 🇩🇿</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def show_wilaya_badges():
+    """عرض شارات الولايات"""
+    st.markdown("### 📍 الولايات الـ 69")
+    
+    cols = st.columns(5)
+    for i, wilaya in enumerate(ALGERIAN_WILAYAS[1:]):
+        col_idx = i % 5
+        with cols[col_idx]:
+            st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
+
+# ==========================================
+# 11. نظام الدردشة المباشرة المتطور (Live Chat)
+# ==========================================
+def show_live_chat():
+    """نظام الدردشة المباشرة مع روبوت RASSIM"""
+    
+    st.markdown("""
+    <div class="chat-bubble" onclick="document.getElementById('chat-trigger').click();">
+        <img src="https://img.icons8.com/ios-filled/30/000000/speech-bubble.png"/>
+    </div>
+    <div style="display: none;">
+        <button id="chat-trigger" onclick="document.querySelector('[data-testid=\\'stSidebar\\']').classList.toggle('open');">Open Chat</button>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.sidebar:
+        st.markdown("### 💬 مركز الدعم الذكي")
+        generate_auto_ads()
+        
+        with st.expander("🗣️ تحدث مع روبوت RASSIM", expanded=True):
+            st.write("أهلاً بك في RASSIM OS! أنا روبوت راسم الذكي. كيف يمكنني مساعدتك اليوم؟")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                whatsapp_url = "https://wa.me/213555555555" 
+                st.markdown(f"[![WhatsApp](https://img.icons8.com/color/48/whatsapp.png)]({whatsapp_url})")
+            with col2:
+                telegram_url = "https://t.me/RassimDZ"
+                st.markdown(f"[![Telegram](https://img.icons8.com/color/48/telegram-app.png)]({telegram_url})")
+            
+            st.divider()
+            contact_msg = st.text_area("📝 اكتب رسالتك هنا:", key="robot_chat")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("🤖 إرسال للروبوت", use_container_width=True):
+                    if contact_msg:
+                        reply = rassim_robot_logic(contact_msg)
+                        st.info(f"🤖 الروبوت: {reply}")
+                        st.session_state.last_robot_reply = reply
+                        serious_buyer_detector(contact_msg, 0)
+                    else:
+                        st.warning("اكتب شيئاً أولاً!")
+            
+            with col_b:
+                if st.button("👤 التواصل المباشر", use_container_width=True):
+                    st.info("سيتم تحويلك إلى فريق الدعم البشري قريباً")
+            
+            if 'last_robot_reply' in st.session_state:
+                st.success(f"آخر رد: {st.session_state.last_robot_reply}")
+
+# ==========================================
+# 12. نظام التحليل التنبئي
 # ==========================================
 def show_market_trends(conn):
     st.markdown("### 📈 نبض السوق الجزائري")
@@ -233,7 +547,7 @@ def show_market_trends(conn):
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 5. محرك البحث الذكي
+# 13. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2, col3 = st.columns([3, 1, 1])
@@ -242,18 +556,19 @@ def quantum_search_ui():
     with col2:
         st.selectbox("", ["🧠 أفضل سعر", "⚡ الأكثر ثقة"], label_visibility="collapsed")
     with col3:
-        st.button("🔮 Flash Scan", use_container_width=True)
+        if st.button("🔮 Flash Scan", use_container_width=True):
+            st.balloons()
     
     col_a, col_b = st.columns(2)
     with col_a:
-        wilaya = st.selectbox("الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
+        wilaya = st.selectbox("الولاية", ALGERIAN_WILAYAS)
     with col_b:
         sort = st.selectbox("الترتيب", ["الأحدث", "السعر", "المشاهدات"])
     
     return search_query, wilaya, sort
 
 # ==========================================
-# 6. دالة الإعلان الذهبية
+# 14. دالة الإعلان الذهبية
 # ==========================================
 def render_ad_pro(ad):
     st.markdown(f"""
@@ -274,10 +589,11 @@ def render_ad_pro(ad):
             st.info(f"رقم الهاتف: {ad['phone']}")
     with col2:
         if st.button("⚡ شراء سريع", key=f"buy_{ad['id']}", use_container_width=True):
+            serious_buyer_detector(f"شراء سريع لـ {ad['title']}", ad['price'])
             st.success("تم إرسال طلبك إلى البائع")
 
 # ==========================================
-# 7. إعدادات قاعدة البيانات
+# 15. إعدادات قاعدة البيانات
 # ==========================================
 DB = "rassim_os_ultimate.db"
 
@@ -286,7 +602,6 @@ def init_db():
         conn = sqlite3.connect(DB, check_same_thread=False)
         cursor = conn.cursor()
         
-        # جدول المستخدمين
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
@@ -303,7 +618,6 @@ def init_db():
             )
         """)
         
-        # جدول الإعلانات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,12 +636,32 @@ def init_db():
             )
         """)
         
-        # جدول الزوار
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sender TEXT NOT NULL,
+                receiver TEXT NOT NULL,
+                message TEXT NOT NULL,
+                read INTEGER DEFAULT 0,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS visitors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ip TEXT,
                 page TEXT,
+                date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                message TEXT NOT NULL,
+                price INTEGER,
+                status TEXT DEFAULT 'new',
                 date TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -339,7 +673,7 @@ def init_db():
         return None
 
 # ==========================================
-# 8. دوال المساعدة
+# 16. دوال المساعدة
 # ==========================================
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
@@ -370,21 +704,26 @@ def get_stats():
 def get_connection():
     return sqlite3.connect(DB, check_same_thread=False)
 
-# تهيئة قاعدة البيانات
 conn = init_db()
 
 # ==========================================
-# 9. صفحة تسجيل الدخول
+# 17. صفحة تسجيل الدخول
 # ==========================================
 def login_page():
     st.markdown("""
     <div class="neural-header">
         <div class="neural-title">RASSIM OS ULTIMATE</div>
-        <p style="color: white;">أول سوق إلكتروني جزائري بتقنية Quantum AI</p>
+        <p style="color: #00ffff;">69 ولاية جزائرية • الملكية: الطاهر الطاهري 👑</p>
     </div>
     """, unsafe_allow_html=True)
     
-    users, ads, visitors, views = get_stats()
+    show_wilaya_counter()
+    
+    cached_data = load_data_optimized()
+    if cached_data:
+        users, ads, visitors, views = cached_data['users'], cached_data['ads'], cached_data['visitors'], cached_data['views']
+    else:
+        users, ads, visitors, views = get_stats()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -395,6 +734,9 @@ def login_page():
         st.markdown(f'<div class="stat-card"><div class="stat-value">{visitors}</div><div class="stat-label">زيارة</div></div>', unsafe_allow_html=True)
     with col4:
         st.markdown(f'<div class="stat-card"><div class="stat-value">{views}</div><div class="stat-label">مشاهدة</div></div>', unsafe_allow_html=True)
+    
+    with st.expander("📍 الولايات المدعومة (69 ولاية)", expanded=False):
+        show_wilaya_badges()
     
     tab1, tab2 = st.tabs(["🔑 دخول", "📝 حساب جديد"])
     
@@ -415,13 +757,25 @@ def login_page():
         with st.form("register_form"):
             new_user = st.text_input("👤 اسم المستخدم")
             new_pass = st.text_input("🔐 كلمة المرور", type="password")
+            email = st.text_input("📧 البريد الإلكتروني")
+            phone = st.text_input("📱 رقم الهاتف")
             
             if st.form_submit_button("✨ تسجيل", use_container_width=True):
                 if new_user and new_pass:
-                    st.success("✅ تم التسجيل بنجاح!")
+                    salt = secrets.token_hex(16)
+                    hashed = hash_password(new_pass, salt)
+                    try:
+                        conn.execute("""
+                            INSERT INTO users (username, password, salt, email, phone, role, verified)
+                            VALUES (?, ?, ?, ?, ?, 'user', 0)
+                        """, (new_user, hashed, salt, email, phone))
+                        conn.commit()
+                        st.success("✅ تم التسجيل بنجاح!")
+                    except:
+                        st.error("❌ اسم المستخدم موجود")
 
 # ==========================================
-# 10. صفحة السوق الذكي
+# 18. صفحة السوق الذكي
 # ==========================================
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
@@ -431,21 +785,20 @@ def show_market():
     with st.expander("📊 تحليلات السوق", expanded=False):
         show_market_trends(conn)
     
-    # إعلانات تجريبية
     ads = [
         {"id": 1, "title": "iPhone 15 Pro Max Titanium", "price": 225000, "phone": "0555-XX-XX-XX", 
-         "wilaya": "الجزائر (16)", "description": "نظيف جداً، مع كامل أكسسواراته", "views": 1024},
+         "wilaya": "16 - الجزائر", "description": "نظيف جداً، مع كامل أكسسواراته", "views": 1024},
         {"id": 2, "title": "Samsung S24 Ultra", "price": 185000, "phone": "0666-XX-XX-XX", 
-         "wilaya": "وهران (31)", "description": "حالة ممتازة، بطارية 100%", "views": 856},
+         "wilaya": "31 - وهران", "description": "حالة ممتازة، بطارية 100%", "views": 856},
         {"id": 3, "title": "Xiaomi 14 Pro", "price": 95000, "phone": "0777-XX-XX-XX", 
-         "wilaya": "قسنطينة (25)", "description": "جديد لم يستعمل", "views": 623}
+         "wilaya": "25 - قسنطينة", "description": "جديد لم يستعمل", "views": 623}
     ]
     
     for ad in ads:
         render_ad_pro(ad)
 
 # ==========================================
-# 11. صفحة إضافة إعلان
+# 19. صفحة إضافة إعلان
 # ==========================================
 def post_ad():
     st.markdown("### 📢 إضافة إعلان جديد")
@@ -457,29 +810,37 @@ def post_ad():
             category = st.selectbox("🏷️ الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
         with col2:
             price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
-            wilaya = st.selectbox("📍 الولاية *", [f"{i:02d}" for i in range(1, 59)])
+            wilaya = st.selectbox("📍 الولاية *", ALGERIAN_WILAYAS[1:])
         
         phone = st.text_input("📞 رقم الهاتف *")
         description = st.text_area("📝 الوصف")
         
         if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
             if title and phone:
-                st.success("✅ تم نشر الإعلان بنجاح!")
-                st.balloons()
-                time.sleep(2)
-                st.rerun()
+                try:
+                    conn.execute("""
+                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (title, price, phone, wilaya, description, category, st.session_state.user))
+                    conn.commit()
+                    st.success("✅ تم نشر الإعلان بنجاح!")
+                    st.balloons()
+                    time.sleep(2)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ خطأ: {e}")
             else:
                 st.error("❌ يرجى ملء الحقول المطلوبة")
 
 # ==========================================
-# 12. لوحة الإدارة السرية
+# 20. لوحة الإدارة السرية المتطورة
 # ==========================================
 def admin_dashboard():
     st.markdown("""
     <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); 
     border: 2px solid #00ffff; border-radius: 30px; padding: 30px; margin-bottom: 30px;">
-        <h1 style="text-align: center; color: white;">🔐 لوحة التحكم السرية</h1>
-        <p style="text-align: center; color: #00ffff;">مستوى الدخول: القائد 🛰️</p>
+        <h1 style="text-align: center; color: white;">🔐 لوحة القيادة المركزية</h1>
+        <p style="text-align: center; color: #00ffff;">خاص بالطاهر الطاهري فقط 🛡️</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -494,56 +855,83 @@ def admin_dashboard():
         st.metric("الزيارات", visitors)
     with col4:
         st.metric("المشاهدات", views)
+    
+    st.markdown("### 🚨 تنبيهات الرادار")
+    if st.session_state.last_alert:
+        st.markdown(f"""
+        <div class="radar-alert">
+            <h3 style="color: #ff00ff;">🔥 مشتري جدي!</h3>
+            <p><b>الرسالة:</b> {st.session_state.last_alert['message']}</p>
+            <p><b>السعر:</b> {st.session_state.last_alert['price']} دج</p>
+            <p><b>الوقت:</b> {st.session_state.last_alert['time']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("[📞 تواصل عبر واتساب](https://wa.me/213555555555)")
+    else:
+        st.info("لا توجد تنبيهات جديدة")
+    
+    st.markdown("### 💬 رسائل الدعم")
+    try:
+        messages = conn.execute("""
+            SELECT sender, message, date FROM messages 
+            WHERE receiver='rassim' 
+            ORDER BY date DESC LIMIT 20
+        """).fetchall()
+        
+        if messages:
+            for msg in messages:
+                st.markdown(f"**{msg[0]}**: {msg[1]} *(at {msg[2]})*")
+        else:
+            st.info("لا توجد رسائل دعم حالياً.")
+    except Exception as e:
+        st.error(f"خطأ في عرض الرسائل: {e}")
 
 # ==========================================
-# 13. التشغيل الرئيسي النهائي
+# 21. المحرك الرئيسي (Main Controller) - مصحح بالكامل
 # ==========================================
 def main():
-    # تطبيق الثيم
     set_ultimate_theme()
-    
-    # تسجيل الزائر
     log_visitor()
-    
-    # عرض الصفحة المناسبة
-    if not st.session_state.user:
+    show_live_chat()
+    robotic_alert_ui()
+
+    if st.session_state.user is None:
         login_page()
     else:
-        # القائمة الجانبية
+        # شريط جانبي للتنقل
         with st.sidebar:
             st.markdown(f"""
             <div style="background: linear-gradient(135deg, #00ffff20, #ff00ff20); 
             border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 3rem;">⚡</div>
+                <div style="font-size: 3rem;">👑</div>
                 <div style="color: white; font-size: 1.2rem;">{st.session_state.user}</div>
+                <div style="color: #00ffff; font-size: 0.9rem;">المالك: الطاهر الطاهري</div>
             </div>
             """, unsafe_allow_html=True)
             
-            menu = st.radio("", ["🛍️ السوق", "📢 إضافة إعلان", "🤖 المساعد"])
+            page = st.radio("القائمة الرئيسية", ["🛍️ السوق", "📢 أضف إعلان", "👤 حسابي", "🔐 الإدارة"])
             
-            if st.session_state.role == "admin":
-                with st.expander("🔧 النظام"):
-                    code = st.text_input("كود الدخول", type="password")
-                    if code == "RASSIM-42-2026":
-                        st.session_state.admin_access = True
-            
-            if st.button("🚪 خروج", use_container_width=True):
+            if st.sidebar.button("🚪 تسجيل الخروج", use_container_width=True):
                 st.session_state.user = None
                 st.session_state.admin_access = False
                 st.rerun()
         
         # توجيه الصفحات
-        if st.session_state.admin_access:
-            admin_dashboard()
-        elif menu == "🛍️ السوق":
+        if page == "🛍️ السوق":
             show_market()
-        elif menu == "📢 إضافة إعلان":
+        elif page == "📢 أضف إعلان":
             post_ad()
-        else:
-            st.info("🤖 المساعد الذكي قيد التطوير")
+        elif page == "👤 حسابي":
+            st.info("🚀 صفحة الحساب الشخصي قيد التطوير")
+        elif page == "🔐 الإدارة":
+            if st.session_state.role == "admin":
+                admin_dashboard()
+            else:
+                st.error("عذراً، هذه اللوحة خاصة بالطاهر الطاهري فقط!")
 
 # ==========================================
-# 14. تشغيل التطبيق
+# 22. تشغيل التطبيق - القلب النابض (تم تصحيح الخطأ)
 # ==========================================
 if __name__ == "__main__":
     main()
+
