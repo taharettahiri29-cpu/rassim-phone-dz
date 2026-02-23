@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Streamlit
+.streamlit/
+
+# قاعدة البيانات
+*.db
+*.db-journal
+
+# مجلد الصور
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# الملفات المؤقتة
+*.log
+*.bak
+*.swp
+*.swo
+
+# بيئة التطوير
+.env
+.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
