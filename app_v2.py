@@ -15,10 +15,10 @@ from functools import wraps
 warnings.filterwarnings('ignore')
 
 # ==========================================
-# 1. إعدادات الصفحة - Sleek OS Style
+# 1. إعدادات الصفحة - Sleek OS Style Pro
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS • الجزائر",
+    page_title="RASSIM OS PRO • الجزائر",
     page_icon="💠",
     layout="wide",
     initial_sidebar_state="auto"
@@ -28,13 +28,13 @@ st.set_page_config(
 # 2. SEO Meta Tags
 # ==========================================
 st.markdown("""
-<meta name="description" content="RASSIM OS - أول سوق إلكتروني جزائري بتقنية OS Style">
-<meta name="keywords" content="واد كنيس, هواتف الجزائر, OS, sleek design">
+<meta name="description" content="RASSIM OS PRO - أول سوق إلكتروني جزائري بتقنية OS Style المتطورة">
+<meta name="keywords" content="واد كنيس, هواتف الجزائر, OS Pro, sleek design, راسم تيتانيوم">
 <meta name="author" content="RASSIM DZ">
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. Sleek OS Style - تصميم عصري متطور
+# 3. Sleek OS Style Pro - تصميم أكثر جاذبية
 # ==========================================
 st.markdown("""
 <style>
@@ -46,26 +46,62 @@ st.markdown("""
     box-sizing: border-box;
 }
 
-/* ===== خلفية OS Style ===== */
+/* ===== خلفية متحركة ===== */
 .stApp {
-    background: #0a0a0f;
-    background-image: 
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.03) 0%, transparent 30%),
-        radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.03) 0%, transparent 30%);
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2a 50%, #0a0a0f 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     color: #ffffff;
 }
 
-/* ===== Glass Morphism Effects ===== */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ===== تأثير الجسيمات المتحركة ===== */
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(2px 2px at 10px 10px, rgba(0, 255, 255, 0.3), transparent),
+        radial-gradient(2px 2px at 50px 100px, rgba(255, 0, 255, 0.3), transparent),
+        radial-gradient(3px 3px at 200px 200px, rgba(0, 255, 255, 0.2), transparent),
+        radial-gradient(2px 2px at 400px 300px, rgba(255, 0, 255, 0.2), transparent);
+    background-repeat: repeat;
+    background-size: 600px 600px;
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+    animation: float 20s linear infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0) translateX(0); }
+    100% { transform: translateY(-100px) translateX(50px); }
+}
+
+/* ===== Glass Morphism متطور ===== */
 .glass-panel {
     background: rgba(20, 20, 30, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
+    border-radius: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* ===== الهيدر ===== */
+.glass-panel:hover {
+    border-color: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 12px 48px rgba(0, 255, 255, 0.15);
+}
+
+/* ===== الهيدر المتطور ===== */
 .os-header {
     background: rgba(10, 10, 20, 0.8);
     backdrop-filter: blur(20px);
@@ -75,15 +111,29 @@ st.markdown("""
     position: sticky;
     top: 0;
     z-index: 100;
+    animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .os-title {
     font-size: 2.2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #00ffff, #ff00ff);
+    background: linear-gradient(135deg, #00ffff, #ff00ff, #00ffff);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
+    animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .os-version {
@@ -93,27 +143,52 @@ st.markdown("""
     font-size: 0.8rem;
     color: #888;
     margin-right: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* ===== كروت إحصائية OS Style ===== */
+/* ===== كروت إحصائية متطورة ===== */
 .stMetric {
-    background: rgba(20, 20, 30, 0.6) !important;
-    backdrop-filter: blur(10px) !important;
+    background: rgba(20, 20, 30, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     padding: 25px 20px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.stMetric::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.stMetric:hover::before {
+    opacity: 1;
+    animation: rotate 4s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .stMetric:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px) scale(1.02);
     border-color: rgba(0, 255, 255, 0.3) !important;
-    box-shadow: 0 12px 48px rgba(0, 255, 255, 0.15) !important;
+    box-shadow: 0 16px 48px rgba(0, 255, 255, 0.2) !important;
 }
 
 .stMetric label {
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
     font-size: 0.9rem !important;
     font-weight: 500 !important;
     letter-spacing: 0.5px;
@@ -121,205 +196,171 @@ st.markdown("""
 
 .stMetric [data-testid="stMetricValue"] {
     color: white !important;
-    font-size: 2.4rem !important;
-    font-weight: 600 !important;
-    text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
 }
 
-/* ===== أزرار OS Style ===== */
+/* ===== أزرار متطورة ===== */
 .stButton > button {
     background: rgba(30, 30, 40, 0.8) !important;
-    backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 50px !important;
     color: white !important;
     font-weight: 500 !important;
     font-size: 0.95rem !important;
-    padding: 12px 24px !important;
-    transition: all 0.2s ease !important;
-    box-shadow: none !important;
+    padding: 14px 28px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.stButton > button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.stButton > button:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .stButton > button:hover {
     background: rgba(50, 50, 60, 0.9) !important;
-    border-color: rgba(0, 255, 255, 0.3) !important;
-    transform: scale(0.98);
+    border-color: rgba(0, 255, 255, 0.4) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 255, 255, 0.2) !important;
 }
 
-/* ===== صناديق الإدخال ===== */
+/* ===== صناديق الإدخال المتطورة ===== */
 .stTextInput input, 
 .stTextArea textarea,
 .stSelectbox select {
-    background: rgba(20, 20, 30, 0.6) !important;
-    backdrop-filter: blur(10px) !important;
+    background: rgba(20, 20, 30, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
     border-radius: 50px !important;
     color: white !important;
-    padding: 12px 20px !important;
+    padding: 14px 24px !important;
     font-size: 0.95rem !important;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .stTextInput input:focus, 
 .stTextArea textarea:focus,
 .stSelectbox select:focus {
-    border-color: rgba(0, 255, 255, 0.3) !important;
-    box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.1) !important;
+    border-color: rgba(0, 255, 255, 0.4) !important;
+    box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.1) !important;
+    transform: scale(1.02);
 }
 
 .stTextInput label, 
 .stTextArea label,
 .stSelectbox label {
-    color: rgba(255, 255, 255, 0.7) !important;
-    font-size: 0.9rem !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 0.95rem !important;
     font-weight: 500 !important;
+    margin-bottom: 8px !important;
 }
 
-/* ===== التبويبات OS Style ===== */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background: rgba(20, 20, 30, 0.6);
-    backdrop-filter: blur(10px);
-    padding: 8px;
-    border-radius: 60px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stTabs [data-baseweb="tab"] {
-    border-radius: 50px !important;
-    padding: 10px 24px !important;
-    color: rgba(255, 255, 255, 0.6) !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease;
-}
-
-.stTabs [aria-selected="true"] {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    border-color: rgba(0, 255, 255, 0.3) !important;
-}
-
-/* ===== الشريط الجانبي ===== */
+/* ===== القائمة الجانبية المتطورة ===== */
 section[data-testid="stSidebar"] {
-    background: rgba(10, 10, 15, 0.8) !important;
+    background: rgba(10, 10, 15, 0.9) !important;
     backdrop-filter: blur(20px);
     border-left: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px !important;
 }
 
-/* ===== بطاقات الإعلانات OS Style ===== */
-.os-card {
-    background: rgba(20, 20, 30, 0.6);
-    backdrop-filter: blur(10px);
+section[data-testid="stSidebar"] .stRadio > div {
+    gap: 8px;
+}
+
+section[data-testid="stSidebar"] .stRadio label {
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 24px;
-    padding: 24px;
-    margin-bottom: 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+}
+
+section[data-testid="stSidebar"] .stRadio label:hover {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: rgba(0, 255, 255, 0.3);
+    transform: translateX(-4px);
+}
+
+/* ===== بطاقات الإعلانات المتطورة ===== */
+.os-card {
+    background: rgba(20, 20, 30, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.os-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
 }
 
 .os-card:hover {
-    border-color: rgba(0, 255, 255, 0.2);
-    transform: translateX(-4px);
-    box-shadow: 0 12px 48px rgba(0, 255, 255, 0.1);
+    transform: translateX(-8px) translateY(-4px);
+    border-color: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 20px 48px rgba(0, 255, 255, 0.2);
 }
 
 .os-card-title {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: white;
     margin-bottom: 12px;
+    background: linear-gradient(135deg, #fff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .os-card-price {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.2);
+    background: rgba(0, 255, 255, 0.15);
+    border: 1px solid rgba(0, 255, 255, 0.3);
     color: #00ffff;
-    padding: 8px 20px;
+    padding: 10px 24px;
     border-radius: 50px;
     display: inline-block;
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
 }
 
-.os-card-details {
-    display: flex;
-    gap: 24px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.9rem;
-    margin: 16px 0;
-}
-
-.os-card-details span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* ===== أزرار المشاركة OS Style ===== */
+/* ===== أزرار المشاركة المتطورة ===== */
 .os-share {
     background: rgba(20, 20, 30, 0.8);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 60px;
-    padding: 12px 20px;
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.os-share-icons {
-    display: flex;
-    gap: 8px;
-}
-
-.os-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.os-icon:hover {
-    background: rgba(0, 255, 255, 0.1);
-    border-color: rgba(0, 255, 255, 0.3);
-    transform: scale(1.1);
-}
-
-.os-icon img {
-    width: 20px;
-    height: 20px;
-    opacity: 0.7;
-    transition: all 0.2s ease;
-}
-
-.os-icon:hover img {
-    opacity: 1;
-    filter: brightness(0) invert(1);
-}
-
-.os-badge {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    color: #00ffff;
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* ===== قسم تيك توك OS Style ===== */
-.os-tiktok {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 60px;
     padding: 12px 24px;
     margin: 20px 0;
@@ -328,81 +369,131 @@ section[data-testid="stSidebar"] {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.os-tiktok-text {
-    color: white;
-    font-size: 0.95rem;
-    font-weight: 500;
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.1); }
+    50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.2); }
 }
 
-.os-tags {
+.os-share-icons {
     display: flex;
-    gap: 8px;
+    gap: 12px;
 }
 
-.os-tag {
+.os-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    animation: float 3s ease-in-out infinite;
 }
 
-/* ===== فقاعات الدردشة OS Style ===== */
+.os-icon:nth-child(1) { animation-delay: 0s; }
+.os-icon:nth-child(2) { animation-delay: 0.1s; }
+.os-icon:nth-child(3) { animation-delay: 0.2s; }
+.os-icon:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.os-icon:hover {
+    background: rgba(0, 255, 255, 0.15);
+    border-color: rgba(0, 255, 255, 0.4);
+    transform: scale(1.15) rotate(5deg);
+}
+
+.os-icon img {
+    width: 22px;
+    height: 22px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.os-icon:hover img {
+    opacity: 1;
+    filter: brightness(0) invert(1);
+}
+
+/* ===== فقاعات الدردشة المتطورة ===== */
 .os-chat-sent {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 200, 255, 0.15));
+    border: 1px solid rgba(0, 255, 255, 0.3);
     color: white;
-    padding: 12px 18px;
-    border-radius: 20px 20px 5px 20px;
-    margin: 10px 0;
+    padding: 14px 20px;
+    border-radius: 24px 24px 8px 24px;
+    margin: 12px 0;
     max-width: 80%;
     margin-left: auto;
+    box-shadow: 0 8px 24px rgba(0, 255, 255, 0.1);
+    animation: slideInLeft 0.3s ease;
 }
 
 .os-chat-received {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 12px 18px;
-    border-radius: 20px 20px 20px 5px;
-    margin: 10px 0;
+    padding: 14px 20px;
+    border-radius: 24px 24px 24px 8px;
+    margin: 12px 0;
     max-width: 80%;
     margin-right: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(-30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* ===== العناوين ===== */
 h1, h2, h3 {
     color: white !important;
     font-weight: 600 !important;
+    letter-spacing: -0.5px;
 }
 
 h1 {
-    font-size: 2.2rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 2.4rem !important;
+    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
     padding-bottom: 16px;
-    margin-bottom: 24px !important;
+    margin-bottom: 28px !important;
+    display: inline-block;
 }
 
-/* ===== شريط التمرير ===== */
+/* ===== شريط التمرير المتطور ===== */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
 
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00ffff, #ff00ff);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 255, 0.3);
+    background: linear-gradient(135deg, #ff00ff, #00ffff);
 }
 
 /* ===== التجاوب مع الجوال ===== */
@@ -412,31 +503,35 @@ h1 {
     }
     
     .os-title {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
     }
     
-    .os-share {
-        flex-direction: column;
-        align-items: stretch;
+    .os-card-title {
+        font-size: 1.3rem;
     }
     
-    .os-tiktok {
-        flex-direction: column;
-        text-align: center;
+    .os-card-price {
+        font-size: 1.1rem;
+        padding: 8px 16px;
+    }
+    
+    .stMetric [data-testid="stMetricValue"] {
+        font-size: 2rem !important;
     }
 }
 </style>
 
-<!-- OS Header -->
+<!-- OS Header Pro -->
 <div class="os-header">
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
-            <span class="os-title">RASSIM OS</span>
-            <span class="os-version">v2.0.4 • الجزائر</span>
+            <span class="os-title">RASSIM OS PRO</span>
+            <span class="os-version">v3.0.0 • الجزائر</span>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <span style="color: rgba(255,255,255,0.3);">⚡</span>
-            <span style="color: rgba(255,255,255,0.3);">🔋 100%</span>
+        <div style="display: flex; gap: 16px;">
+            <span style="color: rgba(0,255,255,0.5);">⚡ 5G</span>
+            <span style="color: rgba(255,0,255,0.5);">🔋 100%</span>
+            <span style="color: rgba(255,255,255,0.3);">📶</span>
         </div>
     </div>
 </div>
@@ -445,7 +540,7 @@ h1 {
 # ==========================================
 # 4. إعدادات قاعدة البيانات
 # ==========================================
-DB = "rassim_os.db"
+DB = "rassim_os_pro.db"
 
 def init_db():
     """تهيئة قاعدة البيانات"""
@@ -453,6 +548,7 @@ def init_db():
         conn = sqlite3.connect(DB, check_same_thread=False)
         cursor = conn.cursor()
         
+        # جدول المستخدمين
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
@@ -469,6 +565,7 @@ def init_db():
             )
         """)
         
+        # جدول الإعلانات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -488,6 +585,7 @@ def init_db():
             )
         """)
         
+        # جدول الرسائل
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -501,6 +599,7 @@ def init_db():
             )
         """)
         
+        # جدول المفضلة
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS favorites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -513,6 +612,7 @@ def init_db():
             )
         """)
         
+        # جدول الإشعارات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS notifications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -525,6 +625,7 @@ def init_db():
             )
         """)
         
+        # جدول البلاغات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -538,6 +639,7 @@ def init_db():
             )
         """)
         
+        # جدول الزوار
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS visitors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -599,15 +701,15 @@ def get_stats():
         return 0, 0, 0, 0
 
 # ==========================================
-# 6. أزرار المشاركة OS Style
+# 6. أزرار المشاركة OS Style Pro
 # ==========================================
 def show_social_share():
     site_url = "https://racim-phone.streamlit.app/"
     
     st.markdown(f"""
     <div class="os-share">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: rgba(255,255,255,0.5);">📱 شارك</span>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="color: rgba(0,255,255,0.8); font-weight: 500;">📱 شارك</span>
             <div class="os-share-icons">
                 <a href="https://www.facebook.com/sharer/sharer.php?u={site_url}" target="_blank">
                     <div class="os-icon"><img src="https://img.icons8.com/color/48/facebook-new.png"></div>
@@ -623,21 +725,26 @@ def show_social_share():
                 </a>
             </div>
         </div>
-        <div class="os-badge">👥 +10</div>
+        <div style="background: rgba(255,0,255,0.15); border: 1px solid rgba(255,0,255,0.3); color: #ff00ff; padding: 6px 20px; border-radius: 50px; font-weight: 500;">
+            👥 +10
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 7. قسم تيك توك OS Style
+# 7. قسم تيك توك OS Style Pro
 # ==========================================
 def show_tiktok_section():
     st.markdown("""
-    <div class="os-tiktok">
-        <div class="os-tiktok-text">🎵 "تهنينا من التقرعيج، الدزة راهو واجد!"</div>
-        <div class="os-tags">
-            <span class="os-tag">#واد_كنيس</span>
-            <span class="os-tag">#الجزائر</span>
-            <span class="os-tag">#هواتف</span>
+    <div class="os-share" style="background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <span style="font-size: 1.2rem;">🎵</span>
+            <span style="color: white; font-weight: 500;">"تهنينا من التقرعيج، الدزة راهو واجد! 🇩🇿"</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#واد_كنيس</span>
+            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#الجزائر</span>
+            <span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 0.85rem;">#هواتف</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -671,9 +778,9 @@ def login_page():
     
     with tab1:
         with st.form("login_form"):
-            username = st.text_input("اسم المستخدم")
-            password = st.text_input("كلمة المرور", type="password")
-            submitted = st.form_submit_button("دخول", use_container_width=True)
+            username = st.text_input("👤 اسم المستخدم")
+            password = st.text_input("🔐 كلمة المرور", type="password")
+            submitted = st.form_submit_button("🚀 دخول", use_container_width=True)
             
             if submitted:
                 if not username or not password:
@@ -696,11 +803,11 @@ def login_page():
     
     with tab2:
         with st.form("register_form"):
-            new_user = st.text_input("اسم المستخدم الجديد")
-            new_pass = st.text_input("كلمة المرور الجديدة", type="password")
-            email = st.text_input("البريد الإلكتروني (اختياري)")
-            phone = st.text_input("رقم الهاتف (اختياري)")
-            submitted = st.form_submit_button("تسجيل", use_container_width=True)
+            new_user = st.text_input("👤 اسم المستخدم الجديد")
+            new_pass = st.text_input("🔐 كلمة المرور الجديدة", type="password")
+            email = st.text_input("📧 البريد الإلكتروني (اختياري)")
+            phone = st.text_input("📱 رقم الهاتف (اختياري)")
+            submitted = st.form_submit_button("✨ تسجيل", use_container_width=True)
             
             if submitted:
                 if not new_user or not new_pass:
@@ -739,9 +846,9 @@ def show_market(conn):
     with st.expander("🔍 فلترة البحث", expanded=True):
         col1, col2 = st.columns(2)
         with col1:
-            wilaya = st.selectbox("الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
+            wilaya = st.selectbox("📍 الولاية", ["الكل"] + [f"{i:02d}" for i in range(1, 59)])
         with col2:
-            category = st.selectbox("القسم", ["الكل", "سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
+            category = st.selectbox("🏷️ القسم", ["الكل", "سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
         
         search = st.text_input("🔎 بحث عن هاتف", placeholder="اكتب اسم الهاتف...")
         
@@ -775,13 +882,13 @@ def show_market(conn):
                         <div class="os-card-price">{ad[2]:,} دج</div>
                     </div>
                     
-                    <div class="os-card-details">
+                    <div style="display: flex; gap: 24px; color: rgba(255,255,255,0.5); margin: 16px 0;">
                         <span>📍 {ad[4]}</span>
                         <span>👁️ {ad[8]}</span>
                         {f'<span>📅 {ad[12][:10]}</span>' if ad[12] else ''}
                     </div>
                     
-                    <div style="color: rgba(255,255,255,0.6); margin: 16px 0;">
+                    <div style="color: rgba(255,255,255,0.7); margin: 16px 0;">
                         {ad[5][:150]}...
                     </div>
                 </div>
@@ -810,14 +917,14 @@ def post_ad(conn):
     with st.form("new_ad_form"):
         col1, col2 = st.columns(2)
         with col1:
-            title = st.text_input("اسم الهاتف *")
-            category = st.selectbox("الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
+            title = st.text_input("📱 اسم الهاتف *")
+            category = st.selectbox("🏷️ الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
         with col2:
-            price = st.number_input("السعر (دج) *", min_value=0, step=1000)
-            wilaya = st.selectbox("الولاية *", [f"{i:02d}" for i in range(1, 59)])
+            price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
+            wilaya = st.selectbox("📍 الولاية *", [f"{i:02d}" for i in range(1, 59)])
         
-        phone = st.text_input("رقم الهاتف *")
-        description = st.text_area("وصف الهاتف")
+        phone = st.text_input("📞 رقم الهاتف *")
+        description = st.text_area("📝 وصف الهاتف")
         
         if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
             if not title or price <= 0 or not phone:
@@ -889,8 +996,8 @@ def show_chat(conn):
                     st.markdown(f"<div class='os-chat-received'><b>{msg[0]}:</b> {msg[1]}<br><small>{msg[2][11:16] if msg[2] else ''}</small></div>", unsafe_allow_html=True)
             
             with st.form("send_message", clear_on_submit=True):
-                msg = st.text_input("اكتب رسالتك...")
-                if st.form_submit_button("إرسال", use_container_width=True) and msg:
+                msg = st.text_input("✍️ اكتب رسالتك...")
+                if st.form_submit_button("📤 إرسال", use_container_width=True) and msg:
                     conn.execute("""
                         INSERT INTO messages (sender, receiver, message)
                         VALUES (?, ?, ?)
@@ -977,7 +1084,7 @@ def admin_dashboard(conn):
             st.error(f"خطأ في تحميل البلاغات: {e}")
 
 # ==========================================
-# 14. التشغيل الرئيسي
+# 14. التشغيل الرئيسي المتكامل
 # ==========================================
 def main():
     if "user" not in st.session_state:
@@ -996,36 +1103,64 @@ def main():
     else:
         conn = get_connection()
         
+        # القائمة الجانبية المتطورة
         with st.sidebar:
             st.markdown(f"""
-            <div style="background: rgba(20,20,30,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
-                <div style="color: white; font-size: 1.2rem; font-weight: 500;">🎖️ {st.session_state.user}</div>
+            <div style="background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15)); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); padding: 24px; border-radius: 28px; text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 3rem; margin-bottom: 8px;">💠</div>
+                <div style="color: white; font-size: 1.4rem; font-weight: 600; background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    {st.session_state.user}
+                </div>
+                <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 8px;">
+                    {st.session_state.role}
+                </div>
             </div>
             """, unsafe_allow_html=True)
             
-            menu = st.radio(
-                "القائمة",
-                ["🏠 السوق", "📢 إعلان", "💬 الرسائل", "🤖 المساعد"]
-            )
-            
+            # قائمة الخيارات
+            menu_options = ["🛍️ السوق الذكي", "📢 إضافة إعلان", "💬 المحادثات"]
             if st.session_state.role == "admin":
-                if st.button("🛡️ الإدارة", use_container_width=True):
-                    menu = "🛡️ الإدارة"
+                menu_options.append("🔐 لوحة الإدارة")
             
-            if st.button("🚪 خروج", use_container_width=True):
+            choice = st.radio("", menu_options, label_visibility="collapsed")
+            
+            st.divider()
+            
+            # زر الخروج
+            if st.button("🚪 تسجيل الخروج", use_container_width=True):
                 st.session_state.user = None
+                st.session_state.role = "user"
                 st.rerun()
-        
-        if menu == "🏠 السوق":
+            
+            # إحصائيات سريعة في الشريط الجانبي
+            users, ads, visitors, views = get_stats()
+            st.markdown(f"""
+            <div style="background: rgba(20,20,30,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 24px;">
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">
+                    <span>المستخدمين</span>
+                    <span style="color: #00ffff;">{users}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 8px;">
+                    <span>الإعلانات</span>
+                    <span style="color: #ff00ff;">{ads}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                    <span>المشاهدات</span>
+                    <span style="color: #00ffff;">{views}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # توجيه الصفحات حسب الاختيار
+        if choice == "🛍️ السوق الذكي":
             show_market(conn)
-        elif menu == "📢 إعلان":
+        elif choice == "📢 إضافة إعلان":
             post_ad(conn)
-        elif menu == "💬 الرسائل":
+        elif choice == "💬 المحادثات":
             show_chat(conn)
-        elif menu == "🤖 المساعد":
-            st.info("🤖 المساعد الذكي قيد التطوير...")
-        elif menu == "🛡️ الإدارة" and st.session_state.role == "admin":
+        elif choice == "🔐 لوحة الإدارة" and st.session_state.role == "admin":
             admin_dashboard(conn)
 
 if __name__ == "__main__":
     main()
+
