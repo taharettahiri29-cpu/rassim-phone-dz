@@ -32,9 +32,9 @@ ALGERIAN_WILAYAS = [
     "21 - سكيكدة", "22 - سيدي بلعباس", "23 - عنابة", "24 - قالمة", "25 - قسنطينة",
     "26 - المدية", "27 - مستغانم", "28 - المسيلة", "29 - معسكر", "30 - ورقلة",
     "31 - وهران", "32 - البيض", "33 - إليزي", "34 - برج بوعريريج", "35 - بومرداس",
-    "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت", "39 - الوادي", "40 - خنشلة",
+    "36 - الطارف", "37 - تندوف", "38 - تيسمسيلт", "39 - الوادي", "40 - خنشلة",
     "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمон", "50 - برج باجي مختار",
+    "46 - عين تموشنت", "47 - غرداية", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
     "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام", "55 - توقرت",
     "56 - جانت", "57 - المغير", "58 - المنيع", "59 - الطيبات", "60 - أولاد سليمان",
     "61 - سيدي خالد", "62 - بوسعادة", "63 - عين وسارة", "64 - حاسي بحبح", "65 - عين الملح",
@@ -65,12 +65,10 @@ if 'last_alert' not in st.session_state:
 DB = "rassim_os_ultimate.db"
 
 def init_db():
-    """تهيئة قاعدة البيانات"""
     try:
         conn = sqlite3.connect(DB, check_same_thread=False)
         cursor = conn.cursor()
         
-        # جدول المستخدمين
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
@@ -87,7 +85,6 @@ def init_db():
             )
         """)
         
-        # جدول الإعلانات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ads (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,7 +103,6 @@ def init_db():
             )
         """)
         
-        # جدول الرسائل
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +114,6 @@ def init_db():
             )
         """)
         
-        # جدول الزوار
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS visitors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -128,7 +123,6 @@ def init_db():
             )
         """)
         
-        # جدول التنبيهات
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS alerts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,17 +141,14 @@ def init_db():
 
 @st.cache_resource
 def get_connection():
-    """الحصول على اتصال بقاعدة البيانات"""
     return sqlite3.connect(DB, check_same_thread=False)
 
-# تهيئة قاعدة البيانات
 conn = init_db()
 
 # ==========================================
 # 5. دوال التشفير
 # ==========================================
 def hash_password(password, salt):
-    """تشفير كلمة المرور باستخدام salt"""
     return hashlib.pbkdf2_hmac(
         'sha256', 
         password.encode('utf-8'), 
@@ -165,16 +156,10 @@ def hash_password(password, salt):
         100000
     ).hex()
 
-def verify_password(input_password, stored_hash, salt):
-    """التحقق من صحة كلمة المرور"""
-    input_hash = hash_password(input_password, salt)
-    return input_hash == stored_hash
-
 # ==========================================
 # 6. دوال المساعدة
 # ==========================================
 def log_visitor():
-    """تسجيل زائر جديد"""
     try:
         conn = get_connection()
         conn.execute(
@@ -186,7 +171,6 @@ def log_visitor():
         pass
 
 def get_stats():
-    """الحصول على إحصائيات الموقع"""
     try:
         conn = get_connection()
         users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -197,12 +181,8 @@ def get_stats():
     except:
         return 0, 0, 0, 0
 
-# ==========================================
-# 7. نظام التخزين المؤقت
-# ==========================================
 @st.cache_data(ttl=600)
 def load_data_optimized():
-    """تحميل البيانات مع التخزين المؤقت"""
     try:
         conn = get_connection()
         data = {
@@ -216,16 +196,16 @@ def load_data_optimized():
         return None
 
 # ==========================================
-# 8. نظام "الذكاء العصبي" للواجهة
+# 7. نظام "الذكاء العصبي" للواجهة (مصحح للأحرف العمودية)
 # ==========================================
 def set_ultimate_theme():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
 
     * {
-        font-family: 'Space Grotesk', 'Inter', sans-serif;
-        direction: rtl;
+        font-family: 'Cairo', 'Space Grotesk', 'Inter', sans-serif !important;
         box-sizing: border-box;
     }
 
@@ -235,27 +215,38 @@ def set_ultimate_theme():
         min-height: 100vh;
     }
 
-    .stApp::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: 
-            radial-gradient(2px 2px at 10px 10px, rgba(0, 255, 255, 0.2), transparent),
-            radial-gradient(3px 3px at 50px 100px, rgba(255, 0, 255, 0.2), transparent);
-        background-repeat: repeat;
-        background-size: 600px 600px;
-        opacity: 0.3;
-        pointer-events: none;
-        z-index: 0;
-        animation: quantumFloat 30s linear infinite;
+    h1, h2, h3, h4, h5, h6, p, span, div, button, label, .stMarkdown {
+        direction: rtl !important;
+        unicode-bidi: embed !important;
+        text-align: right !important;
+        font-family: 'Cairo', 'Space Grotesk', sans-serif !important;
+        letter-spacing: normal !important;
+        word-spacing: normal !important;
+        line-height: 1.6 !important;
     }
 
-    @keyframes quantumFloat {
-        0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(-100px) rotate(5deg); }
+    .stat-value, .price-tag, .metric-value {
+        font-family: 'Space Grotesk', 'Cairo', monospace !important;
+        letter-spacing: 0.5px !important;
+        direction: ltr !important;
+        unicode-bidi: embed !important;
+        text-align: center !important;
+    }
+
+    .stSelectbox, .stRadio, .stCheckbox {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .stSelectbox div[data-baseweb="select"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .stTextInput input, .stTextArea textarea {
+        direction: rtl !important;
+        text-align: right !important;
+        font-family: 'Cairo', sans-serif !important;
     }
 
     .neural-header {
@@ -270,11 +261,6 @@ def set_ultimate_theme():
         animation: neuralGlow 3s ease-in-out infinite;
     }
 
-    @keyframes neuralGlow {
-        0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
-        50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.3); }
-    }
-
     .neural-title {
         font-size: 3rem;
         font-weight: 800;
@@ -283,11 +269,20 @@ def set_ultimate_theme():
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         animation: gradientPulse 5s ease infinite;
+        direction: rtl !important;
+        text-align: center !important;
     }
 
-    @keyframes gradientPulse {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+    .stButton > button {
+        background: linear-gradient(90deg, #00ffff, #ff00ff) !important;
+        border: none !important;
+        color: black !important;
+        font-weight: 800 !important;
+        border-radius: 15px !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3) !important;
+        transition: all 0.3s ease !important;
+        direction: rtl !important;
+        text-align: center !important;
     }
 
     .hologram-card {
@@ -299,6 +294,8 @@ def set_ultimate_theme():
         padding: 25px;
         margin-bottom: 20px;
         transition: all 0.4s ease;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
     .hologram-card:hover {
@@ -307,48 +304,52 @@ def set_ultimate_theme():
         box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
     }
 
-    .stButton > button {
-        background: linear-gradient(90deg, #00ffff, #ff00ff) !important;
-        border: none !important;
-        color: black !important;
-        font-weight: 800 !important;
-        border-radius: 15px !important;
-        box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3) !important;
-        transition: all 0.3s ease !important;
+    .hologram-card h1 {
+        font-family: 'Space Grotesk', 'Cairo', monospace !important;
+        direction: ltr !important;
+        text-align: center !important;
+        color: #ff00ff !important;
     }
 
-    .stButton > button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 0, 255, 0.4) !important;
-    }
-
-    .stat-card {
-        background: rgba(20, 20, 30, 0.5);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(0, 255, 255, 0.1);
-        border-radius: 25px;
-        padding: 20px;
-        text-align: center;
-        transition: all 0.4s ease;
-    }
-
-    .stat-card:hover {
-        border-color: #ff00ff;
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(255, 0, 255, 0.2);
-    }
-
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 800;
+    .wilaya-badge {
+        display: inline-block;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid #00ffff;
+        border-radius: 50px;
+        padding: 8px 15px;
+        margin: 5px;
+        font-size: 0.9rem;
         color: #00ffff;
-        text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        transition: all 0.3s ease;
+        direction: rtl !important;
+        text-align: center !important;
+        white-space: nowrap;
     }
 
-    .stat-label {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1rem;
-        margin-top: 5px;
+    .wilaya-counter {
+        background: linear-gradient(135deg, #00ffff, #ff00ff);
+        border-radius: 60px;
+        padding: 20px 40px;
+        text-align: center;
+        margin: 20px 0;
+        animation: glow 2s ease-in-out infinite;
+    }
+
+    .wilaya-counter h2 {
+        color: black;
+        font-size: 3rem;
+        font-weight: 900;
+        margin: 0;
+        direction: ltr !important;
+        font-family: 'Space Grotesk', monospace !important;
+    }
+
+    .wilaya-counter p {
+        color: black;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 5px 0 0 0;
+        direction: rtl !important;
     }
 
     .chat-bubble {
@@ -380,11 +381,6 @@ def set_ultimate_theme():
         filter: brightness(0) invert(1);
     }
 
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
-
     .radar-alert {
         background: rgba(255, 0, 0, 0.2);
         border: 2px solid #ff00ff;
@@ -392,52 +388,54 @@ def set_ultimate_theme():
         padding: 15px;
         margin: 10px 0;
         animation: pulse 1s ease-in-out infinite;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .stat-card {
+        background: rgba(20, 20, 30, 0.5);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.4s ease;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #00ffff;
+        text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        direction: ltr !important;
+        font-family: 'Space Grotesk', monospace !important;
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin-top: 5px;
+        direction: rtl !important;
+    }
+
+    @keyframes neuralGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
+        50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.3); }
+    }
+
+    @keyframes gradientPulse {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
     }
 
     @keyframes pulse {
         0%, 100% { box-shadow: 0 0 20px #ff00ff; }
         50% { box-shadow: 0 0 40px #ff0000; }
-    }
-
-    .wilaya-badge {
-        display: inline-block;
-        background: rgba(0, 255, 255, 0.1);
-        border: 1px solid #00ffff;
-        border-radius: 50px;
-        padding: 5px 15px;
-        margin: 3px;
-        font-size: 0.8rem;
-        color: #00ffff;
-        transition: all 0.3s ease;
-    }
-
-    .wilaya-badge:hover {
-        background: #00ffff;
-        color: black;
-        transform: scale(1.05);
-    }
-
-    .wilaya-counter {
-        background: linear-gradient(135deg, #00ffff, #ff00ff);
-        border-radius: 60px;
-        padding: 20px 40px;
-        text-align: center;
-        margin: 20px 0;
-        animation: glow 2s ease-in-out infinite;
-    }
-
-    .wilaya-counter h2 {
-        color: black;
-        font-size: 3rem;
-        font-weight: 900;
-        margin: 0;
-    }
-
-    .wilaya-counter p {
-        color: black;
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin: 5px 0 0 0;
     }
 
     @media screen and (max-width: 768px) {
@@ -446,12 +444,20 @@ def set_ultimate_theme():
         .chat-bubble { width: 60px; height: 60px; bottom: 20px; right: 20px; }
         .chat-bubble img { width: 30px; height: 30px; }
         .wilaya-counter h2 { font-size: 2rem; }
+        .wilaya-counter p { font-size: 1rem; }
+        .wilaya-badge { font-size: 0.8rem; padding: 5px 10px; }
+    }
+
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 9. كاشف المشتري الجدي
+# 8. كاشف المشتري الجدي
 # ==========================================
 def serious_buyer_detector(message, price_offered=0):
     serious_keywords = [
@@ -481,7 +487,7 @@ def serious_buyer_detector(message, price_offered=0):
     return False
 
 # ==========================================
-# 10. روبوت RASSIM الذكي
+# 9. روبوت RASSIM الذكي
 # ==========================================
 def rassim_robot_logic(user_message):
     user_message = user_message.lower()
@@ -498,7 +504,7 @@ def rassim_robot_logic(user_message):
         "واد كنيس": "نحن البديل العصري لواد كنيس، أسرع وأذكى وأكثر أماناً ✨",
         "الدزة": "الدزة الجزائرية واجدة! هذا هو مستقبل التجارة الإلكترونية في بلادنا",
         "شحال": "لأي سؤال عن الأسعار، اكتب اسم الهاتف في البحث الكمومي وسيظهر لك كل شيء",
-        "وين": f"مقرنا الرئيسي في فوكة، تيبازة (42). نغطي 69 ولاية جزائرية كاملة! 🇩🇿",
+        "وين": "مقرنا الرئيسي في فوكة، تيبازة (42). نغطي 69 ولاية جزائرية كاملة! 🇩🇿",
         "كيفاش": "بسيطة! سجل دخول، دوّز على الإعلان اللي حابو، وضغط على 'اتصل بالبائع'",
         "69": "نعم! نحن نغطي 69 ولاية جزائرية كاملة. حتى الولايات الجديدة مشمولة في خدماتنا 🚀",
         "ولايات": "69 ولاية جزائرية مدعومة بالكامل. من تندوف إلى الطارف، كل الولايات موجودة!",
@@ -514,7 +520,7 @@ def rassim_robot_logic(user_message):
     return "رسالتك وصلت لراسم! سأقوم بتحليلها والرد عليك في أقرب وقت. هل تريد رقم الهاتف؟"
 
 # ==========================================
-# 11. رادار راسم الآلي
+# 10. رادار راسم الآلي
 # ==========================================
 def robotic_alert_ui():
     st.sidebar.markdown("---")
@@ -545,7 +551,7 @@ def robotic_alert_ui():
         st.sidebar.warning("الرادار مطفأ 🔴")
 
 # ==========================================
-# 12. مولد الإعلانات الذكي
+# 11. مولد الإعلانات الذكي
 # ==========================================
 def generate_auto_ads():
     current_hour = datetime.now().hour
@@ -563,7 +569,7 @@ def generate_auto_ads():
     return status
 
 # ==========================================
-# 13. عداد الولايات
+# 12. عداد الولايات
 # ==========================================
 def show_wilaya_counter():
     st.markdown("""
@@ -583,7 +589,7 @@ def show_wilaya_badges():
             st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
 
 # ==========================================
-# 14. نظام الدردشة المباشرة
+# 13. نظام الدردشة المباشرة
 # ==========================================
 def show_live_chat():
     st.markdown("""
@@ -632,7 +638,7 @@ def show_live_chat():
                 st.success(f"آخر رد: {st.session_state.last_robot_reply}")
 
 # ==========================================
-# 15. نظام التحليل التنبئي
+# 14. نظام التحليل التنبئي
 # ==========================================
 def show_market_trends(conn):
     st.markdown("### 📈 نبض السوق الجزائري")
@@ -666,7 +672,7 @@ def show_market_trends(conn):
         st.info("جاري تحميل التحليلات...")
 
 # ==========================================
-# 16. محرك البحث الذكي
+# 15. محرك البحث الذكي
 # ==========================================
 def quantum_search_ui():
     col1, col2, col3 = st.columns([3, 1, 1])
@@ -687,35 +693,61 @@ def quantum_search_ui():
     return search_query, wilaya, sort
 
 # ==========================================
-# 17. دالة الإعلان الذهبية
+# 16. دالة الإعلان الذهبية (مع أرقام الهاتف للتواصل المباشر)
 # ==========================================
 def render_ad_pro(ad):
+    """عرض الإعلان مع رقم الهاتف مباشرة للتواصل السريع"""
+    
+    # تنسيق رقم الهاتف (إخفاء بعض الأرقام للخصوصية)
+    phone_display = ad['phone']
+    if len(ad['phone']) > 8:
+        phone_display = ad['phone'][:4] + "••••" + ad['phone'][-4:]
+    
+    verified_text = "✅ موثوق" if ad.get('verified') else "⚠️ غير موثق"
+    verified_color = "#00ffff" if ad.get('verified') else "#ff00ff"
+    
     st.markdown(f"""
     <div class="hologram-card">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span>📍 {ad['wilaya']}</span>
-            <span>👁️ {ad['views']}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span style="color: #888; font-size: 0.9rem;">📍 {ad['wilaya']}</span>
+                <span style="color: #888; font-size: 0.9rem;">👁️ {ad['views']}</span>
+            </div>
+            <span style="background: rgba(0,255,255,0.15); border: 1px solid {verified_color}; color: {verified_color}; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem;">
+                {verified_text}
+            </span>
         </div>
-        <h2 style="color: #00ffff; margin: 10px 0;">{ad['title']}</h2>
-        <h1 style="color: #ff00ff;">{ad['price']:,} دج</h1>
-        <p style="color: #aaa;">{ad['description'][:100]}...</p>
+        
+        <h2 style="color: #00ffff; margin: 10px 0; font-size: 1.8rem;">{ad['title']}</h2>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+            <h1 style="color: #ff00ff; font-size: 2.2rem; margin: 0;">{ad['price']:,} دج</h1>
+            <div style="background: rgba(255,0,255,0.15); border: 1px solid #ff00ff; border-radius: 50px; padding: 8px 20px;">
+                <span style="color: #ff00ff; font-weight: bold; font-size: 1.2rem;">📞 {phone_display}</span>
+            </div>
+        </div>
+        
+        <p style="color: #aaa; margin: 15px 0; line-height: 1.6;">{ad['description'][:150]}...</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <a href="https://wa.me/{ad['phone']}" target="_blank" style="flex: 1; text-decoration: none;">
+                <button style="width: 100%; background: linear-gradient(90deg, #25D366, #128C7E); border: none; color: white; font-weight: 800; padding: 15px; border-radius: 15px; cursor: pointer; font-size: 1.1rem;">
+                    📱 واتساب مباشر
+                </button>
+            </a>
+            <a href="tel:{ad['phone']}" style="flex: 1; text-decoration: none;">
+                <button style="width: 100%; background: linear-gradient(90deg, #00ffff, #ff00ff); border: none; color: black; font-weight: 800; padding: 15px; border-radius: 15px; cursor: pointer; font-size: 1.1rem;">
+                    📞 اتصال مباشر
+                </button>
+            </a>
+        </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📞 اتصل بالبائع", key=f"call_{ad['id']}", use_container_width=True):
-            st.info(f"رقم الهاتف: {ad['phone']}")
-    with col2:
-        if st.button("⚡ شراء سريع", key=f"buy_{ad['id']}", use_container_width=True):
-            serious_buyer_detector(f"شراء سريع لـ {ad['title']}", ad['price'])
-            st.success("تم إرسال طلبك إلى البائع")
 
 # ==========================================
-# 18. صفحة تسجيل الدخول (مصححة)
+# 17. صفحة تسجيل الدخول
 # ==========================================
 def login_page(conn):
-    """صفحة تسجيل الدخول - نمرر conn كمعامل"""
     st.markdown("""
     <div class="neural-header">
         <div class="neural-title">RASSIM OS ULTIMATE</div>
@@ -753,7 +785,6 @@ def login_page(conn):
             
             if st.form_submit_button("⚡ دخول", use_container_width=True):
                 if username and password:
-                    # ✅ استخدام conn الذي تم تمريره
                     user_data = conn.execute(
                         "SELECT password, salt, role, verified FROM users WHERE username=?", 
                         (username,)
@@ -804,7 +835,7 @@ def login_page(conn):
                     st.warning("⚠️ اسم المستخدم وكلمة المرور مطلوبان")
 
 # ==========================================
-# 19. صفحة السوق الذكي
+# 18. صفحة السوق الذكي
 # ==========================================
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
@@ -814,20 +845,35 @@ def show_market():
     with st.expander("📊 تحليلات السوق", expanded=False):
         show_market_trends(conn)
     
+    # إعلانات تجريبية مع أرقام هاتف
     ads = [
-        {"id": 1, "title": "iPhone 15 Pro Max Titanium", "price": 225000, "phone": "0555-XX-XX-XX", 
-         "wilaya": "16 - الجزائر", "description": "نظيف جداً، مع كامل أكسسواراته", "views": 1024},
-        {"id": 2, "title": "Samsung S24 Ultra", "price": 185000, "phone": "0666-XX-XX-XX", 
-         "wilaya": "31 - وهران", "description": "حالة ممتازة، بطارية 100%", "views": 856},
-        {"id": 3, "title": "Xiaomi 14 Pro", "price": 95000, "phone": "0777-XX-XX-XX", 
-         "wilaya": "25 - قسنطينة", "description": "جديد لم يستعمل", "views": 623}
+        {"id": 1, "title": "iPhone 15 Pro Max Titanium 512GB", "price": 225000, "phone": "0555123456", 
+         "wilaya": "16 - الجزائر", "description": "نظيف جداً، مع كامل أغراضه، بطارية 100%، لون أسود، مع سماعات AirPods Pro هدية", "views": 1024, "verified": True},
+        {"id": 2, "title": "Samsung S24 Ultra 512GB", "price": 185000, "phone": "0666123456", 
+         "wilaya": "31 - وهران", "description": "حالة ممتازة، بطارية 100%، مع قلم S Pen أصلي، شاحن سريع 45W", "views": 856, "verified": True},
+        {"id": 3, "title": "Xiaomi 14 Pro 256GB", "price": 95000, "phone": "0777123456", 
+         "wilaya": "25 - قسنطينة", "description": "جديد لم يستعمل، مع كامل أغراضه، ضمان محل 6 أشهر، لون أسود", "views": 623, "verified": False},
+        {"id": 4, "title": "Google Pixel 8 Pro", "price": 165000, "phone": "0555987654", 
+         "wilaya": "42 - تيبازة", "description": "نظيف، مستعمل شهرين فقط، مع جراب أصلي وشاحن", "views": 421, "verified": True},
+        {"id": 5, "title": "iPhone 14 Pro Max", "price": 155000, "phone": "0666987654", 
+         "wilaya": "16 - الجزائر", "description": "حالة ممتازة، بطارية 92%، مع جميع الأكسسوارات", "views": 789, "verified": False}
     ]
     
-    for ad in ads:
+    # تطبيق الفلاتر
+    filtered_ads = ads
+    if wilaya and wilaya != "الكل":
+        filtered_ads = [ad for ad in filtered_ads if ad['wilaya'] == wilaya]
+    if search_query:
+        filtered_ads = [ad for ad in filtered_ads if search_query.lower() in ad['title'].lower()]
+    
+    for ad in filtered_ads:
         render_ad_pro(ad)
+    
+    if not filtered_ads:
+        st.info("لا توجد إعلانات تطابق بحثك")
 
 # ==========================================
-# 20. صفحة إضافة إعلان
+# 19. صفحة إضافة إعلان
 # ==========================================
 def post_ad():
     st.markdown("### 📢 إضافة إعلان جديد")
@@ -836,20 +882,20 @@ def post_ad():
         col1, col2 = st.columns(2)
         with col1:
             title = st.text_input("📱 اسم المنتج *")
-            category = st.selectbox("🏷️ الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "أخرى"])
+            category = st.selectbox("🏷️ الفئة", ["سامسونج", "آيفون", "هواوي", "شاومي", "جوجل", "أخرى"])
         with col2:
             price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
             wilaya = st.selectbox("📍 الولاية *", ALGERIAN_WILAYAS[1:])
         
-        phone = st.text_input("📞 رقم الهاتف *")
-        description = st.text_area("📝 الوصف")
+        phone = st.text_input("📞 رقم الهاتف *", placeholder="مثال: 0555123456")
+        description = st.text_area("📝 الوصف", height=150)
         
         if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
-            if title and phone:
+            if title and phone and price > 0:
                 try:
                     conn.execute("""
-                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO ads (title, price, phone, wilaya, description, category, owner, verified)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 0)
                     """, (title, price, phone, wilaya, description, category, st.session_state.user))
                     conn.commit()
                     st.success("✅ تم نشر الإعلان بنجاح!")
@@ -859,10 +905,10 @@ def post_ad():
                 except Exception as e:
                     st.error(f"❌ خطأ: {e}")
             else:
-                st.error("❌ يرجى ملء الحقول المطلوبة")
+                st.error("❌ يرجى ملء جميع الحقول المطلوبة")
 
 # ==========================================
-# 21. لوحة الإدارة السرية
+# 20. لوحة الإدارة السرية
 # ==========================================
 def admin_dashboard():
     st.markdown("""
@@ -909,14 +955,50 @@ def admin_dashboard():
         
         if messages:
             for msg in messages:
-                st.markdown(f"**{msg[0]}**: {msg[1]} *(at {msg[2]})*")
+                st.markdown(f"""
+                <div style="background: rgba(20,20,30,0.5); border: 1px solid #00ffff; border-radius: 10px; padding: 10px; margin: 5px 0;">
+                    <strong>{msg[0]}</strong>: {msg[1]} <span style="color: #888;">({msg[2]})</span>
+                </div>
+                """, unsafe_allow_html=True)
         else:
-            st.info("لا توجد رسائل دعم حالياً.")
+            st.info("لا توجد رسائل دعم حالياً")
     except Exception as e:
         st.error(f"خطأ في عرض الرسائل: {e}")
 
 # ==========================================
-# 22. المحرك الرئيسي
+# 21. صفحة الحساب الشخصي
+# ==========================================
+def profile_page():
+    st.markdown("### 👤 حسابي الشخصي")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div class="hologram-card">
+            <h3 style="color: #00ffff;">معلومات الحساب</h3>
+            <p><strong>👤 اسم المستخدم:</strong> {}</p>
+            <p><strong>🔐 الصلاحية:</strong> {}</p>
+            <p><strong>✅ التوثيق:</strong> {}</p>
+        </div>
+        """.format(
+            st.session_state.user,
+            "مسؤول" if st.session_state.role == "admin" else "عضو",
+            "موثوق ✅" if st.session_state.verified else "غير موثق ⏳"
+        ), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="hologram-card">
+            <h3 style="color: #00ffff;">إحصائياتي</h3>
+            <p><strong>📊 عدد الإعلانات:</strong> 5</p>
+            <p><strong>👁️ إجمالي المشاهدات:</strong> 2,547</p>
+            <p><strong>⭐ التقييم:</strong> 4.8/5</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ==========================================
+# 22. المحرك الرئيسي (Main Controller)
 # ==========================================
 def main():
     set_ultimate_theme()
@@ -925,7 +1007,6 @@ def main():
     robotic_alert_ui()
 
     if st.session_state.user is None:
-        # ✅ تمرير conn إلى دالة login_page
         login_page(conn)
     else:
         with st.sidebar:
@@ -950,7 +1031,7 @@ def main():
         elif page == "📢 أضف إعلان":
             post_ad()
         elif page == "👤 حسابي":
-            st.info("🚀 صفحة الحساب الشخصي قيد التطوير")
+            profile_page()
         elif page == "🔐 الإدارة":
             if st.session_state.role == "admin":
                 admin_dashboard()
