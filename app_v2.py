@@ -274,7 +274,7 @@ st.markdown("""
 
 /* ===== القائمة الجانبية المتطورة ===== */
 section[data-testid="stSidebar"] {
-    background: rgba(10, 10, 15, 0.9) !important;
+    background: rgba(10, 10, 15, 0.95) !important;
     backdrop-filter: blur(20px);
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     padding: 20px !important;
@@ -290,6 +290,7 @@ section[data-testid="stSidebar"] .stRadio label {
     border-radius: 16px;
     padding: 12px 16px;
     transition: all 0.3s ease;
+    color: white !important;
 }
 
 section[data-testid="stSidebar"] .stRadio label:hover {
@@ -659,6 +660,7 @@ def init_db():
 def get_connection():
     return sqlite3.connect(DB, check_same_thread=False)
 
+# تهيئة قاعدة البيانات
 init_db()
 
 # ==========================================
@@ -1087,6 +1089,7 @@ def admin_dashboard(conn):
 # 14. التشغيل الرئيسي المتكامل
 # ==========================================
 def main():
+    # تهيئة حالة الجلسة
     if "user" not in st.session_state:
         st.session_state.user = None
     if "role" not in st.session_state:
@@ -1096,8 +1099,10 @@ def main():
     if "page" not in st.session_state:
         st.session_state.page = "main"
     
+    # تسجيل الزائر
     log_visitor()
     
+    # التحقق من تسجيل الدخول
     if not st.session_state.user:
         login_page()
     else:
