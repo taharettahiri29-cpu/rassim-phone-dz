@@ -3,7 +3,7 @@
 
 """
 RASSIM OS ULTIMATE 2026
-منصة الوساطة الذكية - الإصدار النهائي المضمون
+منصة الوساطة الذكية - الإصدار النهائي النظيف
 69 ولاية جزائرية
 """
 
@@ -314,29 +314,25 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 5. فئة إدارة قاعدة البيانات (النسخة النهائية)
+# 5. فئة إدارة قاعدة البيانات (نسخة صامتة تماماً)
 # ==========================================
 class RassimDB:
-    """إدارة البيانات مع Google Sheets - النسخة المضمونة 100%"""
+    """إدارة البيانات مع Google Sheets - نسخة صامتة"""
     
     def __init__(self):
         self.connected = False
         self.conn = None
         
         try:
-            # محاولة إنشاء الاتصال
             from streamlit_gsheets import GSheetsConnection
             self.conn = st.connection("gsheets", type=GSheetsConnection)
             
-            # التحقق من وجود الرابط في secrets
             if "connections" in st.secrets and "gsheets" in st.secrets["connections"]:
                 self.connected = True
-                st.sidebar.success("✅ متصل بسحابة جوجل")
-                st.sidebar.info(f"📊 تم تحميل البيانات بنجاح")
-            else:
-                st.sidebar.warning("⚠️ الرابط غير موجود في secrets - استخدام التخزين المحلي")
-        except Exception as e:
-            st.sidebar.warning(f"⚠️ فشل الاتصال: {e} - استخدام التخزين المحلي")
+                # لا توجد رسالة نجاح - صامت تماماً
+        except Exception:
+            # لا توجد رسالة خطأ - صامت تماماً
+            pass
         
         self.init_local_storage()
 
@@ -366,14 +362,12 @@ class RassimDB:
             ]
 
     def load_table(self, sheet_name: str) -> pd.DataFrame:
-        """جلب البيانات مع معالجة جميع الأخطاء"""
+        """جلب البيانات - صامت تماماً"""
         
         local_key = 'requests' if sheet_name == "Requests" else 'vendors'
         
-        # إذا كان متصلاً، حاول الجلب من السحابة
         if self.connected:
             try:
-                # استخدام الرابط المباشر من السيكرتس في كل عملية قراءة
                 df = self.conn.read(
                     spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],
                     worksheet=sheet_name,
@@ -381,43 +375,35 @@ class RassimDB:
                 )
                 if df is not None and not df.empty:
                     return df.dropna(how="all")
-            except Exception as e:
-                # إذا استمر الخطأ، سيحولك للتخزين المحلي فوراً دون توقف التطبيق
-                st.warning(f"⚠️ فشل الاتصال بالسحابة، استخدام التخزين المحلي")
-                return pd.DataFrame(st.session_state.get(local_key, []))
+            except Exception:
+                # لا توجد رسالة خطأ - صامت تماماً
+                pass
         
-        # العودة للتخزين المحلي
         return pd.DataFrame(st.session_state.get(local_key, []))
 
     def save_entry(self, sheet_name: str, new_data: Dict[str, Any]) -> bool:
-        """حفظ البيانات في السحابة وفي الذاكرة المحلية فوراً"""
+        """حفظ البيانات - صامت تماماً"""
         
-        # الحفظ المحلي أولاً (دائماً ينجح)
         local_key = 'requests' if sheet_name == "Requests" else 'vendors'
         st.session_state[local_key].append(new_data)
         
-        # محاولة الحفظ في السحابة إذا كان متصلاً
         if self.connected:
             try:
-                # جلب البيانات الحالية
                 df = self.load_table(sheet_name)
-                
-                # إضافة السطر الجديد
                 new_row = pd.DataFrame([new_data])
                 if df.empty:
                     updated_df = new_row
                 else:
                     updated_df = pd.concat([df, new_row], ignore_index=True)
                 
-                # تحديث السحابة
                 self.conn.update(
                     spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],
                     worksheet=sheet_name,
                     data=updated_df
                 )
                 return True
-            except Exception as e:
-                st.warning(f"⚠️ حفظ محلي فقط (تعذر الوصول للسحابة)")
+            except Exception:
+                # لا توجد رسالة خطأ - صامت تماماً
                 return True
         return True
 
@@ -758,3 +744,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
