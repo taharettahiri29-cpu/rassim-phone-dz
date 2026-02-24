@@ -3,8 +3,8 @@
 
 """
 RASSIM OS ULTIMATE 2026
-نسخة مجانية - دخول حر بدون تسجيل - إعلانات تلقائية بالصور
-69 ولاية جزائرية
+منصة وسيط بين الشاري والبائع - 69 ولاية
+دخول حر بدون تسجيل - صور حقيقية
 """
 
 import streamlit as st
@@ -26,13 +26,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. إنشاء مجلد للصور
-# ==========================================
-UPLOADS_DIR = Path("uploads")
-UPLOADS_DIR.mkdir(exist_ok=True)
-
-# ==========================================
-# 3. قائمة الولايات (69 ولاية)
+# 2. قائمة الولايات (69 ولاية)
 # ==========================================
 WILAYAS = [
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
@@ -42,46 +36,7 @@ WILAYAS = [
 ]
 
 # ==========================================
-# 4. قاعدة بيانات بسيطة (نسخة نظيفة)
-# ==========================================
-DB = Path("rassim_os.db")
-
-@st.cache_resource
-def get_connection():
-    return sqlite3.connect(str(DB), check_same_thread=False)
-
-conn = get_connection()
-
-def init_db():
-    cursor = conn.cursor()
-    
-    # حذف الجدول القديم إذا كان موجوداً (للتأكد من النظافة)
-    cursor.execute("DROP TABLE IF EXISTS ads")
-    
-    # إنشاء جدول جديد بالأعمدة الصحيحة
-    cursor.execute("""
-        CREATE TABLE ads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            phone TEXT NOT NULL,
-            wilaya TEXT NOT NULL,
-            description TEXT,
-            category TEXT DEFAULT 'أخرى',
-            views INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'active',
-            date TEXT DEFAULT CURRENT_TIMESTAMP,
-            image_url TEXT
-        )
-    """)
-    
-    conn.commit()
-
-# تهيئة قاعدة البيانات من جديد
-init_db()
-
-# ==========================================
-# 5. إعلانات تلقائية بالصور
+# 3. إعلانات تلقائية بالصور (12 إعلان)
 # ==========================================
 def get_auto_ads():
     """توليد إعلانات تلقائية"""
@@ -90,129 +45,134 @@ def get_auto_ads():
             "name": "iPhone 15 Pro Max 512GB",
             "price": 225000,
             "img": "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400",
-            "specs": "A17 Pro • 8GB RAM • 48MP • 4422mAh"
+            "specs": "A17 Pro • 8GB RAM • 48MP • 4422mAh",
+            "seller": "محمد من الجزائر",
+            "seller_phone": "0555123456"
         },
         {
             "name": "Samsung S24 Ultra 512GB",
             "price": 185000,
             "img": "https://images.unsplash.com/photo-1707248545831-7e8c356f981e?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 12GB RAM • 200MP • 5000mAh"
+            "specs": "Snapdragon 8 Gen 3 • 12GB RAM • 200MP • 5000mAh",
+            "seller": "أحمد من وهران",
+            "seller_phone": "0666123456"
         },
         {
             "name": "Google Pixel 8 Pro 256GB",
             "price": 145000,
             "img": "https://images.unsplash.com/photo-1696429117066-e399580556f0?w=400",
-            "specs": "Tensor G3 • 12GB RAM • 50MP • 5050mAh"
+            "specs": "Tensor G3 • 12GB RAM • 50MP • 5050mAh",
+            "seller": "كريم من قسنطينة",
+            "seller_phone": "0777123456"
         },
         {
             "name": "Xiaomi 14 Ultra 512GB",
             "price": 155000,
             "img": "https://images.unsplash.com/photo-1610433554474-76348234983c?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5300mAh"
+            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5300mAh",
+            "seller": "سمير من تيبازة",
+            "seller_phone": "0555987654"
         },
         {
             "name": "iPhone 13 Pro Max 256GB",
             "price": 115000,
             "img": "https://images.unsplash.com/photo-1633333008433-89948d3eb300?w=400",
-            "specs": "A15 Bionic • 6GB RAM • 12MP • 4352mAh"
+            "specs": "A15 Bionic • 6GB RAM • 12MP • 4352mAh",
+            "seller": "نوال من بجاية",
+            "seller_phone": "0665987654"
         },
         {
             "name": "Samsung S23 Ultra 512GB",
             "price": 145000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 200MP • 5000mAh"
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 200MP • 5000mAh",
+            "seller": "ياسين من سطيف",
+            "seller_phone": "0775987654"
         },
         {
             "name": "Nothing Phone 2 256GB",
             "price": 85000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8+ Gen 1 • 12GB RAM • 50MP • 4700mAh"
+            "specs": "Snapdragon 8+ Gen 1 • 12GB RAM • 50MP • 4700mAh",
+            "seller": "أمينة من عنابة",
+            "seller_phone": "0555123987"
         },
         {
             "name": "OnePlus 12 512GB",
             "price": 130000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5400mAh"
+            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5400mAh",
+            "seller": "بلال من تلمسان",
+            "seller_phone": "0666123987"
         },
         {
             "name": "Huawei P60 Pro 512GB",
             "price": 135000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8+ Gen 1 • 8GB RAM • 48MP • 4815mAh"
+            "specs": "Snapdragon 8+ Gen 1 • 8GB RAM • 48MP • 4815mAh",
+            "seller": "ليلى من البليدة",
+            "seller_phone": "0777123987"
         },
         {
             "name": "iPhone 14 Pro Max 256GB",
             "price": 155000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "A16 Bionic • 6GB RAM • 48MP • 4323mAh"
+            "specs": "A16 Bionic • 6GB RAM • 48MP • 4323mAh",
+            "seller": "عمر من تيزي وزو",
+            "seller_phone": "0555876543"
         },
         {
             "name": "Samsung Z Fold 5 1TB",
             "price": 210000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 4400mAh"
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 4400mAh",
+            "seller": "سارة من بسكرة",
+            "seller_phone": "0665876543"
         },
         {
             "name": "Xiaomi 13 Ultra 512GB",
             "price": 115000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 5000mAh"
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 5000mAh",
+            "seller": "خالد من المدية",
+            "seller_phone": "0775876543"
         }
     ]
     
-    sources = ["واد كنيس", "فيسبوك ماركت", "مجموعة RASSIM", "تاجر معتمد", "عرض خاص"]
+    sources = ["بائع محترف", "تاجر معتمد", "مستخدم جديد", "محل موثوق"]
     tags = ["🔥 عرض حي", "⚡ جديد", "⭐ مميز", "💰 فرصة", "🚀 كمية محدودة"]
     
-    auto_ads = []
+    ads = []
     for i, phone in enumerate(phones):
         wilaya = random.choice(WILAYAS)
         source = random.choice(sources)
         tag = random.choice(tags)
-        phone_num = f"0555{random.randint(1000,9999)}"
         
-        auto_ads.append({
+        ads.append({
+            "id": i + 1,
             "title": phone["name"],
             "price": phone["price"],
-            "phone": phone_num,
+            "price_f": f"{phone['price']:,} دج",
             "wilaya": wilaya,
-            "description": f"{phone['specs']} • {source} • {tag}",
-            "category": "أخرى",
-            "image_url": phone["img"]
+            "img": phone["img"],
+            "source": source,
+            "tag": tag,
+            "specs": phone["specs"],
+            "seller": phone["seller"],
+            "seller_phone": phone["seller_phone"],
+            "description": f"{phone['specs']} • البائع: {phone['seller']}"
         })
-    return auto_ads
+    return ads
 
 # ==========================================
-# 6. إضافة الإعلانات التلقائية
+# 4. حفظ الإعلانات في جلسة المستخدم
 # ==========================================
-def seed_ads():
-    """إضافة الإعلانات التلقائية إلى قاعدة البيانات"""
-    ads = get_auto_ads()
-    cursor = conn.cursor()
-    count = 0
-    
-    for ad in ads:
-        # التحقق من عدم التكرار
-        existing = cursor.execute(
-            "SELECT id FROM ads WHERE title=? AND price=?", 
-            (ad["title"], ad["price"])
-        ).fetchone()
-        
-        if not existing:
-            cursor.execute("""
-                INSERT INTO ads (
-                    title, price, phone, wilaya, description, category, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                ad["title"], ad["price"], ad["phone"], ad["wilaya"],
-                ad["description"], ad["category"], ad["image_url"]
-            ))
-            count += 1
-    
-    conn.commit()
-    return count
+if 'ads' not in st.session_state:
+    st.session_state.ads = get_auto_ads()
+    st.session_state.last_update = datetime.now().strftime("%H:%M:%S")
 
 # ==========================================
-# 7. التصميم
+# 5. التصميم المتطور
 # ==========================================
 st.markdown("""
 <style>
@@ -285,33 +245,40 @@ st.markdown("""
 
 .ad-image {
     width: 100%;
-    height: 180px;
+    height: 200px;
     object-fit: cover;
     border-radius: 20px;
     margin-bottom: 15px;
     border: 1px solid rgba(0, 255, 255, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.ad-image:hover {
+    transform: scale(1.02);
 }
 
 .ad-title {
     color: #00ffff;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
     margin: 10px 0;
 }
 
 .ad-price {
     color: #ff00ff;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
+    margin: 10px 0;
 }
 
 .ad-specs {
     color: #aaa;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     margin: 10px 0;
-    padding: 5px;
+    padding: 10px;
     background: rgba(255,255,255,0.05);
-    border-radius: 10px;
+    border-radius: 15px;
+    line-height: 1.6;
 }
 
 .wilaya-badge {
@@ -319,24 +286,90 @@ st.markdown("""
     background: rgba(0,255,255,0.1);
     border: 1px solid #00ffff;
     border-radius: 50px;
-    padding: 5px 10px;
-    margin: 2px;
+    padding: 5px 15px;
+    margin: 5px;
     color: #00ffff;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.seller-info {
+    background: rgba(255,0,255,0.1);
+    border: 1px solid #ff00ff;
+    border-radius: 50px;
+    padding: 8px 15px;
+    margin: 10px 0;
+    color: #ff00ff;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.contact-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.whatsapp-btn {
+    flex: 1;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.whatsapp-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #25D366;
+}
+
+.call-btn {
+    flex: 1;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    color: black;
+    border: none;
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.call-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #ff00ff;
 }
 
 .stat-card {
     background: rgba(20,20,30,0.5);
     border: 1px solid #00ffff;
-    border-radius: 15px;
-    padding: 15px;
+    border-radius: 20px;
+    padding: 20px;
     text-align: center;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: #00ffff;
     font-weight: bold;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: white;
+    margin-top: 5px;
 }
 
 .stButton > button {
@@ -344,28 +377,10 @@ st.markdown("""
     border: none !important;
     color: black !important;
     font-weight: bold !important;
-    border-radius: 10px !important;
+    border-radius: 15px !important;
+    padding: 12px 25px !important;
+    font-size: 1.1rem !important;
     width: 100%;
-}
-
-.whatsapp-btn {
-    background: #25D366 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 8px !important;
-    width: 100%;
-    cursor: pointer;
-}
-
-.call-btn {
-    background: transparent !important;
-    border: 1px solid #00ffff !important;
-    color: #00ffff !important;
-    border-radius: 10px !important;
-    padding: 8px !important;
-    width: 100%;
-    cursor: pointer;
 }
 
 .live-counter {
@@ -374,10 +389,12 @@ st.markdown("""
     left: 20px;
     background: rgba(0,0,0,0.7);
     border: 1px solid #00ffff;
-    padding: 8px 15px;
+    padding: 10px 20px;
     border-radius: 50px;
     z-index: 999;
     color: white;
+    font-size: 0.9rem;
+    backdrop-filter: blur(5px);
 }
 
 .chat-bubble {
@@ -385,8 +402,8 @@ st.markdown("""
     bottom: 20px;
     right: 20px;
     background: linear-gradient(135deg, #00ffff, #ff00ff);
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -394,6 +411,7 @@ st.markdown("""
     cursor: pointer;
     z-index: 9999;
     animation: float 3s ease-in-out infinite;
+    box-shadow: 0 10px 20px rgba(0,255,255,0.3);
 }
 
 @keyframes float {
@@ -403,67 +421,168 @@ st.markdown("""
 
 .footer {
     text-align: center;
-    color: #666;
-    font-size: 0.8rem;
+    color: #888;
+    font-size: 0.9rem;
     margin-top: 50px;
     padding: 20px;
     border-top: 1px solid #333;
+}
+
+.filter-section {
+    background: rgba(20,20,30,0.5);
+    border: 1px solid #00ffff;
+    border-radius: 50px;
+    padding: 15px 25px;
+    margin: 20px 0;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 8. دوال المساعدة
+# 6. دوال المساعدة
 # ==========================================
 def get_stats():
     """إحصائيات سريعة"""
-    try:
-        ads = conn.execute("SELECT COUNT(*) FROM ads WHERE status='active'").fetchone()[0]
-        visitors = random.randint(50, 200)  # محاكاة للزوار
-        return ads, visitors
-    except:
-        return 0, 0
+    ads_count = len(st.session_state.ads)
+    visitors = random.randint(100, 300)  # محاكاة للزوار
+    return ads_count, visitors
 
 # ==========================================
-# 9. عرض الإعلانات
+# 7. عرض الإعلانات
 # ==========================================
 def show_ads():
-    """عرض كل الإعلانات"""
+    """عرض كل الإعلانات مع خيارات التواصل"""
     
-    # جلب الإعلانات من قاعدة البيانات
-    db_ads = conn.execute("SELECT * FROM ads WHERE status='active' ORDER BY date DESC").fetchall()
+    # فلترة حسب الولاية
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        search = st.text_input("🔍", placeholder="ابحث عن هاتف...")
+    with col2:
+        selected_wilaya = st.selectbox("الولاية", ["الكل"] + WILAYAS)
     
-    if db_ads:
-        cols = st.columns(3)
-        for i, ad in enumerate(db_ads):
-            with cols[i % 3]:
-                img_url = ad[10] if len(ad) > 10 else "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=400"
-                price_f = f"{ad[2]:,} دج"
-                # اختيار عشوائي للعلامة
-                tag = random.choice(["🔥 عرض حي", "⚡ جديد", "⭐ مميز"])
+    # فلترة الإعلانات
+    filtered_ads = st.session_state.ads
+    if selected_wilaya != "الكل":
+        filtered_ads = [ad for ad in filtered_ads if ad["wilaya"] == selected_wilaya]
+    if search:
+        filtered_ads = [ad for ad in filtered_ads if search.lower() in ad["title"].lower()]
+    
+    # عرض الإعلانات في شبكة 3 أعمدة
+    cols = st.columns(3)
+    for i, ad in enumerate(filtered_ads):
+        with cols[i % 3]:
+            st.markdown(f"""
+            <div class="hologram-card">
+                <div class="ad-tag">{ad['tag']}</div>
+                <img src="{ad['img']}" class="ad-image">
+                <div class="ad-title">{ad['title']}</div>
+                <div class="ad-price">{ad['price_f']}</div>
+                <div class="ad-specs">{ad['specs']}</div>
                 
-                st.markdown(f"""
-                <div class="hologram-card">
-                    <div class="ad-tag">{tag}</div>
-                    <img src="{img_url}" class="ad-image">
-                    <div class="ad-title">{ad[1][:30]}</div>
-                    <div class="ad-price">{price_f}</div>
-                    <div class="ad-specs">{ad[5][:50]}...</div>
-                    <div style="margin: 10px 0;">
-                        <span class="wilaya-badge">📍 {ad[4]}</span>
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <a href="https://wa.me/{ad[3]}" target="_blank" style="flex:1; text-decoration:none;">
-                            <button class="whatsapp-btn">📱 واتساب</button>
-                        </a>
-                        <a href="tel:{ad[3]}" style="flex:1; text-decoration:none;">
-                            <button class="call-btn">📞 اتصال</button>
-                        </a>
-                    </div>
+                <div style="margin: 10px 0;">
+                    <span class="wilaya-badge">📍 {ad['wilaya']}</span>
+                    <span class="wilaya-badge">👤 {ad['seller']}</span>
                 </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("لا توجد إعلانات حالياً. اضغط على زر التحديث للإضافة!")
+                
+                <div class="seller-info">
+                    📞 {ad['seller_phone']}
+                </div>
+                
+                <div class="contact-buttons">
+                    <a href="https://wa.me/213{ad['seller_phone'][1:]}" target="_blank" class="whatsapp-btn">
+                        📱 واتساب
+                    </a>
+                    <a href="tel:{ad['seller_phone']}" class="call-btn">
+                        📞 اتصال
+                    </a>
+                </div>
+                
+                <p style="color: #888; font-size: 0.8rem; margin-top: 10px; text-align: center;">
+                    وسيط: RASSIM OS • البائع: {ad['source']}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+# ==========================================
+# 8. إضافة إعلان جديد
+# ==========================================
+def add_new_ad():
+    """إضافة إعلان جديد من مستخدم"""
+    with st.form("new_ad"):
+        st.markdown("### 📢 إضافة إعلان جديد")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            title = st.text_input("اسم المنتج *")
+            price = st.number_input("السعر (دج) *", min_value=0, step=1000)
+        with col2:
+            wilaya = st.selectbox("الولاية *", WILAYAS)
+            seller_name = st.text_input("اسم البائع *")
+        
+        seller_phone = st.text_input("رقم الهاتف *", placeholder="مثال: 0555123456")
+        specs = st.text_area("المواصفات", placeholder="اكتب مواصفات الهاتف...")
+        
+        img_url = st.text_input("رابط الصورة", placeholder="https://... (اختياري)")
+        
+        if st.form_submit_button("🚀 نشر الإعلان", use_container_width=True):
+            if title and price > 0 and seller_name and seller_phone:
+                new_ad = {
+                    "id": len(st.session_state.ads) + 1,
+                    "title": title,
+                    "price": price,
+                    "price_f": f"{price:,} دج",
+                    "wilaya": wilaya,
+                    "img": img_url if img_url else "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=400",
+                    "source": "مستخدم جديد",
+                    "tag": "🆕 جديد",
+                    "specs": specs if specs else "مواصفات غير محددة",
+                    "seller": seller_name,
+                    "seller_phone": seller_phone
+                }
+                st.session_state.ads.append(new_ad)
+                st.success("✅ تم نشر الإعلان بنجاح!")
+                st.balloons()
+                time.sleep(2)
+                st.rerun()
+            else:
+                st.error("❌ يرجى ملء جميع الحقول المطلوبة")
+
+# ==========================================
+# 9. إحصائيات سريعة
+# ==========================================
+def show_stats():
+    """عرض إحصائيات سريعة"""
+    ads_count, visitors = get_stats()
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{ads_count}</div>
+            <div class="stat-label">إعلان نشط</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">69</div>
+            <div class="stat-label">ولاية</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{visitors}</div>
+            <div class="stat-label">زائر الآن</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{len(st.session_state.ads) * 2}</div>
+            <div class="stat-label">مشتري محتمل</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==========================================
 # 10. واجهة الدردشة
@@ -472,7 +591,7 @@ def show_chat():
     """فقاعة الدردشة"""
     st.markdown("""
     <div class="chat-bubble" onclick="window.open('https://wa.me/213555555555')">
-        <img src="https://img.icons8.com/ios-filled/30/ffffff/speech-bubble.png" width="25">
+        <img src="https://img.icons8.com/ios-filled/30/ffffff/speech-bubble.png" width="30">
     </div>
     """, unsafe_allow_html=True)
 
@@ -481,10 +600,10 @@ def show_chat():
 # ==========================================
 def main():
     # عداد الزوار
-    ads, visitors = get_stats()
+    ads_count, visitors = get_stats()
     st.markdown(f"""
     <div class="live-counter">
-        <span style="color:#00ffff;">●</span> {visitors} زائر • {ads} إعلان
+        <span style="color:#00ffff;">●</span> {visitors} زائر • {ads_count} إعلان • {len(WILAYAS)} ولاية
     </div>
     """, unsafe_allow_html=True)
     
@@ -493,32 +612,42 @@ def main():
     
     # الشعار
     st.markdown('<div class="logo">RASSIM OS</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">⚡ 69 ولاية جزائرية • دخول حر بدون تسجيل</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">⚡ وسيط بين الشاري والبائع • 69 ولاية جزائرية</div>', unsafe_allow_html=True)
     
-    # إحصائيات سريعة
+    # آخر تحديث
+    st.markdown(f"""
+    <p style="text-align:center; color:#666; font-size:0.9rem;">
+        آخر تحديث: {st.session_state.last_update}
+    </p>
+    """, unsafe_allow_html=True)
+    
+    # إحصائيات
+    show_stats()
+    
+    # أزرار التحكم
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f'<div class="stat-card"><div class="stat-value">{ads}</div><div>إعلان نشط</div></div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="stat-card"><div class="stat-value">69</div><div>ولاية</div></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown(f'<div class="stat-card"><div class="stat-value">{visitors}</div><div>زائر الآن</div></div>', unsafe_allow_html=True)
-    
-    # زر إضافة إعلانات
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("🚀 إضافة إعلانات تلقائية", use_container_width=True):
-            count = seed_ads()
-            if count > 0:
-                st.success(f"✅ تمت إضافة {count} إعلان جديد!")
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.info("الإعلانات محدثة بالفعل")
-    
-    with col_b:
-        if st.button("🔄 تحديث الصفحة", use_container_width=True):
+        if st.button("🔄 تحديث الإعلانات", use_container_width=True):
+            st.session_state.ads = get_auto_ads()
+            st.session_state.last_update = datetime.now().strftime("%H:%M:%S")
             st.rerun()
+    with col2:
+        if st.button("📢 إعلان جديد", use_container_width=True):
+            st.session_state.show_form = True
+    with col3:
+        if st.button("🎲 ترتيب عشوائي", use_container_width=True):
+            random.shuffle(st.session_state.ads)
+            st.rerun()
+    
+    # نموذج إضافة إعلان
+    if st.session_state.get('show_form', False):
+        add_new_ad()
+        if st.button("❌ إغلاق النموذج"):
+            st.session_state.show_form = False
+            st.rerun()
+    
+    # خط فاصل
+    st.markdown("---")
     
     # عرض الإعلانات
     show_ads()
@@ -526,8 +655,8 @@ def main():
     # تذييل
     st.markdown("""
     <div class="footer">
-        RASSIM OS • جميع الحقوق محفوظة © 2026<br>
-        منصة وسيط تقني - نلتزم بالقوانين الجزائرية
+        RASSIM OS • منصة وسيط بين الشاري والبائع • جميع الحقوق محفوظة © 2026<br>
+        نلتزم بالقوانين الجزائرية • للتواصل: rassim.os@dz
     </div>
     """, unsafe_allow_html=True)
 
@@ -536,3 +665,4 @@ def main():
 # ==========================================
 if __name__ == "__main__":
     main()
+
