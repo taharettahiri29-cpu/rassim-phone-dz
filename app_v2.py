@@ -3,7 +3,7 @@
 
 """
 RASSIM OS ULTIMATE 2026
-منصة الوساطة الذكية - النسخة المحلية بدون أخطاء
+منصة الوساطة الذكية - النسخة السحابية مع Google Sheets
 69 ولاية جزائرية
 """
 
@@ -11,9 +11,7 @@ import streamlit as st
 import pandas as pd
 import random
 import time
-import json
 from datetime import datetime
-from pathlib import Path
 from typing import Tuple, List, Dict, Any
 
 # ==========================================
@@ -27,7 +25,20 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. قائمة الولايات (69 ولاية)
+# 2. محاولة الاتصال بـ Google Sheets
+# ==========================================
+try:
+    from streamlit_gsheets import GSheetsConnection
+    USE_GSHEETS = True
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    st.success("✅ متصل بـ Google Sheets")
+except Exception as e:
+    USE_GSHEETS = False
+    st.warning("⚠️ لم يتم العثور على مكتبة Google Sheets. سيتم استخدام التخزين المحلي المؤقت.")
+    st.info("لتفعيل Google Sheets: أضف 'st-gsheets-connection' إلى ملف requirements.txt")
+
+# ==========================================
+# 3. قائمة الولايات (69 ولاية)
 # ==========================================
 WILAYAS: List[str] = [
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
@@ -38,14 +49,14 @@ WILAYAS: List[str] = [
     "08 - بشار", "10 - البويرة", "11 - تمنراست", "12 - تبسة", "14 - تيارت",
     "17 - الجلفة", "18 - جيجل", "20 - سعيدة", "21 - سكيكدة", "22 - سيدي بلعباس",
     "24 - قالمة", "27 - مستغانم", "28 - المسيلة", "30 - ورقلة", "32 - البيض",
-    "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت",
+    "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلт",
     "39 - الوادي", "40 - خنشلة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
     "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
     "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام"
 ]
 
 # ==========================================
-# 3. قائمة الفئات
+# 4. قائمة الفئات
 # ==========================================
 CATEGORIES: List[str] = [
     "🚗 قطع غيار سيارات",
@@ -60,10 +71,10 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 4. البيانات في الذاكرة المؤقتة
+# 5. تهيئة البيانات المحلية (كاحتياطي)
 # ==========================================
-def init_session_state():
-    """تهيئة بيانات الجلسة"""
+def init_local_data():
+    """تهيئة البيانات المحلية في حالة عدم توفر Google Sheets"""
     if 'requests' not in st.session_state:
         st.session_state.requests = [
             {
@@ -80,14 +91,6 @@ def init_session_state():
                 "الفئة": "🏠 عقارات (بيع/كراء)",
                 "الهاتف": "0666123456",
                 "الولاية": "42 - تيبازة",
-                "الحالة": "جاري البحث"
-            },
-            {
-                "الوقت": "2026-02-24 12:00",
-                "المطلوب": "بطارية iPhone 13 Pro Max أصلية",
-                "الفئة": "📱 هواتف وأجهزة",
-                "الهاتف": "0777123456",
-                "الولاية": "16 - الجزائر",
                 "الحالة": "جاري البحث"
             }
         ]
@@ -107,13 +110,6 @@ def init_session_state():
                 "الولاية": "16 - الجزائر",
                 "التخصص": "🔧 خردة وأدوات, 🛠️ خدمات",
                 "تاريخ التسجيل": "2026-02-21"
-            },
-            {
-                "الاسم": "صالون الفخامة",
-                "الهاتف": "0777123456",
-                "الولاية": "31 - وهران",
-                "التخصص": "👕 ملابس وأزياء, 💄 تجميل",
-                "تاريخ التسجيل": "2026-02-22"
             }
         ]
     
@@ -126,11 +122,78 @@ def init_session_state():
     if 'last_refresh' not in st.session_state:
         st.session_state.last_refresh = datetime.now().strftime("%H:%M:%S")
 
-# تهيئة الجلسة
-init_session_state()
+# تهيئة البيانات المحلية
+init_local_data()
 
 # ==========================================
-# 5. التصميم المتطور
+# 6. دوال التعامل مع Google Sheets
+# ==========================================
+def get_requests_from_gsheets():
+    """جلب الطلبات من Google Sheets"""
+    if not USE_GSHEETS:
+        return st.session_state.requests
+    
+    try:
+        df = conn.read(worksheet="Requests")
+        if df.empty:
+            return st.session_state.requests
+        return df.to_dict('records')
+    except:
+        return st.session_state.requests
+
+def save_request_to_gsheets(request_data):
+    """حفظ طلب جديد في Google Sheets"""
+    if not USE_GSHEETS:
+        st.session_state.requests.append(request_data)
+        return True
+    
+    try:
+        df = conn.read(worksheet="Requests")
+        new_df = pd.DataFrame([request_data])
+        if df.empty:
+            updated_df = new_df
+        else:
+            updated_df = pd.concat([df, new_df], ignore_index=True)
+        conn.update(worksheet="Requests", data=updated_df)
+        return True
+    except Exception as e:
+        st.session_state.requests.append(request_data)
+        return False
+
+def get_vendors_from_gsheets():
+    """جلب البائعين من Google Sheets"""
+    if not USE_GSHEETS:
+        return st.session_state.vendors
+    
+    try:
+        df = conn.read(worksheet="Vendors")
+        if df.empty:
+            return st.session_state.vendors
+        return df.to_dict('records')
+    except:
+        return st.session_state.vendors
+
+def save_vendor_to_gsheets(vendor_data):
+    """حفظ بائع جديد في Google Sheets"""
+    if not USE_GSHEETS:
+        st.session_state.vendors.append(vendor_data)
+        return True
+    
+    try:
+        df = conn.read(worksheet="Vendors")
+        new_df = pd.DataFrame([vendor_data])
+        if df.empty:
+            updated_df = new_df
+        else:
+            updated_df = pd.concat([df, new_df], ignore_index=True)
+        conn.update(worksheet="Vendors", data=updated_df)
+        return True
+    except Exception as e:
+        st.session_state.vendors.append(vendor_data)
+        return False
+
+# ==========================================
+# 7. التصميم المتطور
 # ==========================================
 st.markdown("""
 <style>
@@ -387,17 +450,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. إحصائيات سريعة
+# 8. إحصائيات سريعة
 # ==========================================
 def get_stats() -> Tuple[int, int, int]:
-    """إحصائيات من الذاكرة المؤقتة"""
-    requests_count = len(st.session_state.requests)
-    vendors_count = len(st.session_state.vendors)
+    """إحصائيات من المصدر المناسب"""
+    requests_data = get_requests_from_gsheets()
+    vendors_data = get_vendors_from_gsheets()
+    
+    requests_count = len(requests_data)
+    vendors_count = len(vendors_data)
     visitors = random.randint(50, 200)
+    
     return vendors_count, requests_count, visitors
 
 # ==========================================
-# 7. رادار الطلبات (المشتري)
+# 9. رادار الطلبات (المشتري)
 # ==========================================
 def buyer_radar_ui():
     """واجهة المشتري - إطلاق الرادار"""
@@ -447,13 +514,18 @@ def buyer_radar_ui():
                 "الولاية": wilaya,
                 "الحالة": "جاري البحث"
             }
-            st.session_state.requests.append(new_request)
             
-            st.success("✅ تم إطلاق الرادار! سيتواصل معك التجار قريباً.")
-            st.balloons()
+            saved = save_request_to_gsheets(new_request)
+            
+            if saved:
+                st.success("✅ تم إطلاق الرادار! سيتواصل معك التجار قريباً.")
+                st.balloons()
+            else:
+                st.warning("⚠️ تم حفظ الطلب محلياً. سيتم المزامنة مع السحابة لاحقاً.")
             
             # إحصائيات
-            vendors_in_wilaya = [v for v in st.session_state.vendors if v["الولاية"] == wilaya]
+            vendors_data = get_vendors_from_gsheets()
+            vendors_in_wilaya = [v for v in vendors_data if v.get("الولاية") == wilaya]
             st.info(f"📊 هناك {len(vendors_in_wilaya)} تاجر في {wilaya} تلقوا طلبك")
             
         else:
@@ -462,43 +534,43 @@ def buyer_radar_ui():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 8. عرض طلبات الرادار
+# 10. عرض طلبات الرادار
 # ==========================================
 def show_radar_requests(wilaya_filter: str = None):
     """عرض طلبات المشترين"""
     
-    requests = st.session_state.requests.copy()
+    requests_data = get_requests_from_gsheets()
     
     # فلترة
     if wilaya_filter and wilaya_filter != "كل الولايات":
-        requests = [r for r in requests if r["الولاية"] == wilaya_filter]
+        requests_data = [r for r in requests_data if r.get("الولاية") == wilaya_filter]
     
     # ترتيب من الأحدث
-    requests.sort(key=lambda x: x["الوقت"], reverse=True)
+    requests_data.sort(key=lambda x: x.get("الوقت", ""), reverse=True)
     
-    if requests:
-        for req in requests:
+    if requests_data:
+        for req in requests_data[:10]:  # عرض آخر 10 طلبات فقط
             # إخفاء رقم الهاتف
-            phone = req["الهاتف"]
+            phone = req.get("الهاتف", "")
             hidden_phone = phone[:4] + "••••" if len(phone) > 4 else phone
             
             st.markdown(f"""
             <div class="request-card">
                 <div class="request-header">
-                    <span class="request-category">{req['الفئة']}</span>
-                    <span class="request-status">{req['الحالة']}</span>
+                    <span class="request-category">{req.get('الفئة', '')}</span>
+                    <span class="request-status">{req.get('الحالة', 'جاري البحث')}</span>
                 </div>
-                <h4 style="color: #00ffff;">طلب: {req['المطلوب'][:50]}...</h4>
+                <h4 style="color: #00ffff;">طلب: {req.get('المطلوب', '')[:50]}...</h4>
                 <div style="display: flex; gap: 10px; margin: 10px 0;">
-                    <span class="request-wilaya">📍 {req['الولاية']}</span>
-                    <span class="request-wilaya">🕐 {req['الوقت'][:16]}</span>
+                    <span class="request-wilaya">📍 {req.get('الولاية', '')}</span>
+                    <span class="request-wilaya">🕐 {req.get('الوقت', '')[:16]}</span>
                     <span class="request-wilaya">👤 {hidden_phone}</span>
                 </div>
             """, unsafe_allow_html=True)
             
             # زر التواصل للتجار المسجلين
             if st.session_state.vendor_logged_in:
-                whatsapp_link = f"https://wa.me/213{req['الهاتف'][1:]}?text=السلام عليكم، رأيت طلبك بخصوص: {req['المطلوب']}"
+                whatsapp_link = f"https://wa.me/213{phone[1:]}?text=السلام عليكم، رأيت طلبك بخصوص: {req.get('المطلوب', '')}"
                 st.markdown(f"""
                 <a href="{whatsapp_link}" target="_blank" class="contact-btn" style="display: block; text-decoration: none; margin-bottom: 10px;">
                     📱 تواصل مع المشتري
@@ -510,7 +582,7 @@ def show_radar_requests(wilaya_filter: str = None):
         st.info("😕 لا توجد طلبات")
 
 # ==========================================
-# 9. تسجيل تاجر جديد
+# 11. تسجيل تاجر جديد
 # ==========================================
 def vendor_registration():
     """تسجيل بائع جديد"""
@@ -527,7 +599,9 @@ def vendor_registration():
         if submitted:
             if name and phone and categories:
                 # التحقق من عدم تكرار الرقم
-                existing = [v for v in st.session_state.vendors if v["الهاتف"] == phone]
+                vendors_data = get_vendors_from_gsheets()
+                existing = [v for v in vendors_data if v.get("الهاتف") == phone]
+                
                 if existing:
                     st.error("❌ هذا الرقم مسجل مسبقاً")
                 else:
@@ -538,41 +612,47 @@ def vendor_registration():
                         "التخصص": ", ".join(categories),
                         "تاريخ التسجيل": datetime.now().strftime("%Y-%m-%d")
                     }
-                    st.session_state.vendors.append(new_vendor)
-                    st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
-                    st.balloons()
+                    
+                    saved = save_vendor_to_gsheets(new_vendor)
+                    
+                    if saved:
+                        st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
+                        st.balloons()
+                    else:
+                        st.warning("⚠️ تم التسجيل محلياً. سيتم المزامنة مع السحابة لاحقاً.")
             else:
                 st.error("❌ املأ الحقول المطلوبة (*)")
 
 # ==========================================
-# 10. عرض البائعين
+# 12. عرض البائعين
 # ==========================================
 def show_vendors(wilaya_filter: str = None):
     """عرض قائمة البائعين"""
     
-    vendors = st.session_state.vendors.copy()
+    vendors_data = get_vendors_from_gsheets()
     
     if wilaya_filter and wilaya_filter != "كل الولايات":
-        vendors = [v for v in vendors if v["الولاية"] == wilaya_filter]
+        vendors_data = [v for v in vendors_data if v.get("الولاية") == wilaya_filter]
     
-    if vendors:
-        for vendor in vendors:
-            whatsapp = vendor["الهاتف"][1:] if vendor["الهاتف"].startswith('0') else vendor["الهاتف"]
+    if vendors_data:
+        for vendor in vendors_data[:10]:  # عرض آخر 10 بائعين فقط
+            phone = vendor.get("الهاتف", "")
+            whatsapp = phone[1:] if phone.startswith('0') else phone
             
             st.markdown(f"""
             <div class="vendor-card">
                 <div style="display: flex; justify-content: space-between;">
-                    <span class="vendor-name">{vendor['الاسم']}</span>
+                    <span class="vendor-name">{vendor.get('الاسم', '')}</span>
                     <span class="vendor-badge">✅ موثق</span>
                 </div>
                 <div class="vendor-stats">
-                    <span>📍 {vendor['الولاية']}</span>
-                    <span>📞 {vendor['الهاتف']}</span>
+                    <span>📍 {vendor.get('الولاية', '')}</span>
+                    <span>📞 {phone}</span>
                 </div>
-                <p style="color: #aaa;">{vendor['التخصص']}</p>
+                <p style="color: #aaa;">{vendor.get('التخصص', '')}</p>
                 <div style="display: flex; gap: 10px;">
                     <a href="https://wa.me/213{whatsapp}" target="_blank" class="contact-btn" style="flex:1; background:#25D366;">📱 واتساب</a>
-                    <a href="tel:{vendor['الهاتف']}" class="contact-btn" style="flex:1; background:#00ffff; color:black;">📞 اتصال</a>
+                    <a href="tel:{phone}" class="contact-btn" style="flex:1; background:#00ffff; color:black;">📞 اتصال</a>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -580,7 +660,7 @@ def show_vendors(wilaya_filter: str = None):
         st.info("😕 لا يوجد بائعون")
 
 # ==========================================
-# 11. لوحة المشرف
+# 13. لوحة المشرف
 # ==========================================
 def admin_panel():
     """لوحة تحكم المشرف"""
@@ -603,13 +683,15 @@ def admin_panel():
         col3.metric("زوار اليوم", visitors)
         
         st.markdown("#### آخر الطلبات")
-        if st.session_state.requests:
-            df = pd.DataFrame(st.session_state.requests[-5:])
+        requests_data = get_requests_from_gsheets()
+        if requests_data:
+            df = pd.DataFrame(requests_data[-5:])
             st.dataframe(df, use_container_width=True)
     
     with tabs[1]:
-        if st.session_state.vendors:
-            df = pd.DataFrame(st.session_state.vendors)
+        vendors_data = get_vendors_from_gsheets()
+        if vendors_data:
+            df = pd.DataFrame(vendors_data)
             st.dataframe(df, use_container_width=True)
     
     with tabs[2]:
@@ -633,12 +715,12 @@ def admin_panel():
                         "الولاية": wilaya,
                         "الحالة": "جاري البحث"
                     }
-                    st.session_state.requests.append(new_request)
+                    save_request_to_gsheets(new_request)
                     st.success("تمت الإضافة!")
                     st.rerun()
 
 # ==========================================
-# 12. إحصائيات سريعة
+# 14. إحصائيات سريعة
 # ==========================================
 def show_stats():
     vendors, requests, visitors = get_stats()
@@ -667,10 +749,17 @@ def show_stats():
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 13. الصفحة الرئيسية
+# 15. الصفحة الرئيسية
 # ==========================================
 def main():
     """الدالة الرئيسية"""
+    
+    # عرض حالة الاتصال
+    if USE_GSHEETS:
+        st.sidebar.success("✅ متصل بـ Google Sheets")
+    else:
+        st.sidebar.warning("⚠️ وضع التخزين المحلي")
+        st.sidebar.info("لتفعيل السحابة: أضف 'st-gsheets-connection' إلى requirements.txt")
     
     # عداد الزوار
     vendors, requests, visitors = get_stats()
@@ -744,7 +833,7 @@ def main():
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 14. تشغيل التطبيق
+# 16. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
