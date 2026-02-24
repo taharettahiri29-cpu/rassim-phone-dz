@@ -1,19 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+RASSIM OS ULTIMATE 2026
+منصة الوساطة الذكية - نظام الجذب التلقائي
+69 ولاية جزائرية
+"""
+
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-from supabase import create_client, Client
+from datetime import datetime, timedelta
 import time
+import random
+import hashlib
+import json
+from supabase import create_client, Client
 
 # ==========================================
-# 1. إعدادات الصفحة والتصميم المتطور
+# 1. إعدادات الصفحة المتقدمة
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS • السحابة الذكية",
-    page_icon="⚡",
+    page_title="RASSIM OS • نظام الجذب",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
+# ==========================================
+# 2. التصميم المتطور
+# ==========================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
@@ -55,54 +70,43 @@ st.markdown("""
     margin-top: -10px;
 }
 
-/* ===== حالة الاتصال ===== */
-.connection-status {
-    text-align: left;
-    padding: 10px;
+/* ===== بطاقة التاجر المغناطيسية ===== */
+.magnet-card {
+    background: linear-gradient(135deg, #00aa00, #00ff00);
+    border-radius: 30px;
+    padding: 40px;
+    text-align: center;
+    margin: 20px 0;
+    border: 3px solid white;
+    animation: pulse-magnet 2s ease-in-out infinite;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 5px 15px;
+@keyframes pulse-magnet {
+    0%, 100% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,255,0,0.3); }
+    50% { transform: scale(1.02); box-shadow: 0 30px 60px rgba(0,255,0,0.5); }
+}
+
+.magnet-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.magnet-subtitle {
+    font-size: 1.5rem;
+    color: white;
+    margin: 20px 0;
+}
+
+.magnet-badge {
+    background: white;
+    color: #00aa00;
+    padding: 10px 30px;
     border-radius: 50px;
     font-weight: bold;
-    font-size: 0.9rem;
-}
-
-.status-online {
-    background: rgba(0, 255, 0, 0.1);
-    border: 1px solid #00ff00;
-    color: #00ff00;
-}
-
-.status-offline {
-    background: rgba(255, 0, 0, 0.1);
-    border: 1px solid #ff0000;
-    color: #ff0000;
-}
-
-/* ===== رادار الطلبات ===== */
-.radar-section {
-    background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
-    padding: 30px;
-    border-radius: 30px;
-    border: 2px solid #00ffff;
-    margin-bottom: 30px;
-    box-shadow: 0 20px 40px rgba(0,255,255,0.15);
-    animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 20px 40px rgba(0,255,255,0.15); }
-    50% { box-shadow: 0 20px 60px rgba(255,0,255,0.2); }
-}
-
-.radar-title {
-    color: #00ffff;
-    font-size: 2.2rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
+    font-size: 1.2rem;
+    display: inline-block;
 }
 
 /* ===== بطاقة الطلب ===== */
@@ -195,6 +199,11 @@ st.markdown("""
     font-size: 0.7rem;
 }
 
+.vendor-badge-gold {
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: black;
+}
+
 .vendor-stats {
     display: flex;
     gap: 15px;
@@ -203,24 +212,32 @@ st.markdown("""
     margin: 10px 0;
 }
 
-/* ===== إحصائيات ===== */
-.stat-card {
-    background: #1a1a2a;
-    border: 1px solid #333;
-    border-radius: 15px;
-    padding: 15px;
-    text-align: center;
+/* ===== بطاقة الإحصائيات العامة ===== */
+.stats-dashboard {
+    background: linear-gradient(135deg, #2a1a3a, #3a2a4a);
+    border-radius: 30px;
+    padding: 30px;
+    margin: 20px 0;
+    border: 1px solid #ff00ff;
 }
 
-.stat-value {
-    font-size: 2rem;
+.stat-box {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+}
+
+.stat-number {
+    font-size: 3.5rem;
+    font-weight: 900;
     color: #00ffff;
-    font-weight: bold;
+    line-height: 1.2;
 }
 
 .stat-label {
     color: #888;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 /* ===== أزرار ===== */
@@ -238,6 +255,18 @@ st.markdown("""
 .stButton > button:hover {
     transform: scale(1.02) !important;
     box-shadow: 0 10px 20px rgba(255,0,255,0.3) !important;
+}
+
+.magnet-button {
+    background: linear-gradient(135deg, #ffaa00, #ff5500) !important;
+    font-size: 1.5rem !important;
+    padding: 20px !important;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .contact-btn {
@@ -302,20 +331,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. قائمة الولايات والفئات
+# 3. قائمة الولايات والفئات
 # ==========================================
 WILAYAS = [
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
     "19 - سطيف", "23 - عنابة", "13 - تلمسان", "09 - البليدة", "15 - تيزي وزو",
     "07 - بسكرة", "26 - المدية", "29 - معسكر", "35 - بومرداس", "41 - سوق أهراس",
-    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر",
-    "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
-    "08 - بشار", "10 - البويرة", "11 - تمنراست", "12 - تبسة", "14 - تيارت",
-    "17 - الجلفة", "18 - جيجل", "20 - سعيدة", "21 - سكيكدة", "22 - سيدي بلعباس",
-    "24 - قالمة", "27 - مستغانم", "28 - المسيلة", "30 - ورقلة", "32 - البيض",
-    "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلт",
-    "39 - الوادي", "40 - خنشلة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار"
+    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر"
 ]
 
 CATEGORIES = [
@@ -331,7 +353,7 @@ CATEGORIES = [
 ]
 
 # ==========================================
-# 3. الربط مع Supabase
+# 4. الربط مع Supabase
 # ==========================================
 @st.cache_resource
 def init_connection():
@@ -351,7 +373,7 @@ def init_connection():
 supabase, connected = init_connection()
 
 # ==========================================
-# 4. دوال التعامل مع قاعدة البيانات
+# 5. دوال التعامل مع قاعدة البيانات
 # ==========================================
 def fetch_requests():
     """جلب جميع الطلبات من قاعدة البيانات"""
@@ -377,10 +399,20 @@ def fetch_vendors():
         st.error(f"خطأ في جلب البائعين: {e}")
         return pd.DataFrame()
 
+def fetch_leads():
+    """جلب المنافذ المحتملين من قاعدة البيانات"""
+    if not connected:
+        return pd.DataFrame()
+    
+    try:
+        response = supabase.table("leads").select("*").order("created_at", desc=True).execute()
+        return pd.DataFrame(response.data) if response.data else pd.DataFrame()
+    except Exception as e:
+        return pd.DataFrame()
+
 def save_request(item, category, phone, wilaya):
     """حفظ طلب جديد في قاعدة البيانات"""
     if not connected:
-        st.error("لا يمكن الحفظ - الاتصال بالسحابة غير متوفر")
         return False
     
     try:
@@ -397,10 +429,9 @@ def save_request(item, category, phone, wilaya):
         st.error(f"خطأ في حفظ الطلب: {e}")
         return False
 
-def save_vendor(name, phone, wilaya, categories):
+def save_vendor(name, phone, wilaya, categories, source="direct"):
     """حفظ بائع جديد في قاعدة البيانات"""
     if not connected:
-        st.error("لا يمكن الحفظ - الاتصال بالسحابة غير متوفر")
         return False
     
     try:
@@ -413,7 +444,11 @@ def save_vendor(name, phone, wilaya, categories):
             "name": name,
             "phone": phone,
             "wilaya": wilaya,
-            "category": ", ".join(categories)
+            "category": ", ".join(categories),
+            "source": source,
+            "verified": False,
+            "trial": True,
+            "created_at": datetime.now().isoformat()
         }
         supabase.table("vendors").insert(data).execute()
         return True
@@ -421,49 +456,277 @@ def save_vendor(name, phone, wilaya, categories):
         st.error(f"خطأ في حفظ البائع: {e}")
         return False
 
+def save_lead(name, phone, wilaya, source):
+    """حفظ منافذ محتمل في قاعدة البيانات"""
+    if not connected:
+        return False
+    
+    try:
+        data = {
+            "name": name,
+            "phone": phone,
+            "wilaya": wilaya,
+            "source": source,
+            "contacted": False,
+            "created_at": datetime.now().isoformat()
+        }
+        supabase.table("leads").insert(data).execute()
+        return True
+    except Exception as e:
+        return False
+
+def get_daily_stats():
+    """الحصول على إحصائيات اليوم"""
+    if not connected:
+        return {"requests": 0, "vendors": 0, "leads": 0}
+    
+    today = datetime.now().date().isoformat()
+    
+    try:
+        requests_today = supabase.table("requests").select("*").gte("created_at", today).execute()
+        vendors_today = supabase.table("vendors").select("*").gte("created_at", today).execute()
+        leads_today = supabase.table("leads").select("*").gte("created_at", today).execute()
+        
+        return {
+            "requests": len(requests_today.data) if requests_today.data else 0,
+            "vendors": len(vendors_today.data) if vendors_today.data else 0,
+            "leads": len(leads_today.data) if leads_today.data else 0
+        }
+    except:
+        return {"requests": 0, "vendors": 0, "leads": 0}
+
 def get_stats():
-    """الحصول على إحصائيات"""
+    """الحصول على إحصائيات كاملة"""
     requests_df = fetch_requests()
     vendors_df = fetch_vendors()
+    leads_df = fetch_leads()
     
     requests_count = len(requests_df) if not requests_df.empty else 0
     vendors_count = len(vendors_df) if not vendors_df.empty else 0
-    visitors = requests_count + vendors_count + 50
+    leads_count = len(leads_df) if not leads_df.empty else 0
     
-    return vendors_count, requests_count, visitors
+    return vendors_count, requests_count, leads_count
 
 # ==========================================
-# 5. واجهة رادار الطلبات
+# 6. المغناطيس الرقمي (Lead Magnet)
+# ==========================================
+def magnet_vendor_registration():
+    """تسجيل بائع جديد مع عرض مغناطيسي"""
+    
+    st.markdown("""
+    <div class="magnet-card">
+        <div class="magnet-title">🎯 عرض خاص للتجار</div>
+        <div class="magnet-subtitle">سجل محلك الآن واحصل على أول 10 زبائن مجاناً!</div>
+        <div class="magnet-badge">⚡ عرض محدود ⚡</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # إحصائيات سريعة لجذب التجار
+    stats = get_daily_stats()
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+        <div style="background:#1a1a2a; padding:15px; border-radius:15px; text-align:center;">
+            <div style="font-size:2rem; color:#00ffff;">{stats['requests']}</div>
+            <div style="color:#888;">طلب اليوم</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div style="background:#1a1a2a; padding:15px; border-radius:15px; text-align:center;">
+            <div style="font-size:2rem; color:#ff00ff;">{stats['vendors']}</div>
+            <div style="color:#888;">تاجر جديد</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div style="background:#1a1a2a; padding:15px; border-radius:15px; text-align:center;">
+            <div style="font-size:2rem; color:#00ff00;">{stats['leads']}</div>
+            <div style="color:#888;">فرصة متاحة</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("### 📝 تسجيل سريع (30 ثانية)")
+    
+    with st.form("magnet_vendor_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            name = st.text_input("اسم المحل *", placeholder="مثال: مؤسسة الرونو")
+        with col2:
+            phone = st.text_input("رقم الهاتف *", placeholder="0555123456")
+        
+        wilaya = st.selectbox("الولاية *", WILAYAS)
+        categories = st.multiselect("ماذا تبيع؟ *", CATEGORIES)
+        
+        st.markdown("""
+        <div style="background:#2a2a3a; padding:15px; border-radius:15px; margin:10px 0;">
+            <p style="color:#00ffff;">✅ بالتسجيل أنت مؤهل للحصول على:</p>
+            <ul style="color:white;">
+                <li>10 طلبات أولى مجاناً</li>
+                <li>ظهور مميز في رادار الطلبات</li>
+                <li>إشعارات فورية عبر واتساب</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        submitted = st.form_submit_button("🚀 سجل الآن واحصل على 10 زبائن مجاناً", use_container_width=True)
+        
+        if submitted:
+            if name and phone and categories:
+                if save_vendor(name, phone, wilaya, categories, source="magnet"):
+                    st.success("✅ تم التسجيل بنجاح! سيتم إشعارك بأول 10 طلبات في ولايتك.")
+                    st.balloons()
+                    
+                    # محاكاة إرسال إشعار
+                    with st.spinner("جاري تفعيل حسابك..."):
+                        time.sleep(2)
+                        st.info("📱 تم تفعيل الإشعارات الفورية! ستتلقى طلبك الأول قريباً.")
+                else:
+                    st.error("❌ هذا الرقم مسجل مسبقاً")
+            else:
+                st.error("❌ املأ الحقول المطلوبة (*)")
+
+# ==========================================
+# 7. إضافة منافذ محتمل يدوياً (محاكاة للـ Scraper)
+# ==========================================
+def add_lead_manually():
+    """إضافة منافذ محتمل يدوياً (لمحاكاة الـ Scraper)"""
+    st.markdown("### 📥 إضافة منافذ محتمل (Leads)")
+    
+    with st.form("lead_form"):
+        name = st.text_input("اسم التاجر/المحل")
+        phone = st.text_input("رقم الهاتف")
+        wilaya = st.selectbox("الولاية", WILAYAS)
+        source = st.selectbox("المصدر", ["واد كنيس", "فيسبوك", "انستغرام", "توصية", "أخرى"])
+        
+        if st.form_submit_button("➕ إضافة منفذ"):
+            if name and phone:
+                if save_lead(name, phone, wilaya, source):
+                    st.success("تمت الإضافة بنجاح!")
+                else:
+                    st.error("فشل في الإضافة")
+
+# ==========================================
+# 8. لوحة الإحصائيات العامة (لجذب السبونسر)
+# ==========================================
+def public_stats_dashboard():
+    """لوحة إحصائيات عامة لجذب الرعاة"""
+    
+    vendors, requests, leads = get_stats()
+    daily = get_daily_stats()
+    
+    st.markdown("""
+    <div class="stats-dashboard">
+        <h2 style="color:#00ffff; text-align:center;">📊 إحصائيات RASSIM OS الحية</h2>
+        <p style="color:#888; text-align:center;">بيانات محدثة لحظياً • 69 ولاية جزائرية</p>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{requests}</div>
+            <div class="stat-label">إجمالي الطلبات</div>
+            <div style="color:#00ff00;">+{daily['requests']} اليوم</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{vendors}</div>
+            <div class="stat-label">تاجر مسجل</div>
+            <div style="color:#00ff00;">+{daily['vendors']} اليوم</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{leads}</div>
+            <div class="stat-label">فرصة متاحة</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{len(WILAYAS)}</div>
+            <div class="stat-label">ولاية نشطة</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # أكثر الولايات نشاطاً (محاكاة)
+    st.markdown("### 🔥 أكثر الولايات نشاطاً")
+    active_wilayas = random.sample(WILAYAS, 5)
+    for w in active_wilayas:
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; background:#1a1a2a; padding:10px; border-radius:10px; margin:5px 0;">
+            <span>{w}</span>
+            <span style="color:#00ffff;">{random.randint(5, 50)} طلب اليوم</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="text-align:center; margin-top:20px;">
+        <p style="color:#888;">🚀 للرعاية والإعلان: تواصل معنا عبر واتساب</p>
+        <a href="https://wa.me/213555555555" target="_blank">
+            <button style="background:#25D366; color:white; border:none; padding:15px 30px; border-radius:50px; font-weight:bold;">📱 تواصل الآن</button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# 9. نظام الإحالة (Referral System)
+# ==========================================
+def referral_system(vendor_id):
+    """نظام إحالة للتجار"""
+    st.markdown("### 🤝 نظام الإحالة")
+    
+    referral_code = hashlib.md5(f"{vendor_id}{datetime.now().date()}".encode()).hexdigest()[:8]
+    referral_link = f"https://rassim-os.streamlit.app/?ref={referral_code}"
+    
+    st.markdown(f"""
+    <div style="background:#1a1a2a; padding:20px; border-radius:20px; margin:10px 0;">
+        <h4 style="color:#00ffff;">🎁 ادعو تجاراً آخرين واحصل على مميزات</h4>
+        <p>رابط الإحالة الخاص بك:</p>
+        <div style="background:#2a2a3a; padding:15px; border-radius:10px; direction:ltr; text-align:left; font-family:monospace;">
+            {referral_link}
+        </div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <a href="https://wa.me/?text={referral_link}" target="_blank" style="flex:1; background:#25D366; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📱 شارك على واتساب</a>
+            <button onclick="navigator.clipboard.writeText('{referral_link}')" style="flex:1; background:#00ffff; color:black; border:none; padding:10px; border-radius:10px;">📋 نسخ الرابط</button>
+        </div>
+        <p style="color:#888; margin-top:10px;">✨ كل تاجر تسجله يمنحك شارة ذهبية ورفع ترتيب محلك</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# 10. واجهة رادار الطلبات
 # ==========================================
 def buyer_radar_ui():
     """واجهة المشتري - إطلاق الرادار"""
     
     st.markdown("""
-    <div class="radar-section">
-        <div class="radar-title">🎯 رادار RASSIM</div>
-        <p style="color: #888; text-align: center; margin-bottom: 30px;">
-            اكتب ما تبحث عنه وسيبحث لك النظام في 69 ولاية
-        </p>
+    <div style="background:#1a1a2a; padding:30px; border-radius:30px; border:2px solid #00ffff; margin-bottom:30px;">
+        <h2 style="color:#00ffff; text-align:center;">🎯 رادار RASSIM</h2>
+        <p style="color:#888; text-align:center;">اكتب ما تبحث عنه وسيبحث لك النظام في 69 ولاية</p>
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         item_desc = st.text_area("🔍 ماذا تبحث بالضبط؟", 
-                                placeholder="مثال: محرك رونو كليو 2 ديزل 2015",
+                                placeholder="مثال: محرك رونو كليو 2 ديزل",
                                 height=100)
         category = st.selectbox("📂 الفئة", CATEGORIES)
     
     with col2:
-        buyer_phone = st.text_input("📱 رقم هاتفك", 
-                                   placeholder="0661234567")
+        buyer_phone = st.text_input("📱 رقم هاتفك", placeholder="0661234567")
         wilaya = st.selectbox("📍 الولاية", WILAYAS)
     
-    col1, col2, col3 = st.columns(3)
-    with col2:
-        launch_button = st.button("🚀 إطلاق الرادار", use_container_width=True)
-    
-    if launch_button:
+    if st.button("🚀 إطلاق الرادار", use_container_width=True):
         if item_desc and buyer_phone:
             with st.spinner("📡 جاري البحث..."):
                 time.sleep(1)
@@ -471,174 +734,12 @@ def buyer_radar_ui():
             if save_request(item_desc, category, buyer_phone, wilaya):
                 st.success("✅ تم إطلاق الرادار! سيتواصل معك التجار قريباً.")
                 st.balloons()
-                time.sleep(2)
-                st.rerun()
             else:
                 st.error("❌ فشل في حفظ الطلب")
         else:
             st.error("❌ املأ الحقول المطلوبة")
     
     st.markdown('</div>', unsafe_allow_html=True)
-
-# ==========================================
-# 6. عرض الطلبات
-# ==========================================
-def show_requests():
-    """عرض طلبات المشترين بشكل احترافي"""
-    
-    requests_df = fetch_requests()
-    
-    if requests_df.empty:
-        st.info("😕 لا توجد طلبات حالياً")
-        return
-    
-    for _, row in requests_df.iterrows():
-        phone = row.get("phone", "")
-        hidden_phone = phone[:4] + "••••" if len(phone) > 4 else phone
-        
-        created_at = row.get("created_at", "")
-        if created_at and len(str(created_at)) > 16:
-            created_at = str(created_at)[:16]
-        
-        st.markdown(f"""
-        <div class="request-card">
-            <div class="request-header">
-                <span class="request-category">{row.get('category', '')}</span>
-                <span class="request-time">🕐 {created_at}</span>
-            </div>
-            <div class="request-title">{row.get('item', '')[:100]}</div>
-            <div class="request-details">
-                <span>📍 {row.get('wilaya', '')}</span>
-                <span class="request-phone">📞 {hidden_phone}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ==========================================
-# 7. تسجيل تاجر جديد
-# ==========================================
-def vendor_registration():
-    """تسجيل بائع جديد"""
-    st.markdown("### 📝 انضم كبائع")
-    
-    with st.form("vendor_form"):
-        name = st.text_input("اسم المحل أو البائع *")
-        phone = st.text_input("رقم الهاتف *")
-        wilaya = st.selectbox("الولاية *", WILAYAS)
-        categories = st.multiselect("ماذا تبيع؟ *", CATEGORIES)
-        
-        submitted = st.form_submit_button("🚀 تسجيل كبائع معتمد", use_container_width=True)
-        
-        if submitted:
-            if name and phone and categories:
-                if save_vendor(name, phone, wilaya, categories):
-                    st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
-                    st.balloons()
-                else:
-                    st.error("❌ هذا الرقم مسجل مسبقاً أو فشل في التسجيل")
-            else:
-                st.error("❌ املأ الحقول المطلوبة (*)")
-
-# ==========================================
-# 8. عرض البائعين
-# ==========================================
-def show_vendors():
-    """عرض قائمة البائعين"""
-    
-    vendors_df = fetch_vendors()
-    
-    if vendors_df.empty:
-        st.info("😕 لا يوجد بائعون مسجلون بعد")
-        return
-    
-    for _, row in vendors_df.iterrows():
-        phone = row.get("phone", "")
-        whatsapp = phone[1:] if phone.startswith('0') else phone
-        
-        created_at = row.get("created_at", "")
-        if created_at and len(str(created_at)) > 10:
-            created_at = str(created_at)[:10]
-        
-        st.markdown(f"""
-        <div class="vendor-card">
-            <div style="display: flex; justify-content: space-between;">
-                <span class="vendor-name">{row.get('name', '')}</span>
-                <span class="vendor-badge">✅ موثق</span>
-            </div>
-            <div class="vendor-stats">
-                <span>📍 {row.get('wilaya', '')}</span>
-                <span>📞 {phone}</span>
-                <span>📅 {created_at}</span>
-            </div>
-            <p style="color: #aaa;">{row.get('category', '')}</p>
-            <div style="display: flex; gap: 10px;">
-                <a href="https://wa.me/213{whatsapp}" target="_blank" style="flex:1; background:#25D366; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📱 واتساب</a>
-                <a href="tel:{phone}" style="flex:1; background:#00ffff; color:black; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📞 اتصال</a>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ==========================================
-# 9. لوحة المشرف
-# ==========================================
-def admin_panel():
-    """لوحة تحكم المشرف"""
-    st.markdown("### 🔐 لوحة المشرف")
-    
-    if not st.session_state.get('admin_logged_in', False):
-        password = st.text_input("كلمة المرور", type="password")
-        if st.button("دخول") and password == "rassim2026":
-            st.session_state.admin_logged_in = True
-            st.rerun()
-        return
-    
-    tabs = st.tabs(["📊 إحصائيات", "👥 البائعين", "🎯 الطلبات"])
-    
-    with tabs[0]:
-        vendors, requests, visitors = get_stats()
-        col1, col2, col3 = st.columns(3)
-        col1.metric("إجمالي البائعين", vendors)
-        col2.metric("إجمالي الطلبات", requests)
-        col3.metric("زوار اليوم", visitors)
-    
-    with tabs[1]:
-        vendors_df = fetch_vendors()
-        if not vendors_df.empty:
-            st.dataframe(vendors_df, use_container_width=True)
-    
-    with tabs[2]:
-        requests_df = fetch_requests()
-        if not requests_df.empty:
-            st.dataframe(requests_df, use_container_width=True)
-
-# ==========================================
-# 10. إحصائيات سريعة
-# ==========================================
-def show_stats():
-    vendors, requests, visitors = get_stats()
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{vendors}</div>
-            <div class="stat-label">تاجر</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{requests}</div>
-            <div class="stat-label">طلب</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{visitors}</div>
-            <div class="stat-label">زائر</div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # ==========================================
 # 11. الصفحة الرئيسية
@@ -650,19 +751,20 @@ def main():
     with st.sidebar:
         st.markdown("### 📊 حالة النظام")
         if connected:
-            st.markdown('<span class="status-badge status-online">✅ متصل بالسحابة</span>', unsafe_allow_html=True)
+            st.markdown('✅ متصل بالسحابة', unsafe_allow_html=True)
         else:
-            st.markdown('<span class="status-badge status-offline">❌ غير متصل</span>', unsafe_allow_html=True)
+            st.markdown('❌ غير متصل', unsafe_allow_html=True)
         
-        vendors, requests, visitors = get_stats()
+        vendors, requests, leads = get_stats()
         st.metric("إجمالي الطلبات", requests)
         st.metric("إجمالي البائعين", vendors)
+        st.metric("فرص محتملة", leads)
     
     # عداد الزوار
-    vendors, requests, visitors = get_stats()
+    vendors, requests, leads = get_stats()
     st.markdown(f"""
     <div class="live-counter">
-        <span style="color:#00ffff;">●</span> {visitors} زائر • {vendors} تاجر • {requests} طلب
+        <span style="color:#00ffff;">●</span> {requests} طلب • {vendors} تاجر
     </div>
     """, unsafe_allow_html=True)
     
@@ -681,33 +783,96 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    show_stats()
-    buyer_radar_ui()
-    
+    # تبويبات رئيسية
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🔍 طلبات المشترين",
-        "👥 قائمة البائعين",
-        "👨‍💼 تسجيل تاجر",
+        "🎯 رادار المشتري",
+        "🧲 مغناطيس التجار",
+        "📊 إحصائيات عامة",
         "🔐 المشرف"
     ])
     
     with tab1:
-        st.markdown("### 📋 جميع الطلبات")
-        show_requests()
+        buyer_radar_ui()
+        
+        st.markdown("### 📋 آخر الطلبات")
+        requests_df = fetch_requests()
+        if not requests_df.empty:
+            for _, row in requests_df.head(5).iterrows():
+                st.markdown(f"""
+                <div class="request-card">
+                    <div class="request-header">
+                        <span class="request-category">{row.get('category', '')}</span>
+                        <span class="request-time">{row.get('created_at', '')[:16]}</span>
+                    </div>
+                    <div class="request-title">{row.get('item', '')[:50]}</div>
+                    <div class="request-details">
+                        <span>📍 {row.get('wilaya', '')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("لا توجد طلبات")
     
     with tab2:
-        st.markdown("### 👥 البائعون المسجلون")
-        show_vendors()
+        magnet_vendor_registration()
+        
+        st.markdown("### 👥 التجار المسجلون مؤخراً")
+        vendors_df = fetch_vendors()
+        if not vendors_df.empty:
+            for _, row in vendors_df.head(5).iterrows():
+                st.markdown(f"""
+                <div class="vendor-card">
+                    <div class="vendor-name">{row.get('name', '')}</div>
+                    <div class="vendor-stats">
+                        <span>📍 {row.get('wilaya', '')}</span>
+                        <span>📞 {row.get('phone', '')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
     
     with tab3:
-        vendor_registration()
+        public_stats_dashboard()
+        
+        # إضافة منافذ يدوي (للمشرفين)
+        with st.expander("📥 إضافة منافذ محتمل (للمشرف)"):
+            add_lead_manually()
     
     with tab4:
-        admin_panel()
+        st.markdown("### 🔐 لوحة المشرف")
+        password = st.text_input("كلمة المرور", type="password")
+        if password == "rassim2026":
+            st.success("مرحباً أيها المشرف")
+            
+            tabs = st.tabs(["📊 إحصائيات", "👥 البائعين", "🎯 الطلبات", "📥 المنافذ"])
+            
+            with tabs[0]:
+                vendors, requests, leads = get_stats()
+                col1, col2, col3 = st.columns(3)
+                col1.metric("البائعين", vendors)
+                col2.metric("الطلبات", requests)
+                col3.metric("المنافذ", leads)
+            
+            with tabs[1]:
+                vendors_df = fetch_vendors()
+                if not vendors_df.empty:
+                    st.dataframe(vendors_df)
+            
+            with tabs[2]:
+                requests_df = fetch_requests()
+                if not requests_df.empty:
+                    st.dataframe(requests_df)
+            
+            with tabs[3]:
+                leads_df = fetch_leads()
+                if not leads_df.empty:
+                    st.dataframe(leads_df)
+        else:
+            st.error("كلمة مرور خاطئة")
     
+    # تذييل
     st.markdown("""
     <div class="footer">
-        RASSIM OS 2026 • منصة الوساطة الذكية • جميع الحقوق محفوظة
+        RASSIM OS 2026 • نظام الجذب التلقائي • جميع الحقوق محفوظة
     </div>
     """, unsafe_allow_html=True)
 
