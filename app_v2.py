@@ -3,46 +3,49 @@
 
 """
 RASSIM OS ULTIMATE 2026
-نظام السوق العكسي - المشتري يبحث والبائع يجد
+منصة وسيط ذكي - دليل البائعين المتكامل
 69 ولاية جزائرية
 """
 
 import streamlit as st
+import sqlite3
 import random
 import time
 import json
+import hashlib
+import secrets
 from datetime import datetime
-from typing import Tuple, Dict, Any, List
+from pathlib import Path
+from typing import Tuple, Dict, Any, List, Optional
 
 # ==========================================
 # 1. إعدادات الصفحة
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS • السوق العكسي",
-    page_icon="🎯",
-    layout="wide"
+    page_title="RASSIM OS • دليل البائعين",
+    page_icon="📞",
+    layout="wide",
+    initial_sidebar_state="auto"
 )
 
 # ==========================================
-# 2. قائمة الولايات
+# 2. الثوابت والتكوين
+# ==========================================
+DB_PATH = Path("rassim_os.db")
+ADMIN_PASSWORD = "rassim2026"  # غيرها بعد التثبيت
+
+# ==========================================
+# 3. قائمة الولايات
 # ==========================================
 WILAYAS: Tuple[str, ...] = (
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
     "19 - سطيف", "23 - عنابة", "13 - تلمسان", "09 - البليدة", "15 - تيزي وزو",
     "07 - بسكرة", "26 - المدية", "29 - معسكر", "35 - بومرداس", "41 - سوق أهراس",
-    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر",
-    "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
-    "08 - بشار", "10 - البويرة", "11 - تمنراست", "12 - تبسة", "14 - تيارت",
-    "17 - الجلفة", "18 - جيجل", "20 - سعيدة", "21 - سكيكدة", "22 - سيدي بلعباس",
-    "24 - قالمة", "27 - مستغانم", "28 - المسيلة", "30 - ورقلة", "32 - البيض",
-    "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت",
-    "39 - الوادي", "40 - خنشلة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
-    "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام"
+    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر"
 )
 
 # ==========================================
-# 3. قائمة الفئات
+# 4. قائمة الفئات
 # ==========================================
 CATEGORIES: Tuple[str, ...] = (
     "🚗 قطع غيار سيارات",
@@ -52,81 +55,134 @@ CATEGORIES: Tuple[str, ...] = (
     "🛋️ أثاث",
     "👕 ملابس",
     "🛠️ خدمات",
+    "💄 تجميل",
     "📦 أخرى"
 )
 
 # ==========================================
-# 4. طلبات المشتريين
+# 5. قاعدة البيانات
 # ==========================================
-def get_sample_requests() -> List[Dict[str, Any]]:
-    """طلبات تجريبية"""
-    return [
-        {
-            "id": 1,
-            "title": "محرك رونو كليو 2 ديزل 2005",
-            "category": "🚗 قطع غيار سيارات",
-            "wilaya": "16 - الجزائر",
-            "buyer": "ناصر",
-            "phone": "0555123456",
-            "date": "2026-02-24 14:30",
-            "status": "نشط",
-            "offers": 3
-        },
-        {
-            "id": 2,
-            "title": "كراء شقة غرفتين + صالون في فوكة",
-            "category": "🏠 عقارات",
-            "wilaya": "42 - تيبازة",
-            "buyer": "فاطمة",
-            "phone": "0666123456",
-            "date": "2026-02-24 13:15",
-            "status": "نشط",
-            "offers": 2
-        },
-        {
-            "id": 3,
-            "title": "بطارية iPhone 13 Pro Max أصلية",
-            "category": "📱 هواتف",
-            "wilaya": "31 - وهران",
-            "buyer": "كريم",
-            "phone": "0777123456",
-            "date": "2026-02-24 12:00",
-            "status": "نشط",
-            "offers": 5
-        },
-        {
-            "id": 4,
-            "title": "طقم صالون 4 قطع مستعمل بحالة جيدة",
-            "category": "🛋️ أثاث",
-            "wilaya": "25 - قسنطينة",
-            "buyer": "سهام",
-            "phone": "0555987123",
-            "date": "2026-02-24 11:30",
-            "status": "نشط",
-            "offers": 1
-        },
-        {
-            "id": 5,
-            "title": "عدد كهربائية (مثقاب + منشار + صاروخ)",
-            "category": "🔧 خردة وأدوات",
-            "wilaya": "19 - سطيف",
-            "buyer": "عمار",
-            "phone": "0665987123",
-            "date": "2026-02-24 10:45",
-            "status": "نشط",
-            "offers": 4
-        }
+@st.cache_resource
+def get_connection():
+    return sqlite3.connect(str(DB_PATH), check_same_thread=False)
+
+conn = get_connection()
+
+def init_db():
+    cursor = conn.cursor()
+    
+    # جدول البائعين
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vendors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL UNIQUE,
+            wilaya TEXT NOT NULL,
+            category TEXT NOT NULL,
+            address TEXT,
+            description TEXT,
+            verified INTEGER DEFAULT 0,
+            views INTEGER DEFAULT 0,
+            contacts INTEGER DEFAULT 0,
+            joined_date TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # جدول طلبات المشتريين
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS buyer_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            category TEXT NOT NULL,
+            wilaya TEXT NOT NULL,
+            buyer_name TEXT NOT NULL,
+            buyer_phone TEXT NOT NULL,
+            description TEXT,
+            status TEXT DEFAULT 'active',
+            matched_vendor_id INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (matched_vendor_id) REFERENCES vendors (id)
+        )
+    """)
+    
+    # جدول سجل البحث
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS search_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query TEXT NOT NULL,
+            category TEXT,
+            wilaya TEXT,
+            results_count INTEGER,
+            searched_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # جدول المشرفين
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    conn.commit()
+
+init_db()
+
+# ==========================================
+# 6. بيانات تجريبية للبائعين
+# ==========================================
+def seed_vendors():
+    """إضافة بائعين تجريبيين"""
+    sample_vendors = [
+        ("مؤسسة الرونو لقطع الغيار", "0555123456", "42 - تيبازة", "🚗 قطع غيار سيارات", 
+         "فوكة - الطريق الوطني", "متخصصون في قطع غيار رونو وبيجو", 1),
+        ("خير الدين للخردة", "0666123456", "16 - الجزائر", "🔧 خردة وأدوات",
+         "باب الزوار - المنطقة الصناعية", "جميع أنواع الخردة والمعدات المستعملة", 1),
+        ("صالون الفخامة", "0777123456", "31 - وهران", "👕 ملابس",
+         "وسط المدينة - شارع الأمير عبد القادر", "ملابس رجالية ونسائية فاخرة", 1),
+        ("حديدو للعقارات", "0555987123", "42 - تيبازة", "🏠 عقارات",
+         "فوكة - بجانب البلدية", "كراء وبيع العقارات في تيبازة", 1),
+        ("إلياس للهواتف", "0665987123", "25 - قسنطينة", "📱 هواتف",
+         "وسط المدينة - سوق الهواتف", "تصليح وبيع هواتف مستعملة وجديدة", 1),
+        ("صالون لطيفة للتجميل", "0775987123", "19 - سطيف", "💄 تجميل",
+         "شارع فلسطين", "كريمات ومكياج أصلي", 1),
+        ("عمار للأثاث", "0555987345", "06 - بجاية", "🛋️ أثاث",
+         "منطقة القصبة", "أثاث منزلي ومكتبي", 1)
     ]
+    
+    cursor = conn.cursor()
+    count = 0
+    for vendor in sample_vendors:
+        try:
+            cursor.execute("""
+                INSERT OR IGNORE INTO vendors (name, phone, wilaya, category, address, description, verified)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, vendor)
+            if cursor.rowcount > 0:
+                count += 1
+        except:
+            pass
+    
+    conn.commit()
+    return count
 
 # ==========================================
-# 5. حفظ البيانات في الجلسة
+# 7. المتغيرات في الجلسة
 # ==========================================
-if 'requests' not in st.session_state:
-    st.session_state.requests = get_sample_requests()
-    st.session_state.last_update = datetime.now().strftime("%H:%M:%S")
+if 'admin_logged_in' not in st.session_state:
+    st.session_state.admin_logged_in = False
+if 'last_search' not in st.session_state:
+    st.session_state.last_search = None
+if 'search_results' not in st.session_state:
+    st.session_state.search_results = []
+if 'selected_vendor' not in st.session_state:
+    st.session_state.selected_vendor = None
 
 # ==========================================
-# 6. التصميم المتطور
+# 8. التصميم
 # ==========================================
 st.markdown("""
 <style>
@@ -161,99 +217,62 @@ st.markdown("""
     margin-top: -10px;
 }
 
-/* ===== قسم البحث العكسي ===== */
+/* ===== قسم البحث ===== */
 .search-section {
     background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
     border-radius: 30px;
     padding: 30px;
     margin: 20px 0;
     border: 1px solid #00ffff;
-    box-shadow: 0 10px 30px rgba(0,255,255,0.1);
 }
 
 .search-title {
     color: #00ffff;
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
+    margin-bottom: 10px;
 }
 
-.search-subtitle {
-    color: #888;
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.1rem;
-}
-
-/* ===== تأثير البحث ===== */
-.search-animation {
-    text-align: center;
-    padding: 20px;
-    background: #2a2a3a;
-    border-radius: 20px;
-    margin: 20px 0;
-}
-
-.search-progress {
-    height: 10px;
-    background: linear-gradient(90deg, #00ffff, #ff00ff);
-    border-radius: 10px;
-    animation: progress 2s ease-in-out infinite;
-}
-
-@keyframes progress {
-    0% { width: 0%; opacity: 0.5; }
-    50% { width: 100%; opacity: 1; }
-    100% { width: 0%; opacity: 0.5; }
-}
-
-/* ===== بطاقة الطلب ===== */
-.request-card {
+/* ===== بطاقة البائع ===== */
+.vendor-card {
     background: #1a1a2a;
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 15px;
     border: 1px solid #333;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.request-card:hover {
+.vendor-card:hover {
     border-color: #00ffff;
     transform: translateX(-5px);
 }
 
-.request-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.request-category {
-    background: #2a2a3a;
-    padding: 5px 12px;
-    border-radius: 50px;
+.vendor-name {
     color: #00ffff;
-    font-size: 0.85rem;
-}
-
-.request-status {
-    background: #00aa00;
-    padding: 5px 12px;
-    border-radius: 50px;
-    color: white;
-    font-size: 0.85rem;
-}
-
-.request-title {
-    color: white;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
-    margin: 10px 0;
 }
 
-.request-details {
+.vendor-category {
+    background: #2a2a3a;
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: #ff00ff;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.vendor-verified {
+    background: #00aa00;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+}
+
+.vendor-stats {
     display: flex;
     gap: 15px;
     color: #888;
@@ -261,57 +280,34 @@ st.markdown("""
     margin: 10px 0;
 }
 
-.request-offers {
-    background: #2a2a3a;
-    padding: 5px 12px;
-    border-radius: 50px;
-    color: #ff00ff;
-    font-size: 0.85rem;
+.contact-btn {
+    background: #00ffff;
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    text-decoration: none;
     display: inline-block;
+    text-align: center;
+    font-weight: bold;
+    transition: opacity 0.2s;
 }
 
-/* ===== بطاقة البائع ===== */
-.seller-card {
-    background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
-    border-radius: 15px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid #ff00ff;
+.contact-btn:hover {
+    opacity: 0.8;
+}
+
+/* ===== نتائج البحث ===== */
+.search-results {
+    background: #2a2a3a;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
     animation: slideIn 0.5s ease;
 }
 
 @keyframes slideIn {
-    from { transform: translateX(50px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.seller-name {
-    color: #ff00ff;
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.seller-contact {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.seller-btn {
-    flex: 1;
-    background: #00ffff;
-    color: black;
-    padding: 8px;
-    border-radius: 10px;
-    text-decoration: none;
-    text-align: center;
-    font-size: 0.9rem;
-    transition: opacity 0.2s;
-}
-
-.seller-btn:hover {
-    opacity: 0.8;
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* ===== إحصائيات ===== */
@@ -340,15 +336,8 @@ st.markdown("""
     border: none !important;
     color: black !important;
     font-weight: bold !important;
-    border-radius: 15px !important;
-    padding: 12px !important;
-    font-size: 1rem !important;
-    width: 100%;
-    transition: transform 0.2s !important;
-}
-
-.stButton > button:hover {
-    transform: scale(1.02) !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
 }
 
 /* ===== عداد الزوار ===== */
@@ -362,7 +351,6 @@ st.markdown("""
     border-radius: 50px;
     z-index: 999;
     color: white;
-    font-size: 0.85rem;
 }
 
 /* ===== فقاعة الدردشة ===== */
@@ -379,7 +367,6 @@ st.markdown("""
     justify-content: center;
     cursor: pointer;
     z-index: 9999;
-    box-shadow: 0 5px 20px #00ffff;
     animation: float 3s ease-in-out infinite;
 }
 
@@ -401,194 +388,279 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 7. دوال المساعدة
+# 9. دوال المساعدة
 # ==========================================
-def get_stats() -> Tuple[int, int, int]:
-    """إحصائيات سريعة"""
-    requests_count = len(st.session_state.requests)
-    sellers_count = random.randint(50, 150)
-    visitors = random.randint(100, 300)
-    return requests_count, sellers_count, visitors
+def get_stats():
+    """إحصائيات"""
+    cursor = conn.cursor()
+    vendors = cursor.execute("SELECT COUNT(*) FROM vendors").fetchone()[0]
+    requests = cursor.execute("SELECT COUNT(*) FROM buyer_requests WHERE status='active'").fetchone()[0]
+    visitors = random.randint(50, 200)
+    return vendors, requests, visitors
 
 # ==========================================
-# 8. قسم البحث العكسي
+# 10. نظام البحث الذكي
 # ==========================================
-def search_request_section():
-    """قسم عما تبحث؟"""
+def search_vendors(query: str, wilaya: str, category: str) -> List[Dict]:
+    """البحث عن بائعين"""
+    cursor = conn.cursor()
+    
+    sql = "SELECT * FROM vendors WHERE 1=1"
+    params = []
+    
+    if query:
+        sql += " AND (name LIKE ? OR description LIKE ? OR category LIKE ?)"
+        params.extend([f"%{query}%", f"%{query}%", f"%{query}%"])
+    
+    if wilaya != "كل الولايات":
+        sql += " AND wilaya = ?"
+        params.append(wilaya)
+    
+    if category != "كل الفئات":
+        sql += " AND category = ?"
+        params.append(category)
+    
+    sql += " ORDER BY verified DESC, views DESC"
+    
+    results = cursor.execute(sql, params).fetchall()
+    
+    # تسجيل البحث
+    cursor.execute("""
+        INSERT INTO search_log (query, category, wilaya, results_count)
+        VALUES (?, ?, ?, ?)
+    """, (query, category if category != "كل الفئات" else None, 
+          wilaya if wilaya != "كل الولايات" else None, len(results)))
+    conn.commit()
+    
+    return results
+
+# ==========================================
+# 11. واجهة البحث الرئيسية
+# ==========================================
+def search_interface():
+    """واجهة البحث عن البائعين"""
     st.markdown("""
     <div class="search-section">
-        <div class="search-title">🔍 عما تبحث؟</div>
-        <div class="search-subtitle">
-            اكتب ما تريد والتجار في 69 ولاية سيتسابقون لخدمتك
-        </div>
+        <div class="search-title">🔍 ابحث عن بائع في 69 ولاية</div>
+        <p style="color: #888;">اكتب ما تبحث عنه وسنجد لك التجار المتخصصين</p>
     """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns(2)
     with col1:
-        query = st.text_input("", placeholder="مثال: محرك رونو سيمبول 2015، كراء استوديو في فوكة...", key="search_query")
+        query = st.text_input("", placeholder="مثال: قطع غيار رونو, خردة, كراء شقة...")
     with col2:
-        wilaya_req = st.selectbox("الولاية", ["كل الولايات"] + list(WILAYAS), key="search_wilaya")
+        wilaya = st.selectbox("الولاية", ["كل الولايات"] + list(WILAYAS))
     
-    col1, col2, col3 = st.columns(3)
-    with col2:
-        search_clicked = st.button("🚀 أطلق الرادار", use_container_width=True)
+    category = st.selectbox("الفئة", ["كل الفئات"] + list(CATEGORIES))
+    
+    if st.button("🔍 بحث في دليل البائعين", use_container_width=True) and query:
+        with st.status("🚀 جاري البحث في قاعدة بيانات التجار..."):
+            time.sleep(1)
+            results = search_vendors(query, wilaya, category)
+            
+            if results:
+                st.success(f"✅ تم العثور على {len(results)} بائع")
+                st.session_state.search_results = results
+            else:
+                st.warning("😕 لم نجد بائعين لهذا الطلب")
+                st.session_state.search_results = []
     
     st.markdown("</div>", unsafe_allow_html=True)
     
-    if search_clicked and query:
-        # محاكاة البحث
-        progress_bar = st.progress(0, text="🔍 جاري البحث عن البائعين في 69 ولاية...")
-        
-        for i in range(100):
-            time.sleep(0.02)
-            progress_bar.progress(i + 1, text=f"🔍 جاري البحث... {i+1}%")
-        
-        progress_bar.empty()
-        
-        # نتائج البحث
-        st.markdown("""
-        <div style="background: #2a2a3a; border-radius: 20px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #00ffff; text-align: center;">✅ تم العثور على بائعين!</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # عرض البائعين
-        sellers = [
-            {"name": "محل الرونو - بومرداس", "phone": "0555123456", "distance": "12 كم"},
-            {"name": "حديدو لقطع الغيار - الجزائر", "phone": "0666123456", "distance": "25 كم"},
-            {"name": "خير الدين للخردة - تيبازة", "phone": "0777123456", "distance": "8 كم"}
-        ]
-        
-        for seller in sellers:
-            whatsapp = seller["phone"][1:] if seller["phone"].startswith('0') else seller["phone"]
+    # عرض النتائج
+    if st.session_state.search_results:
+        st.markdown("### 📍 نتائج البحث")
+        for vendor in st.session_state.search_results:
+            whatsapp = vendor[2][1:] if vendor[2].startswith('0') else vendor[2]
             
-            st.markdown(f"""
-            <div class="seller-card">
-                <div class="seller-name">{seller['name']}</div>
-                <div style="color: #888; font-size: 0.9rem; margin: 5px 0;">
-                    📍 {seller['distance']} من موقعك
+            with st.container():
+                st.markdown(f"""
+                <div class="vendor-card" onclick="document.getElementById('vendor_{vendor[0]}').click();">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span class="vendor-name">{vendor[1]}</span>
+                        <span class="vendor-category">{vendor[4]}</span>
+                    </div>
+                    <div style="margin: 5px 0;">
+                        <span class="vendor-verified">✅ موثق</span>
+                    </div>
+                    <div class="vendor-stats">
+                        <span>📍 {vendor[3]}</span>
+                        <span>👁️ {vendor[7]} مشاهدة</span>
+                        <span>📞 {vendor[8]} اتصال</span>
+                    </div>
+                    <p style="color: #aaa;">{vendor[6][:100]}...</p>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="https://wa.me/213{whatsapp}" target="_blank" class="contact-btn" style="flex:1;">📱 واتساب</a>
+                        <a href="tel:{vendor[2]}" class="contact-btn" style="flex:1; background:#ff00ff;">📞 اتصال</a>
+                    </div>
                 </div>
-                <div class="seller-contact">
-                    <a href="https://wa.me/213{whatsapp}" target="_blank" class="seller-btn">
-                        📱 واتساب
-                    </a>
-                    <a href="tel:{seller['phone']}" class="seller-btn" style="background: #ff00ff;">
-                        📞 اتصال
-                    </a>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.balloons()
-        st.success("✨ تم العثور على 3 بائعين! تواصل معهم الآن.")
+                """, unsafe_allow_html=True)
+                
+                # تحديث عدد المشاهدات
+                cursor = conn.cursor()
+                cursor.execute("UPDATE vendors SET views = views + 1 WHERE id = ?", (vendor[0],))
+                conn.commit()
 
 # ==========================================
-# 9. طلبات المشتريين (للتجار)
+# 12. إضافة طلب (إذا لم يجد)
 # ==========================================
-def show_buyer_requests():
-    """عرض طلبات المشتريين للتجار"""
-    st.markdown("## 📋 طلبات المشتريين النشطة")
+def add_buyer_request():
+    """إضافة طلب عندما لا يجد المشتري"""
+    st.markdown("### 📝 لم تجد بائعاً؟ اترك طلبك")
     
-    # فلترة
-    col1, col2 = st.columns(2)
-    with col1:
-        filter_cat = st.selectbox("فلترة حسب الفئة", ["الكل"] + list(CATEGORIES))
-    with col2:
-        filter_wilaya = st.selectbox("فلترة حسب الولاية", ["كل الولايات"] + list(WILAYAS))
-    
-    filtered_requests = st.session_state.requests
-    
-    if filter_cat != "الكل":
-        filtered_requests = [r for r in filtered_requests if r["category"] == filter_cat]
-    if filter_wilaya != "كل الولايات":
-        filtered_requests = [r for r in filtered_requests if r["wilaya"] == filter_wilaya]
-    
-    st.markdown(f"<p style='color: #888;'>عرض {len(filtered_requests)} طلب نشط</p>", unsafe_allow_html=True)
-    
-    for req in filtered_requests:
-        whatsapp = req["phone"][1:] if req["phone"].startswith('0') else req["phone"]
-        
-        st.markdown(f"""
-        <div class="request-card">
-            <div class="request-header">
-                <span class="request-category">{req['category']}</span>
-                <span class="request-status">🟢 نشط</span>
-            </div>
-            <div class="request-title">{req['title']}</div>
-            <div class="request-details">
-                <span>📍 {req['wilaya']}</span>
-                <span>👤 {req['buyer']}</span>
-                <span>🕐 {req['date']}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="request-offers">💰 {req['offers']} بائع تواصل</span>
-                <div style="display: flex; gap: 10px;">
-                    <a href="https://wa.me/213{whatsapp}" target="_blank" class="seller-btn" style="width: 100px; background: #00ffff; color: black; text-decoration: none; padding: 5px;">
-                        تواصل
-                    </a>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ==========================================
-# 10. إضافة طلب جديد
-# ==========================================
-def add_new_request():
-    """إضافة طلب جديد"""
-    with st.form("new_request"):
-        st.markdown("### 📝 طلب جديد")
-        
-        title = st.text_input("ما الذي تبحث عنه؟ *", placeholder="مثال: محرك رونو كليو 2 ديزل")
+    with st.form("buyer_request"):
+        title = st.text_input("ما الذي تبحث عنه؟ *")
         category = st.selectbox("الفئة", CATEGORIES)
         wilaya = st.selectbox("الولاية", WILAYAS)
-        buyer = st.text_input("اسمك *")
-        phone = st.text_input("رقم الهاتف *", placeholder="0555123456")
+        name = st.text_input("اسمك *")
+        phone = st.text_input("رقم الهاتف *")
+        description = st.text_area("تفاصيل إضافية")
         
-        if st.form_submit_button("🔍 نشر الطلب", use_container_width=True) and title and buyer and phone:
-            new_request = {
-                "id": len(st.session_state.requests) + 1,
-                "title": title,
-                "category": category,
-                "wilaya": wilaya,
-                "buyer": buyer,
-                "phone": phone,
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "status": "نشط",
-                "offers": 0
-            }
-            st.session_state.requests.append(new_request)
-            st.success("✅ تم نشر طلبك! سيتواصل معك البائعون قريباً.")
+        if st.form_submit_button("🔔 أرسل الطلب للتجار", use_container_width=True) and title and name and phone:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO buyer_requests (title, category, wilaya, buyer_name, buyer_phone, description)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (title, category, wilaya, name, phone, description))
+            conn.commit()
+            
+            st.success("✅ تم إرسال طلبك! سيتواصل معك التجار قريباً.")
             st.balloons()
-            time.sleep(1)
-            st.rerun()
 
 # ==========================================
-# 11. إحصائيات
+# 13. انضم كتاجر
+# ==========================================
+def join_as_vendor():
+    """تسجيل بائع جديد"""
+    st.markdown("### 👨‍💼 انضم كتاجر")
+    
+    with st.form("vendor_registration"):
+        name = st.text_input("اسم المحل أو المؤسسة *")
+        phone = st.text_input("رقم الهاتف *")
+        wilaya = st.selectbox("الولاية", WILAYAS)
+        category = st.selectbox("التخصص", CATEGORIES)
+        address = st.text_input("العنوان")
+        description = st.text_area("وصف النشاط")
+        
+        if st.form_submit_button("📋 سجل الآن", use_container_width=True) and name and phone:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    INSERT INTO vendors (name, phone, wilaya, category, address, description, verified)
+                    VALUES (?, ?, ?, ?, ?, ?, 0)
+                """, (name, phone, wilaya, category, address, description))
+                conn.commit()
+                st.success("✅ تم تسجيلك! سيقوم المشرف بتوثيق حسابك قريباً.")
+            except:
+                st.error("❌ هذا الرقم مسجل مسبقاً")
+
+# ==========================================
+# 14. لوحة تحكم المشرف
+# ==========================================
+def admin_panel():
+    """لوحة تحكم المشرف"""
+    st.markdown("### 🔐 لوحة تحكم المشرف")
+    
+    # تسجيل الدخول
+    if not st.session_state.admin_logged_in:
+        password = st.text_input("كلمة المرور", type="password")
+        if st.button("دخول") and password == ADMIN_PASSWORD:
+            st.session_state.admin_logged_in = True
+            st.rerun()
+        return
+    
+    tabs = st.tabs(["📊 إحصائيات", "👥 البائعين", "📋 الطلبات", "➕ إضافة بائع"])
+    
+    with tabs[0]:
+        vendors, requests, visitors = get_stats()
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("إجمالي البائعين", vendors)
+        col2.metric("طلبات نشطة", requests)
+        col3.metric("زيارات اليوم", visitors)
+        col4.metric("الولايات", len(WILAYAS))
+        
+        # آخر عمليات البحث
+        cursor = conn.cursor()
+        searches = cursor.execute("SELECT query, wilaya, results_count, searched_at FROM search_log ORDER BY searched_at DESC LIMIT 10").fetchall()
+        if searches:
+            st.markdown("#### 🔍 آخر عمليات البحث")
+            for s in searches:
+                st.text(f"{s[3][:16]} - {s[0]} ({s[2]} نتيجة)")
+    
+    with tabs[1]:
+        cursor = conn.cursor()
+        vendors = cursor.execute("SELECT id, name, phone, wilaya, category, verified, views, contacts FROM vendors ORDER BY id DESC").fetchall()
+        
+        for v in vendors:
+            with st.expander(f"{v[1]} - {v[4]}"):
+                col1, col2, col3 = st.columns([2,1,1])
+                col1.write(f"📞 {v[2]} | 📍 {v[3]}")
+                col2.write(f"👁️ {v[6]} | 📞 {v[7]}")
+                if col3.button("✅ توثيق", key=f"verify_{v[0]}"):
+                    cursor.execute("UPDATE vendors SET verified = 1 WHERE id = ?", (v[0],))
+                    conn.commit()
+                    st.rerun()
+    
+    with tabs[2]:
+        cursor = conn.cursor()
+        requests = cursor.execute("SELECT id, title, category, wilaya, buyer_name, buyer_phone, status FROM buyer_requests ORDER BY id DESC").fetchall()
+        
+        for r in requests:
+            with st.expander(f"{r[1]} - {r[3]}"):
+                st.write(f"👤 {r[4]} | 📞 {r[5]}")
+                if st.button("✅ تم التواصل", key=f"done_{r[0]}"):
+                    cursor.execute("UPDATE buyer_requests SET status = 'done' WHERE id = ?", (r[0],))
+                    conn.commit()
+                    st.rerun()
+    
+    with tabs[3]:
+        with st.form("admin_add_vendor"):
+            name = st.text_input("اسم المحل")
+            phone = st.text_input("رقم الهاتف")
+            wilaya = st.selectbox("الولاية", WILAYAS)
+            category = st.selectbox("التخصص", CATEGORIES)
+            address = st.text_input("العنوان")
+            verified = st.checkbox("موثق")
+            
+            if st.form_submit_button("➕ إضافة بائع") and name and phone:
+                cursor = conn.cursor()
+                try:
+                    cursor.execute("""
+                        INSERT INTO vendors (name, phone, wilaya, category, address, verified)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (name, phone, wilaya, category, address, 1 if verified else 0))
+                    conn.commit()
+                    st.success("تمت الإضافة")
+                    st.rerun()
+                except:
+                    st.error("الرقم موجود")
+
+# ==========================================
+# 15. إحصائيات سريعة
 # ==========================================
 def show_stats():
     """عرض إحصائيات"""
-    requests_count, sellers_count, visitors = get_stats()
+    vendors, requests, visitors = get_stats()
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
         <div class="stat-card">
-            <div class="stat-value">{requests_count}</div>
-            <div class="stat-label">طلب نشط</div>
+            <div class="stat-value">{vendors}</div>
+            <div class="stat-label">بائع</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
         <div class="stat-card">
-            <div class="stat-value">{sellers_count}</div>
-            <div class="stat-label">تاجر متصل</div>
+            <div class="stat-value">{requests}</div>
+            <div class="stat-label">طلب</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
         <div class="stat-card">
-            <div class="stat-value">69</div>
+            <div class="stat-value">{len(WILAYAS)}</div>
             <div class="stat-label">ولاية</div>
         </div>
         """, unsafe_allow_html=True)
@@ -596,84 +668,71 @@ def show_stats():
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{visitors}</div>
-            <div class="stat-label">زائر الآن</div>
+            <div class="stat-label">زائر</div>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 12. فقاعة الدردشة
+# 16. الدالة الرئيسية
 # ==========================================
-def show_chat():
-    """فقاعة الدردشة"""
+def main():
+    """الدالة الرئيسية"""
+    
+    # تهيئة البيانات
+    seed_vendors()
+    
+    # عداد الزوار
+    vendors, requests, visitors = get_stats()
+    st.markdown(f"""
+    <div class="live-counter">
+        <span style="color:#00ffff;">●</span> {visitors} زائر • {vendors} بائع
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # فقاعة الدردشة
     st.markdown("""
     <div class="chat-bubble" onclick="window.open('https://wa.me/213555555555')">
         <img src="https://img.icons8.com/ios-filled/30/000000/speech-bubble.png">
     </div>
     """, unsafe_allow_html=True)
-
-# ==========================================
-# 13. الدالة الرئيسية
-# ==========================================
-def main():
-    """الدالة الرئيسية"""
-    
-    # عداد الزوار
-    requests_count, sellers_count, visitors = get_stats()
-    st.markdown(f"""
-    <div class="live-counter">
-        <span style="color:#00ffff;">●</span> {visitors} زائر • {requests_count} طلب • {sellers_count} تاجر
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # فقاعة الدردشة
-    show_chat()
     
     # الشعار
     st.markdown("""
     <div class="logo">
-        🎯 RASSIM OS
+        📞 RASSIM OS
     </div>
     <div class="subtitle">
-        السوق العكسي - المشتري يبحث والتاجر يجد • 69 ولاية
+        دليل البائعين في 69 ولاية • وسيطك الذكي
     </div>
     """, unsafe_allow_html=True)
-    
-    # آخر تحديث
-    st.markdown(f"<p style='text-align:center; color:#666;'>آخر تحديث: {st.session_state.last_update}</p>", unsafe_allow_html=True)
     
     # إحصائيات
     show_stats()
     
     # تبويبات
-    tab1, tab2, tab3 = st.tabs(["🎯 عما تبحث؟", "📋 طلبات المشتريين", "📝 طلب جديد"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🔍 بحث عن بائع", "📝 طلب جديد", "👨‍💼 انضم كتاجر", "🔐 المشرف"])
     
     with tab1:
-        search_request_section()
+        search_interface()
     
     with tab2:
-        show_buyer_requests()
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔄 تحديث الطلبات", use_container_width=True):
-                st.rerun()
-        with col2:
-            if st.button("📊 إحصائيات البائعين", use_container_width=True):
-                st.info(f"📈 {sellers_count} تاجر متصل الآن")
+        add_buyer_request()
     
     with tab3:
-        add_new_request()
+        join_as_vendor()
+    
+    with tab4:
+        admin_panel()
     
     # تذييل
     st.markdown("""
     <div class="footer">
-        RASSIM OS 2026 • نظام السوق العكسي • جميع الحقوق محفوظة
+        RASSIM OS 2026 • دليل البائعين المتكامل • جميع الحقوق محفوظة
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 14. تشغيل التطبيق
+# 17. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
-
