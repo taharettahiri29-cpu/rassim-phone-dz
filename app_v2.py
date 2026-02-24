@@ -42,7 +42,7 @@ WILAYAS = [
 ]
 
 # ==========================================
-# 4. قاعدة بيانات بسيطة
+# 4. قاعدة بيانات بسيطة (نسخة نظيفة)
 # ==========================================
 DB = Path("rassim_os.db")
 
@@ -55,9 +55,12 @@ conn = get_connection()
 def init_db():
     cursor = conn.cursor()
     
-    # جدول الإعلانات - بدون أعمدة معقدة
+    # حذف الجدول القديم إذا كان موجوداً (للتأكد من النظافة)
+    cursor.execute("DROP TABLE IF EXISTS ads")
+    
+    # إنشاء جدول جديد بالأعمدة الصحيحة
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS ads (
+        CREATE TABLE ads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             price INTEGER NOT NULL,
@@ -74,6 +77,7 @@ def init_db():
     
     conn.commit()
 
+# تهيئة قاعدة البيانات من جديد
 init_db()
 
 # ==========================================
@@ -86,85 +90,102 @@ def get_auto_ads():
             "name": "iPhone 15 Pro Max 512GB",
             "price": 225000,
             "img": "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400",
-            "specs": "A17 Pro • 8GB • 48MP • 4422mAh"
+            "specs": "A17 Pro • 8GB RAM • 48MP • 4422mAh"
         },
         {
             "name": "Samsung S24 Ultra 512GB",
             "price": 185000,
             "img": "https://images.unsplash.com/photo-1707248545831-7e8c356f981e?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 12GB • 200MP • 5000mAh"
+            "specs": "Snapdragon 8 Gen 3 • 12GB RAM • 200MP • 5000mAh"
         },
         {
             "name": "Google Pixel 8 Pro 256GB",
             "price": 145000,
             "img": "https://images.unsplash.com/photo-1696429117066-e399580556f0?w=400",
-            "specs": "Tensor G3 • 12GB • 50MP • 5050mAh"
+            "specs": "Tensor G3 • 12GB RAM • 50MP • 5050mAh"
         },
         {
             "name": "Xiaomi 14 Ultra 512GB",
             "price": 155000,
             "img": "https://images.unsplash.com/photo-1610433554474-76348234983c?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 16GB • 50MP • 5300mAh"
+            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5300mAh"
         },
         {
             "name": "iPhone 13 Pro Max 256GB",
             "price": 115000,
             "img": "https://images.unsplash.com/photo-1633333008433-89948d3eb300?w=400",
-            "specs": "A15 Bionic • 6GB • 12MP • 4352mAh"
+            "specs": "A15 Bionic • 6GB RAM • 12MP • 4352mAh"
         },
         {
             "name": "Samsung S23 Ultra 512GB",
             "price": 145000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 2 • 12GB • 200MP • 5000mAh"
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 200MP • 5000mAh"
         },
         {
             "name": "Nothing Phone 2 256GB",
             "price": 85000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8+ Gen 1 • 12GB • 50MP • 4700mAh"
+            "specs": "Snapdragon 8+ Gen 1 • 12GB RAM • 50MP • 4700mAh"
         },
         {
             "name": "OnePlus 12 512GB",
             "price": 130000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8 Gen 3 • 16GB • 50MP • 5400mAh"
+            "specs": "Snapdragon 8 Gen 3 • 16GB RAM • 50MP • 5400mAh"
         },
         {
             "name": "Huawei P60 Pro 512GB",
             "price": 135000,
             "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
-            "specs": "Snapdragon 8+ Gen 1 • 8GB • 48MP • 4815mAh"
+            "specs": "Snapdragon 8+ Gen 1 • 8GB RAM • 48MP • 4815mAh"
         },
+        {
+            "name": "iPhone 14 Pro Max 256GB",
+            "price": 155000,
+            "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
+            "specs": "A16 Bionic • 6GB RAM • 48MP • 4323mAh"
+        },
+        {
+            "name": "Samsung Z Fold 5 1TB",
+            "price": 210000,
+            "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 4400mAh"
+        },
+        {
+            "name": "Xiaomi 13 Ultra 512GB",
+            "price": 115000,
+            "img": "https://images.unsplash.com/photo-1678911821544-7a0e6d9b4b8a?w=400",
+            "specs": "Snapdragon 8 Gen 2 • 12GB RAM • 50MP • 5000mAh"
+        }
     ]
     
-    sources = ["واد كنيس", "فيسبوك ماركت", "مجموعة RASSIM", "تاجر معتمد"]
+    sources = ["واد كنيس", "فيسبوك ماركت", "مجموعة RASSIM", "تاجر معتمد", "عرض خاص"]
     tags = ["🔥 عرض حي", "⚡ جديد", "⭐ مميز", "💰 فرصة", "🚀 كمية محدودة"]
     
     auto_ads = []
-    for i, phone in enumerate(phones * 2):  # تكرار للحصول على 18 إعلان
-        if len(auto_ads) >= 18:
-            break
+    for i, phone in enumerate(phones):
         wilaya = random.choice(WILAYAS)
+        source = random.choice(sources)
+        tag = random.choice(tags)
+        phone_num = f"0555{random.randint(1000,9999)}"
+        
         auto_ads.append({
-            "id": i,
             "title": phone["name"],
             "price": phone["price"],
-            "price_f": f"{phone['price']:,} دج",
+            "phone": phone_num,
             "wilaya": wilaya,
-            "img": phone["img"],
-            "source": random.choice(sources),
-            "tag": random.choice(tags),
-            "specs": phone["specs"],
-            "phone_num": f"0555{random.randint(1000,9999)}"
+            "description": f"{phone['specs']} • {source} • {tag}",
+            "category": "أخرى",
+            "image_url": phone["img"]
         })
     return auto_ads
 
 # ==========================================
-# 6. إضافة الإعلانات التلقائية لقاعدة البيانات
+# 6. إضافة الإعلانات التلقائية
 # ==========================================
 def seed_ads():
-    """إضافة الإعلانات التلقائية"""
+    """إضافة الإعلانات التلقائية إلى قاعدة البيانات"""
     ads = get_auto_ads()
     cursor = conn.cursor()
     count = 0
@@ -178,12 +199,12 @@ def seed_ads():
         
         if not existing:
             cursor.execute("""
-                INSERT INTO ads (title, price, phone, wilaya, description, category, image_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO ads (
+                    title, price, phone, wilaya, description, category, image_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
-                ad["title"], ad["price"], ad["phone_num"], ad["wilaya"],
-                f"{ad['specs']} • {ad['source']} • {ad['tag']}",
-                "أخرى", ad["img"]
+                ad["title"], ad["price"], ad["phone"], ad["wilaya"],
+                ad["description"], ad["category"], ad["image_url"]
             ))
             count += 1
     
@@ -330,12 +351,21 @@ st.markdown("""
 .whatsapp-btn {
     background: #25D366 !important;
     color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 8px !important;
+    width: 100%;
+    cursor: pointer;
 }
 
 .call-btn {
     background: transparent !important;
     border: 1px solid #00ffff !important;
     color: #00ffff !important;
+    border-radius: 10px !important;
+    padding: 8px !important;
+    width: 100%;
+    cursor: pointer;
 }
 
 .live-counter {
@@ -400,63 +430,40 @@ def get_stats():
 def show_ads():
     """عرض كل الإعلانات"""
     
-    # إعلانات تلقائية
-    auto_ads = get_auto_ads()
-    
-    st.markdown("## 🔥 أحدث العروض في 69 ولاية")
-    
-    cols = st.columns(3)
-    for i, ad in enumerate(auto_ads):
-        with cols[i % 3]:
-            st.markdown(f"""
-            <div class="hologram-card">
-                <div class="ad-tag">{ad['tag']}</div>
-                <img src="{ad['img']}" class="ad-image">
-                <div class="ad-title">{ad['title']}</div>
-                <div class="ad-price">{ad['price_f']}</div>
-                <div class="ad-specs">{ad['specs']}</div>
-                <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-                    <span class="wilaya-badge">📍 {ad['wilaya']}</span>
-                    <span class="wilaya-badge">🌐 {ad['source']}</span>
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <a href="https://wa.me/{ad['phone_num']}" style="flex:1; text-decoration:none;">
-                        <button class="whatsapp-btn" style="width:100%; padding:8px; border:none; border-radius:10px;">📱 واتساب</button>
-                    </a>
-                    <a href="tel:{ad['phone_num']}" style="flex:1; text-decoration:none;">
-                        <button class="call-btn" style="width:100%; padding:8px; border:none; border-radius:10px;">📞 اتصال</button>
-                    </a>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # إعلانات من قاعدة البيانات (إذا وجدت)
+    # جلب الإعلانات من قاعدة البيانات
     db_ads = conn.execute("SELECT * FROM ads WHERE status='active' ORDER BY date DESC").fetchall()
     
     if db_ads:
-        st.markdown("## 📢 إعلانات المستخدمين")
         cols = st.columns(3)
-        for i, ad in enumerate(db_ads[:6]):
+        for i, ad in enumerate(db_ads):
             with cols[i % 3]:
-                img_url = ad[10] if len(ad) > 10 else "https://via.placeholder.com/400x300?text=صورة"
+                img_url = ad[10] if len(ad) > 10 else "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=400"
+                price_f = f"{ad[2]:,} دج"
+                # اختيار عشوائي للعلامة
+                tag = random.choice(["🔥 عرض حي", "⚡ جديد", "⭐ مميز"])
+                
                 st.markdown(f"""
                 <div class="hologram-card">
+                    <div class="ad-tag">{tag}</div>
                     <img src="{img_url}" class="ad-image">
                     <div class="ad-title">{ad[1][:30]}</div>
-                    <div class="ad-price">{ad[2]:,} دج</div>
+                    <div class="ad-price">{price_f}</div>
+                    <div class="ad-specs">{ad[5][:50]}...</div>
                     <div style="margin: 10px 0;">
                         <span class="wilaya-badge">📍 {ad[4]}</span>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <a href="https://wa.me/{ad[3]}" style="flex:1;">
-                            <button class="whatsapp-btn">📱</button>
+                        <a href="https://wa.me/{ad[3]}" target="_blank" style="flex:1; text-decoration:none;">
+                            <button class="whatsapp-btn">📱 واتساب</button>
                         </a>
-                        <a href="tel:{ad[3]}" style="flex:1;">
-                            <button class="call-btn">📞</button>
+                        <a href="tel:{ad[3]}" style="flex:1; text-decoration:none;">
+                            <button class="call-btn">📞 اتصال</button>
                         </a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+    else:
+        st.info("لا توجد إعلانات حالياً. اضغط على زر التحديث للإضافة!")
 
 # ==========================================
 # 10. واجهة الدردشة
@@ -498,14 +505,20 @@ def main():
         st.markdown(f'<div class="stat-card"><div class="stat-value">{visitors}</div><div>زائر الآن</div></div>', unsafe_allow_html=True)
     
     # زر إضافة إعلانات
-    if st.button("🚀 تحديث الإعلانات التلقائية", use_container_width=True):
-        count = seed_ads()
-        if count > 0:
-            st.success(f"✅ تمت إضافة {count} إعلان جديد!")
-            time.sleep(1)
+    col_a, col_b = st.columns(2)
+    with col_a:
+        if st.button("🚀 إضافة إعلانات تلقائية", use_container_width=True):
+            count = seed_ads()
+            if count > 0:
+                st.success(f"✅ تمت إضافة {count} إعلان جديد!")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.info("الإعلانات محدثة بالفعل")
+    
+    with col_b:
+        if st.button("🔄 تحديث الصفحة", use_container_width=True):
             st.rerun()
-        else:
-            st.info("الإعلانات محدثة بالفعل")
     
     # عرض الإعلانات
     show_ads()
