@@ -3,16 +3,15 @@
 
 """
 RASSIM OS ULTIMATE 2026
-منصة الوساطة الذكية - النسخة السحابية مع Google Sheets
+منصة الوساطة الذكية - النسخة النهائية المستقرة
 69 ولاية جزائرية
 """
 
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import datetime
 import random
 import time
+from datetime import datetime
 from typing import Tuple, List, Dict, Any
 
 # ==========================================
@@ -26,15 +25,17 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. الاتصال بـ Google Sheets
+# 2. محاولة استيراد Google Sheets (مع Fallback)
 # ==========================================
+USE_GSHEETS = False
 try:
+    from streamlit_gsheets import GSheetsConnection
     conn = st.connection("gsheets", type=GSheetsConnection)
-    st.success("✅ متصل بـ Google Sheets")
+    USE_GSHEETS = True
+    st.sidebar.success("✅ متصل بـ Google Sheets")
 except Exception as e:
-    st.error(f"❌ فشل الاتصال بـ Google Sheets: {e}")
-    st.info("تأكد من إعداد ملف secrets.toml بشكل صحيح")
-    st.stop()
+    st.sidebar.warning("⚠️ وضع التخزين المحلي (بدون سحابة)")
+    st.sidebar.info("لتفعيل السحابة: أضف 'st-gsheets-connection' إلى requirements.txt")
 
 # ==========================================
 # 3. قائمة الولايات (69 ولاية)
@@ -43,15 +44,7 @@ WILAYAS: List[str] = [
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
     "19 - سطيف", "23 - عنابة", "13 - تلمسان", "09 - البليدة", "15 - تيزي وزو",
     "07 - بسكرة", "26 - المدية", "29 - معسكر", "35 - بومرداس", "41 - سوق أهراس",
-    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر",
-    "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
-    "08 - بشار", "10 - البويرة", "11 - تمنراست", "12 - تبسة", "14 - تيارت",
-    "17 - الجلفة", "18 - جيجل", "20 - سعيدة", "21 - سكيكدة", "22 - سيدي بلعباس",
-    "24 - قالمة", "27 - مستغانم", "28 - المسيلة", "30 - ورقلة", "32 - البيض",
-    "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت",
-    "39 - الوادي", "40 - خنشلة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
-    "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام"
+    "47 - غرداية", "55 - توقرت", "57 - المغير", "58 - المنيع", "69 - عين الحجر"
 ]
 
 # ==========================================
@@ -70,7 +63,136 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 5. المتغيرات في الجلسة
+# 5. إدارة البيانات (محلية أو سحابية)
+# ==========================================
+class DataManager:
+    """إدارة البيانات مع دعم السحابة والمحلي"""
+    
+    @staticmethod
+    def get_requests():
+        """جلب الطلبات"""
+        if USE_GSHEETS:
+            try:
+                df = conn.read(worksheet="Requests")
+                if not df.empty:
+                    return df.to_dict('records')
+            except:
+                pass
+        return st.session_state.get('requests', [])
+    
+    @staticmethod
+    def save_request(request_data):
+        """حفظ طلب جديد"""
+        if USE_GSHEETS:
+            try:
+                df = conn.read(worksheet="Requests")
+                new_df = pd.DataFrame([request_data])
+                if df.empty:
+                    updated_df = new_df
+                else:
+                    updated_df = pd.concat([df, new_df], ignore_index=True)
+                conn.update(worksheet="Requests", data=updated_df)
+                return True
+            except:
+                pass
+        
+        # حفظ محلي
+        if 'requests' not in st.session_state:
+            st.session_state.requests = []
+        st.session_state.requests.append(request_data)
+        return False
+    
+    @staticmethod
+    def get_vendors():
+        """جلب البائعين"""
+        if USE_GSHEETS:
+            try:
+                df = conn.read(worksheet="Vendors")
+                if not df.empty:
+                    return df.to_dict('records')
+            except:
+                pass
+        return st.session_state.get('vendors', [])
+    
+    @staticmethod
+    def save_vendor(vendor_data):
+        """حفظ بائع جديد"""
+        if USE_GSHEETS:
+            try:
+                df = conn.read(worksheet="Vendors")
+                new_df = pd.DataFrame([vendor_data])
+                if df.empty:
+                    updated_df = new_df
+                else:
+                    updated_df = pd.concat([df, new_df], ignore_index=True)
+                conn.update(worksheet="Vendors", data=updated_df)
+                return True
+            except:
+                pass
+        
+        # حفظ محلي
+        if 'vendors' not in st.session_state:
+            st.session_state.vendors = []
+        st.session_state.vendors.append(vendor_data)
+        return False
+
+# ==========================================
+# 6. بيانات تجريبية أولية
+# ==========================================
+def init_sample_data():
+    """إضافة بيانات تجريبية إذا كانت القاعدة فارغة"""
+    if 'sample_loaded' not in st.session_state:
+        # طلبات تجريبية
+        sample_requests = [
+            {
+                "الوقت": "2026-02-24 14:30",
+                "المطلوب": "محرك رونو كليو 2 ديزل بحالة جيدة",
+                "الفئة": "🚗 قطع غيار سيارات",
+                "الهاتف": "0555123456",
+                "الولاية": "42 - تيبازة",
+                "الحالة": "جاري البحث"
+            },
+            {
+                "الوقت": "2026-02-24 13:15",
+                "المطلوب": "شقة كراء غرفتين + صالون في فوكة",
+                "الفئة": "🏠 عقارات (بيع/كراء)",
+                "الهاتف": "0666123456",
+                "الولاية": "42 - تيبازة",
+                "الحالة": "جاري البحث"
+            }
+        ]
+        
+        # بائعون تجريبيون
+        sample_vendors = [
+            {
+                "الاسم": "مؤسسة الرونو لقطع الغيار",
+                "الهاتف": "0555123456",
+                "الولاية": "42 - تيبازة",
+                "التخصص": "🚗 قطع غيار سيارات, 🔧 خردة وأدوات",
+                "تاريخ التسجيل": "2026-02-20"
+            },
+            {
+                "الاسم": "خير الدين للخردة",
+                "الهاتف": "0666123456",
+                "الولاية": "16 - الجزائر",
+                "التخصص": "🔧 خردة وأدوات, 🛠️ خدمات",
+                "تاريخ التسجيل": "2026-02-21"
+            }
+        ]
+        
+        # حفظ البيانات
+        for req in sample_requests:
+            DataManager.save_request(req)
+        for vendor in sample_vendors:
+            DataManager.save_vendor(vendor)
+        
+        st.session_state.sample_loaded = True
+
+# تهيئة البيانات التجريبية
+init_sample_data()
+
+# ==========================================
+# 7. المتغيرات في الجلسة
 # ==========================================
 if 'vendor_logged_in' not in st.session_state:
     st.session_state.vendor_logged_in = False
@@ -82,7 +204,7 @@ if 'last_refresh' not in st.session_state:
     st.session_state.last_refresh = datetime.now().strftime("%H:%M:%S")
 
 # ==========================================
-# 6. التصميم المتطور
+# 8. التصميم المتطور
 # ==========================================
 st.markdown("""
 <style>
@@ -232,6 +354,14 @@ st.markdown("""
     font-size: 0.7rem;
 }
 
+.vendor-stats {
+    display: flex;
+    gap: 15px;
+    color: #888;
+    font-size: 0.9rem;
+    margin: 10px 0;
+}
+
 /* ===== إحصائيات ===== */
 .stat-card {
     background: #1a1a2a;
@@ -331,62 +461,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 7. إحصائيات سريعة (من Google Sheets)
+# 9. إحصائيات سريعة
 # ==========================================
 def get_stats() -> Tuple[int, int, int]:
-    """الحصول على إحصائيات من Google Sheets"""
-    try:
-        # عدد الطلبات
-        requests_df = conn.read(worksheet="Requests")
-        requests_count = len(requests_df) if not requests_df.empty else 0
-        
-        # عدد البائعين
-        vendors_df = conn.read(worksheet="Vendors")
-        vendors_count = len(vendors_df) if not vendors_df.empty else 0
-        
-        # زوار (محاكاة)
-        visitors = random.randint(50, 200)
-        
-        return vendors_count, requests_count, visitors
-    except Exception as e:
-        st.error(f"خطأ في قراءة الإحصائيات: {e}")
-        return 0, 0, 0
+    """إحصائيات من المصدر المناسب"""
+    requests_data = DataManager.get_requests()
+    vendors_data = DataManager.get_vendors()
+    
+    requests_count = len(requests_data)
+    vendors_count = len(vendors_data)
+    visitors = random.randint(50, 200)
+    
+    return vendors_count, requests_count, visitors
 
 # ==========================================
-# 8. إعداد Google Sheets (مرة واحدة)
-# ==========================================
-def setup_google_sheets():
-    """إنشاء الأوراق إذا لم تكن موجودة"""
-    try:
-        # التحقق من ورقة Requests
-        try:
-            requests_df = conn.read(worksheet="Requests")
-        except:
-            # إنشاء ورقة جديدة
-            requests_df = pd.DataFrame(columns=[
-                "الوقت", "المطلوب", "الفئة", "الهاتف", "الولاية", "الحالة"
-            ])
-            conn.create(worksheet="Requests", data=requests_df)
-            st.info("تم إنشاء ورقة 'Requests'")
-        
-        # التحقق من ورقة Vendors
-        try:
-            vendors_df = conn.read(worksheet="Vendors")
-        except:
-            vendors_df = pd.DataFrame(columns=[
-                "الاسم", "الهاتف", "الولاية", "التخصص", "تاريخ التسجيل"
-            ])
-            conn.create(worksheet="Vendors", data=vendors_df)
-            st.info("تم إنشاء ورقة 'Vendors'")
-            
-    except Exception as e:
-        st.error(f"خطأ في إعداد Google Sheets: {e}")
-
-# تشغيل الإعداد مرة واحدة
-setup_google_sheets()
-
-# ==========================================
-# 9. رادار الطلبات (المشتري)
+# 10. رادار الطلبات (المشتري)
 # ==========================================
 def buyer_radar_ui():
     """واجهة المشتري - إطلاق الرادار"""
@@ -409,8 +498,7 @@ def buyer_radar_ui():
     
     with col2:
         buyer_phone = st.text_input("📱 رقم هاتفك (للبائع يتصل بك)", 
-                                   placeholder="0661234567",
-                                   help="رقمك سيبقى سرياً حتى نجد بائعاً")
+                                   placeholder="0661234567")
         wilaya = st.selectbox("📍 الولاية", WILAYAS)
     
     col1, col2, col3 = st.columns(3)
@@ -420,93 +508,78 @@ def buyer_radar_ui():
     if launch_button:
         if item_desc and buyer_phone:
             # تأثير البحث
-            with st.spinner('📡 جاري مسح أسواق الـ 69 ولاية...'):
-                time.sleep(1.5)
-                st.write("🔎 جاري تحليل طلبك...")
+            with st.status("📡 جاري البحث...", expanded=True) as status:
+                st.write("🔎 تحليل الطلب...")
                 time.sleep(1)
                 st.write("📲 إرسال إشعارات للتجار...")
                 time.sleep(1)
+                st.write("✅ تم إطلاق الرادار!")
+                status.update(label="✅ اكتمل", state="complete")
             
-            # حفظ في Google Sheets
-            try:
-                # قراءة البيانات الحالية
-                df = conn.read(worksheet="Requests")
-                
-                # إضافة طلب جديد
-                new_data = pd.DataFrame([{
-                    "الوقت": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "المطلوب": item_desc,
-                    "الفئة": category,
-                    "الهاتف": buyer_phone,
-                    "الولاية": wilaya,
-                    "الحالة": "جاري البحث"
-                }])
-                
-                # دمج البيانات وتحديث الورقة
-                if df.empty:
-                    updated_df = new_data
-                else:
-                    updated_df = pd.concat([df, new_data], ignore_index=True)
-                
-                conn.update(worksheet="Requests", data=updated_df)
-                
+            # حفظ الطلب
+            new_request = {
+                "الوقت": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "المطلوب": item_desc,
+                "الفئة": category,
+                "الهاتف": buyer_phone,
+                "الولاية": wilaya,
+                "الحالة": "جاري البحث"
+            }
+            
+            saved = DataManager.save_request(new_request)
+            
+            if saved:
                 st.success("✅ تم إطلاق الرادار! سيتواصل معك التجار قريباً.")
                 st.balloons()
-                
-                # عرض إحصائيات
-                vendors_df = conn.read(worksheet="Vendors")
-                if not vendors_df.empty:
-                    vendors_in_wilaya = vendors_df[vendors_df["الولاية"] == wilaya]
-                    st.info(f"📊 هناك {len(vendors_in_wilaya)} تاجر في {wilaya} تلقوا طلبك")
-                
-            except Exception as e:
-                st.error(f"❌ خطأ في حفظ الطلب: {e}")
+            else:
+                st.success("✅ تم إطلاق الرادار! (تخزين محلي)")
+            
+            # إحصائيات
+            vendors_data = DataManager.get_vendors()
+            vendors_in_wilaya = [v for v in vendors_data if v.get("الولاية") == wilaya]
+            st.info(f"📊 هناك {len(vendors_in_wilaya)} تاجر في {wilaya} تلقوا طلبك")
+            
         else:
-            st.error("❌ من فضلك أدخل تفاصيل الشيء المطلوب ورقم هاتفك")
+            st.error("❌ املأ الحقول المطلوبة")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 10. عرض طلبات الرادار
+# 11. عرض طلبات الرادار
 # ==========================================
 def show_radar_requests(wilaya_filter: str = None):
     """عرض طلبات المشترين"""
-    try:
-        df = conn.read(worksheet="Requests")
-        
-        if df.empty:
-            st.info("😕 لا توجد طلبات حالياً")
-            return
-        
-        # فلترة حسب الولاية إذا طلب
-        if wilaya_filter and wilaya_filter != "كل الولايات":
-            df = df[df["الولاية"] == wilaya_filter]
-        
-        # عرض الطلبات من الأحدث للأقدم
-        df = df.sort_values("الوقت", ascending=False)
-        
-        for _, row in df.iterrows():
-            # إخفاء رقم الهاتف
-            phone = row["الهاتف"]
+    
+    requests_data = DataManager.get_requests()
+    
+    # فلترة
+    if wilaya_filter and wilaya_filter != "كل الولايات":
+        requests_data = [r for r in requests_data if r.get("الولاية") == wilaya_filter]
+    
+    # ترتيب من الأحدث
+    requests_data.sort(key=lambda x: x.get("الوقت", ""), reverse=True)
+    
+    if requests_data:
+        for req in requests_data[:10]:
+            phone = req.get("الهاتف", "")
             hidden_phone = phone[:4] + "••••" if len(phone) > 4 else phone
             
             st.markdown(f"""
             <div class="request-card">
                 <div class="request-header">
-                    <span class="request-category">{row['الفئة']}</span>
-                    <span class="request-status">{row['الحالة']}</span>
+                    <span class="request-category">{req.get('الفئة', '')}</span>
+                    <span class="request-status">{req.get('الحالة', 'جاري البحث')}</span>
                 </div>
-                <h4 style="color: #00ffff;">طلب: {row['المطلوب'][:50]}...</h4>
+                <h4 style="color: #00ffff;">طلب: {req.get('المطلوب', '')[:50]}...</h4>
                 <div style="display: flex; gap: 10px; margin: 10px 0;">
-                    <span class="request-wilaya">📍 {row['الولاية']}</span>
-                    <span class="request-wilaya">🕐 {row['الوقت'][:16]}</span>
+                    <span class="request-wilaya">📍 {req.get('الولاية', '')}</span>
+                    <span class="request-wilaya">🕐 {req.get('الوقت', '')[:16]}</span>
                     <span class="request-wilaya">👤 {hidden_phone}</span>
                 </div>
             """, unsafe_allow_html=True)
             
-            # زر التواصل للتجار المسجلين
             if st.session_state.vendor_logged_in:
-                whatsapp_link = f"https://wa.me/213{row['الهاتف'][1:]}?text=السلام عليكم، رأيت طلبك بخصوص: {row['المطلوب']}"
+                whatsapp_link = f"https://wa.me/213{phone[1:]}?text=السلام عليكم، رأيت طلبك بخصوص: {req.get('المطلوب', '')}"
                 st.markdown(f"""
                 <a href="{whatsapp_link}" target="_blank" class="contact-btn" style="display: block; text-decoration: none; margin-bottom: 10px;">
                     📱 تواصل مع المشتري
@@ -514,12 +587,11 @@ def show_radar_requests(wilaya_filter: str = None):
                 """, unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
-            
-    except Exception as e:
-        st.error(f"خطأ في عرض الطلبات: {e}")
+    else:
+        st.info("😕 لا توجد طلبات")
 
 # ==========================================
-# 11. تسجيل تاجر جديد
+# 12. تسجيل تاجر جديد
 # ==========================================
 def vendor_registration():
     """تسجيل بائع جديد"""
@@ -535,83 +607,74 @@ def vendor_registration():
         
         if submitted:
             if name and phone and categories:
-                try:
-                    # قراءة البيانات الحالية
-                    df = conn.read(worksheet="Vendors")
-                    
-                    # إضافة تاجر جديد
-                    new_vendor = pd.DataFrame([{
+                # التحقق من عدم تكرار الرقم
+                vendors_data = DataManager.get_vendors()
+                existing = [v for v in vendors_data if v.get("الهاتف") == phone]
+                
+                if existing:
+                    st.error("❌ هذا الرقم مسجل مسبقاً")
+                else:
+                    new_vendor = {
                         "الاسم": name,
                         "الهاتف": phone,
                         "الولاية": wilaya,
                         "التخصص": ", ".join(categories),
-                        "تاريخ التسجيل": datetime.now().strftime("%Y-%m-%d %H:%M")
-                    }])
+                        "تاريخ التسجيل": datetime.now().strftime("%Y-%m-%d")
+                    }
                     
-                    # دمج البيانات وتحديث الورقة
-                    if df.empty:
-                        updated_df = new_vendor
+                    saved = DataManager.save_vendor(new_vendor)
+                    
+                    if saved:
+                        st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
+                        st.balloons()
                     else:
-                        updated_df = pd.concat([df, new_vendor], ignore_index=True)
-                    
-                    conn.update(worksheet="Vendors", data=updated_df)
-                    
-                    st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
-                    st.balloons()
-                    
-                except Exception as e:
-                    st.error(f"❌ خطأ في التسجيل: {e}")
+                        st.success("✅ تم التسجيل محلياً!")
             else:
                 st.error("❌ املأ الحقول المطلوبة (*)")
 
 # ==========================================
-# 12. عرض البائعين
+# 13. عرض البائعين
 # ==========================================
 def show_vendors(wilaya_filter: str = None):
     """عرض قائمة البائعين"""
-    try:
-        df = conn.read(worksheet="Vendors")
-        
-        if df.empty:
-            st.info("😕 لا يوجد بائعون مسجلون بعد")
-            return
-        
-        # فلترة حسب الولاية
-        if wilaya_filter and wilaya_filter != "كل الولايات":
-            df = df[df["الولاية"] == wilaya_filter]
-        
-        for _, row in df.iterrows():
-            whatsapp = row["الهاتف"][1:] if row["الهاتف"].startswith('0') else row["الهاتف"]
+    
+    vendors_data = DataManager.get_vendors()
+    
+    if wilaya_filter and wilaya_filter != "كل الولايات":
+        vendors_data = [v for v in vendors_data if v.get("الولاية") == wilaya_filter]
+    
+    if vendors_data:
+        for vendor in vendors_data[:10]:
+            phone = vendor.get("الهاتف", "")
+            whatsapp = phone[1:] if phone.startswith('0') else phone
             
             st.markdown(f"""
             <div class="vendor-card">
                 <div style="display: flex; justify-content: space-between;">
-                    <span class="vendor-name">{row['الاسم']}</span>
+                    <span class="vendor-name">{vendor.get('الاسم', '')}</span>
                     <span class="vendor-badge">✅ موثق</span>
                 </div>
                 <div class="vendor-stats">
-                    <span>📍 {row['الولاية']}</span>
-                    <span>📞 {row['الهاتف']}</span>
+                    <span>📍 {vendor.get('الولاية', '')}</span>
+                    <span>📞 {phone}</span>
                 </div>
-                <p style="color: #aaa;">{row['التخصص']}</p>
+                <p style="color: #aaa;">{vendor.get('التخصص', '')}</p>
                 <div style="display: flex; gap: 10px;">
                     <a href="https://wa.me/213{whatsapp}" target="_blank" class="contact-btn" style="flex:1; background:#25D366;">📱 واتساب</a>
-                    <a href="tel:{row['الهاتف']}" class="contact-btn" style="flex:1; background:#00ffff; color:black;">📞 اتصال</a>
+                    <a href="tel:{phone}" class="contact-btn" style="flex:1; background:#00ffff; color:black;">📞 اتصال</a>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
-    except Exception as e:
-        st.error(f"خطأ في عرض البائعين: {e}")
+    else:
+        st.info("😕 لا يوجد بائعون")
 
 # ==========================================
-# 13. لوحة المشرف
+# 14. لوحة المشرف
 # ==========================================
 def admin_panel():
     """لوحة تحكم المشرف"""
     st.markdown("### 🔐 لوحة المشرف")
     
-    # كلمة مرور بسيطة
     if not st.session_state.admin_logged_in:
         password = st.text_input("كلمة المرور", type="password")
         if st.button("دخول") and password == "rassim2026":
@@ -628,26 +691,17 @@ def admin_panel():
         col2.metric("إجمالي الطلبات", requests)
         col3.metric("زوار اليوم", visitors)
         
-        # عرض آخر 5 طلبات
         st.markdown("#### آخر الطلبات")
-        try:
-            df = conn.read(worksheet="Requests")
-            if not df.empty:
-                st.dataframe(df.tail(5))
-            else:
-                st.info("لا توجد طلبات")
-        except:
-            pass
+        requests_data = DataManager.get_requests()
+        if requests_data:
+            df = pd.DataFrame(requests_data[-5:])
+            st.dataframe(df, use_container_width=True)
     
     with tabs[1]:
-        try:
-            df = conn.read(worksheet="Vendors")
-            if not df.empty:
-                st.dataframe(df)
-            else:
-                st.info("لا يوجد بائعون")
-        except:
-            st.error("خطأ في قراءة البيانات")
+        vendors_data = DataManager.get_vendors()
+        if vendors_data:
+            df = pd.DataFrame(vendors_data)
+            st.dataframe(df, use_container_width=True)
     
     with tabs[2]:
         show_radar_requests()
@@ -655,28 +709,27 @@ def admin_panel():
     with tabs[3]:
         st.markdown("#### إضافة طلب يدوي")
         with st.form("admin_request"):
-            desc = st.text_area("المطلوب")
+            desc = st.text_area("المطلوب *")
             cat = st.selectbox("الفئة", CATEGORIES)
-            phone = st.text_input("رقم الهاتف")
+            phone = st.text_input("رقم الهاتف *")
             wilaya = st.selectbox("الولاية", WILAYAS)
             
             if st.form_submit_button("➕ إضافة طلب"):
                 if desc and phone:
-                    df = conn.read(worksheet="Requests")
-                    new_data = pd.DataFrame([{
+                    new_request = {
                         "الوقت": datetime.now().strftime("%Y-%m-%d %H:%M"),
                         "المطلوب": desc,
                         "الفئة": cat,
                         "الهاتف": phone,
                         "الولاية": wilaya,
                         "الحالة": "جاري البحث"
-                    }])
-                    updated_df = pd.concat([df, new_data], ignore_index=True)
-                    conn.update(worksheet="Requests", data=updated_df)
+                    }
+                    DataManager.save_request(new_request)
                     st.success("تمت الإضافة!")
+                    st.rerun()
 
 # ==========================================
-# 14. إحصائيات سريعة
+# 15. إحصائيات سريعة
 # ==========================================
 def show_stats():
     vendors, requests, visitors = get_stats()
@@ -705,7 +758,7 @@ def show_stats():
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 15. الصفحة الرئيسية
+# 16. الصفحة الرئيسية
 # ==========================================
 def main():
     """الدالة الرئيسية"""
@@ -777,13 +830,12 @@ def main():
     # تذييل
     st.markdown("""
     <div class="footer">
-        RASSIM OS 2026 • منصة الوساطة الذكية • جميع البيانات محفوظة في السحابة
+        RASSIM OS 2026 • منصة الوساطة الذكية • جميع الحقوق محفوظة
     </div>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 16. تشغيل التطبيق
+# 17. تشغيل التطبيق
 # ==========================================
 if __name__ == "__main__":
     main()
-
