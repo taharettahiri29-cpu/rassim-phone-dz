@@ -1,32 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-RASSIM OS ULTIMATE 2026
-منصة الوساطة الذكية - Supabase Edition
-69 ولاية جزائرية
-"""
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import time
-from typing import Tuple, List, Dict, Any, Optional
 from supabase import create_client, Client
+import time
 
 # ==========================================
-# 1. إعدادات الصفحة المتقدمة
+# 1. إعدادات الصفحة والتصميم المتطور
 # ==========================================
 st.set_page_config(
-    page_title="RASSIM OS • Supabase",
+    page_title="RASSIM OS • السحابة الذكية",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="auto"
 )
 
-# ==========================================
-# 2. التصميم المتطور (نفس السابق)
-# ==========================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
@@ -42,6 +29,7 @@ st.markdown("""
     color: white;
 }
 
+/* ===== الشعار الرئيسي ===== */
 .main-header {
     text-align: center;
     padding: 20px;
@@ -67,6 +55,33 @@ st.markdown("""
     margin-top: -10px;
 }
 
+/* ===== حالة الاتصال ===== */
+.connection-status {
+    text-align: left;
+    padding: 10px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.status-online {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    color: #00ff00;
+}
+
+.status-offline {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid #ff0000;
+    color: #ff0000;
+}
+
+/* ===== رادار الطلبات ===== */
 .radar-section {
     background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
     padding: 30px;
@@ -90,6 +105,7 @@ st.markdown("""
     margin-bottom: 20px;
 }
 
+/* ===== بطاقة الطلب ===== */
 .request-card {
     background: #1a1a2a;
     border-right: 5px solid #00ffff;
@@ -148,6 +164,7 @@ st.markdown("""
     display: inline-block;
 }
 
+/* ===== بطاقة التاجر ===== */
 .vendor-card {
     background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
     border-radius: 20px;
@@ -186,6 +203,7 @@ st.markdown("""
     margin: 10px 0;
 }
 
+/* ===== إحصائيات ===== */
 .stat-card {
     background: #1a1a2a;
     border: 1px solid #333;
@@ -205,6 +223,7 @@ st.markdown("""
     font-size: 0.9rem;
 }
 
+/* ===== أزرار ===== */
 .stButton > button {
     background: linear-gradient(135deg, #00ffff, #ff00ff) !important;
     border: none !important;
@@ -232,6 +251,7 @@ st.markdown("""
     font-weight: bold;
 }
 
+/* ===== عداد الزوار ===== */
 .live-counter {
     position: fixed;
     bottom: 20px;
@@ -246,6 +266,7 @@ st.markdown("""
     backdrop-filter: blur(5px);
 }
 
+/* ===== فقاعة الدردشة ===== */
 .chat-bubble {
     position: fixed;
     bottom: 20px;
@@ -268,6 +289,7 @@ st.markdown("""
     50% { transform: translateY(-5px); }
 }
 
+/* ===== تذييل ===== */
 .footer {
     text-align: center;
     color: #666;
@@ -280,9 +302,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. قائمة الولايات والفئات
+# 2. قائمة الولايات والفئات
 # ==========================================
-WILAYAS: List[str] = [
+WILAYAS = [
     "16 - الجزائر", "31 - وهران", "25 - قسنطينة", "42 - تيبازة", "06 - بجاية",
     "19 - سطيف", "23 - عنابة", "13 - تلمسان", "09 - البليدة", "15 - تيزي وزو",
     "07 - بسكرة", "26 - المدية", "29 - معسكر", "35 - بومرداس", "41 - سوق أهراس",
@@ -293,11 +315,10 @@ WILAYAS: List[str] = [
     "24 - قالمة", "27 - مستغانم", "28 - المسيلة", "30 - ورقلة", "32 - البيض",
     "33 - إليزي", "34 - برج بوعريريج", "36 - الطارف", "37 - تندوف", "38 - تيسمسيلт",
     "39 - الوادي", "40 - خنشلة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
-    "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار",
-    "51 - أولاد جلال", "52 - بني عباس", "53 - عين صالح", "54 - عين قزام"
+    "46 - عين تموشنت", "48 - غليزان", "49 - تيميمون", "50 - برج باجي مختار"
 ]
 
-CATEGORIES: List[str] = [
+CATEGORIES = [
     "🚗 قطع غيار سيارات",
     "🔧 خردة وأدوات",
     "🏠 عقارات (بيع/كراء)",
@@ -310,132 +331,100 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 4. فئة إدارة Supabase (النسخة الجديدة)
+# 3. الربط مع Supabase
 # ==========================================
-class RassimDB:
-    """إدارة البيانات مع Supabase - نسخة محترفة"""
+@st.cache_resource
+def init_connection():
+    """تهيئة الاتصال بـ Supabase"""
+    try:
+        url = st.secrets["connections"]["supabase"]["url"]
+        key = st.secrets["connections"]["supabase"]["key"]
+        client = create_client(url, key)
+        
+        # اختبار الاتصال
+        client.table("requests").select("*").limit(1).execute()
+        return client, True
+    except Exception as e:
+        st.sidebar.error(f"⚠️ فشل الاتصال: {e}")
+        return None, False
+
+supabase, connected = init_connection()
+
+# ==========================================
+# 4. دوال التعامل مع قاعدة البيانات
+# ==========================================
+def fetch_requests():
+    """جلب جميع الطلبات من قاعدة البيانات"""
+    if not connected:
+        return pd.DataFrame()
     
-    def __init__(self):
-        """ربط مع Supabase باستخدام secrets"""
-        self.connected = False
-        self.client = None
-        
-        try:
-            # قراءة الإعدادات من secrets
-            self.url = st.secrets["connections"]["supabase"]["url"]
-            self.key = st.secrets["connections"]["supabase"]["key"]
-            
-            # إنشاء العميل
-            self.client: Client = create_client(self.url, self.key)
-            self.connected = True
-            
-            # اختبار الاتصال
-            test = self.client.table("requests").select("*").limit(1).execute()
-            st.sidebar.success("✅ متصل بـ Supabase")
-            
-        except Exception as e:
-            st.sidebar.warning(f"⚠️ فشل الاتصال: {e}")
-        
-        self.init_local_storage()
+    try:
+        response = supabase.table("requests").select("*").order("created_at", desc=True).execute()
+        return pd.DataFrame(response.data) if response.data else pd.DataFrame()
+    except Exception as e:
+        st.error(f"خطأ في جلب الطلبات: {e}")
+        return pd.DataFrame()
+
+def fetch_vendors():
+    """جلب جميع البائعين من قاعدة البيانات"""
+    if not connected:
+        return pd.DataFrame()
     
-    def init_local_storage(self):
-        """تخزين محلي احتياطي في حالة فشل الاتصال"""
-        if 'requests' not in st.session_state:
-            st.session_state.requests = [
-                {
-                    "item": "محرك رونو كليو 2 ديزل",
-                    "category": "🚗 قطع غيار سيارات",
-                    "phone": "0555123456",
-                    "wilaya": "42 - تيبازة",
-                    "status": "جاري البحث"
-                }
-            ]
-        
-        if 'vendors' not in st.session_state:
-            st.session_state.vendors = [
-                {
-                    "name": "مؤسسة الرونو لقطع الغيار",
-                    "phone": "0555123456",
-                    "wilaya": "42 - تيبازة",
-                    "category": "🚗 قطع غيار سيارات"
-                }
-            ]
+    try:
+        response = supabase.table("vendors").select("*").order("created_at", desc=True).execute()
+        return pd.DataFrame(response.data) if response.data else pd.DataFrame()
+    except Exception as e:
+        st.error(f"خطأ في جلب البائعين: {e}")
+        return pd.DataFrame()
+
+def save_request(item, category, phone, wilaya):
+    """حفظ طلب جديد في قاعدة البيانات"""
+    if not connected:
+        st.error("لا يمكن الحفظ - الاتصال بالسحابة غير متوفر")
+        return False
     
-    def load_table(self, table_name: str) -> pd.DataFrame:
-        """جلب البيانات من SQL"""
-        if self.connected:
-            try:
-                response = self.client.table(table_name).select("*").order("created_at", desc=True).execute()
-                if response.data:
-                    return pd.DataFrame(response.data)
-            except Exception as e:
-                st.warning(f"⚠️ خطأ في جلب البيانات: {e}")
-        
-        # العودة للتخزين المحلي
-        if table_name == "requests":
-            return pd.DataFrame(st.session_state.get('requests', []))
-        else:
-            return pd.DataFrame(st.session_state.get('vendors', []))
-    
-    def save_entry(self, table_name: str, new_data: dict) -> bool:
-        """إدخال بيانات جديدة لجدول SQL"""
-        # حفظ محلي أولاً
-        local_key = 'requests' if table_name == "requests" else 'vendors'
-        st.session_state[local_key].append(new_data)
-        
-        if self.connected:
-            try:
-                self.client.table(table_name).insert(new_data).execute()
-                return True
-            except Exception as e:
-                st.warning(f"⚠️ حفظ محلي فقط: {e}")
-                return True
+    try:
+        data = {
+            "item": item,
+            "category": category,
+            "phone": phone,
+            "wilaya": wilaya,
+            "status": "جاري البحث"
+        }
+        supabase.table("requests").insert(data).execute()
         return True
-    
-    def get_requests(self, wilaya_filter: str = None) -> pd.DataFrame:
-        """جلب الطلبات مع فلترة حسب الولاية"""
-        df = self.load_table("requests")
-        
-        if wilaya_filter and wilaya_filter != "كل الولايات" and not df.empty:
-            df = df[df["wilaya"] == wilaya_filter]
-        
-        return df
-    
-    def get_vendors(self, wilaya_filter: str = None) -> pd.DataFrame:
-        """جلب البائعين مع فلترة حسب الولاية"""
-        df = self.load_table("vendors")
-        
-        if wilaya_filter and wilaya_filter != "كل الولايات" and not df.empty:
-            df = df[df["wilaya"] == wilaya_filter]
-        
-        return df
-    
-    def check_vendor_exists(self, phone: str) -> bool:
-        """التحقق من وجود بائع بنفس الرقم"""
-        if self.connected:
-            try:
-                response = self.client.table("vendors").select("*").eq("phone", phone).execute()
-                if response.data and len(response.data) > 0:
-                    return True
-            except:
-                pass
-        
-        # فحص محلي
-        for v in st.session_state.get('vendors', []):
-            if v.get("phone") == phone:
-                return True
+    except Exception as e:
+        st.error(f"خطأ في حفظ الطلب: {e}")
         return False
 
-# تهيئة قاعدة البيانات
-db = RassimDB()
+def save_vendor(name, phone, wilaya, categories):
+    """حفظ بائع جديد في قاعدة البيانات"""
+    if not connected:
+        st.error("لا يمكن الحفظ - الاتصال بالسحابة غير متوفر")
+        return False
+    
+    try:
+        # التحقق من عدم تكرار الرقم
+        existing = supabase.table("vendors").select("*").eq("phone", phone).execute()
+        if existing.data and len(existing.data) > 0:
+            return False
+        
+        data = {
+            "name": name,
+            "phone": phone,
+            "wilaya": wilaya,
+            "category": ", ".join(categories)
+        }
+        supabase.table("vendors").insert(data).execute()
+        return True
+    except Exception as e:
+        st.error(f"خطأ في حفظ البائع: {e}")
+        return False
 
-# ==========================================
-# 5. إحصائيات سريعة
-# ==========================================
-def get_stats() -> Tuple[int, int, int]:
-    """إحصائيات الموقع"""
-    requests_df = db.get_requests()
-    vendors_df = db.get_vendors()
+def get_stats():
+    """الحصول على إحصائيات"""
+    requests_df = fetch_requests()
+    vendors_df = fetch_vendors()
     
     requests_count = len(requests_df) if not requests_df.empty else 0
     vendors_count = len(vendors_df) if not vendors_df.empty else 0
@@ -443,35 +432,8 @@ def get_stats() -> Tuple[int, int, int]:
     
     return vendors_count, requests_count, visitors
 
-def show_stats():
-    """عرض بطاقات الإحصائيات"""
-    vendors, requests, visitors = get_stats()
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{vendors}</div>
-            <div class="stat-label">تاجر</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{requests}</div>
-            <div class="stat-label">طلب</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-value">{visitors}</div>
-            <div class="stat-label">زائر</div>
-        </div>
-        """, unsafe_allow_html=True)
-
 # ==========================================
-# 6. رادار الطلبات (المشتري)
+# 5. واجهة رادار الطلبات
 # ==========================================
 def buyer_radar_ui():
     """واجهة المشتري - إطلاق الرادار"""
@@ -494,8 +456,7 @@ def buyer_radar_ui():
     
     with col2:
         buyer_phone = st.text_input("📱 رقم هاتفك", 
-                                   placeholder="0661234567",
-                                   help="سيظهر للتجار فقط")
+                                   placeholder="0661234567")
         wilaya = st.selectbox("📍 الولاية", WILAYAS)
     
     col1, col2, col3 = st.columns(3)
@@ -507,17 +468,11 @@ def buyer_radar_ui():
             with st.spinner("📡 جاري البحث..."):
                 time.sleep(1)
             
-            new_request = {
-                "item": item_desc,
-                "category": category,
-                "phone": buyer_phone,
-                "wilaya": wilaya,
-                "status": "جاري البحث"
-            }
-            
-            if db.save_entry("requests", new_request):
+            if save_request(item_desc, category, buyer_phone, wilaya):
                 st.success("✅ تم إطلاق الرادار! سيتواصل معك التجار قريباً.")
                 st.balloons()
+                time.sleep(2)
+                st.rerun()
             else:
                 st.error("❌ فشل في حفظ الطلب")
         else:
@@ -526,18 +481,18 @@ def buyer_radar_ui():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 7. عرض طلبات الرادار
+# 6. عرض الطلبات
 # ==========================================
-def show_requests(wilaya_filter: str = None):
+def show_requests():
     """عرض طلبات المشترين بشكل احترافي"""
     
-    requests_df = db.get_requests(wilaya_filter)
+    requests_df = fetch_requests()
     
     if requests_df.empty:
         st.info("😕 لا توجد طلبات حالياً")
         return
     
-    for idx, row in requests_df.head(10).iterrows():
+    for _, row in requests_df.iterrows():
         phone = row.get("phone", "")
         hidden_phone = phone[:4] + "••••" if len(phone) > 4 else phone
         
@@ -560,7 +515,7 @@ def show_requests(wilaya_filter: str = None):
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 8. تسجيل تاجر جديد
+# 7. تسجيل تاجر جديد
 # ==========================================
 def vendor_registration():
     """تسجيل بائع جديد"""
@@ -576,31 +531,21 @@ def vendor_registration():
         
         if submitted:
             if name and phone and categories:
-                if db.check_vendor_exists(phone):
-                    st.error("❌ هذا الرقم مسجل مسبقاً")
+                if save_vendor(name, phone, wilaya, categories):
+                    st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
+                    st.balloons()
                 else:
-                    new_vendor = {
-                        "name": name,
-                        "phone": phone,
-                        "wilaya": wilaya,
-                        "category": ", ".join(categories)
-                    }
-                    
-                    if db.save_entry("vendors", new_vendor):
-                        st.success("✅ أهلاً بك في شبكة وسطاء RASSIM OS!")
-                        st.balloons()
-                    else:
-                        st.error("❌ فشل في التسجيل")
+                    st.error("❌ هذا الرقم مسجل مسبقاً أو فشل في التسجيل")
             else:
                 st.error("❌ املأ الحقول المطلوبة (*)")
 
 # ==========================================
-# 9. عرض البائعين
+# 8. عرض البائعين
 # ==========================================
-def show_vendors(wilaya_filter: str = None):
+def show_vendors():
     """عرض قائمة البائعين"""
     
-    vendors_df = db.get_vendors(wilaya_filter)
+    vendors_df = fetch_vendors()
     
     if vendors_df.empty:
         st.info("😕 لا يوجد بائعون مسجلون بعد")
@@ -634,7 +579,7 @@ def show_vendors(wilaya_filter: str = None):
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 10. لوحة المشرف
+# 9. لوحة المشرف
 # ==========================================
 def admin_panel():
     """لوحة تحكم المشرف"""
@@ -647,7 +592,7 @@ def admin_panel():
             st.rerun()
         return
     
-    tabs = st.tabs(["📊 إحصائيات", "👥 البائعين", "🎯 الطلبات", "📝 إضافة يدوي"])
+    tabs = st.tabs(["📊 إحصائيات", "👥 البائعين", "🎯 الطلبات"])
     
     with tabs[0]:
         vendors, requests, visitors = get_stats()
@@ -657,40 +602,61 @@ def admin_panel():
         col3.metric("زوار اليوم", visitors)
     
     with tabs[1]:
-        vendors_df = db.get_vendors()
+        vendors_df = fetch_vendors()
         if not vendors_df.empty:
             st.dataframe(vendors_df, use_container_width=True)
     
     with tabs[2]:
-        requests_df = db.get_requests()
+        requests_df = fetch_requests()
         if not requests_df.empty:
             st.dataframe(requests_df, use_container_width=True)
+
+# ==========================================
+# 10. إحصائيات سريعة
+# ==========================================
+def show_stats():
+    vendors, requests, visitors = get_stats()
     
-    with tabs[3]:
-        st.markdown("#### إضافة طلب يدوي")
-        with st.form("admin_request"):
-            desc = st.text_area("المطلوب *")
-            cat = st.selectbox("الفئة", CATEGORIES)
-            phone = st.text_input("رقم الهاتف *")
-            wilaya = st.selectbox("الولاية", WILAYAS)
-            
-            if st.form_submit_button("➕ إضافة طلب") and desc and phone:
-                new_request = {
-                    "item": desc,
-                    "category": cat,
-                    "phone": phone,
-                    "wilaya": wilaya,
-                    "status": "جاري البحث"
-                }
-                if db.save_entry("requests", new_request):
-                    st.success("تمت الإضافة!")
-                    st.rerun()
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{vendors}</div>
+            <div class="stat-label">تاجر</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{requests}</div>
+            <div class="stat-label">طلب</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{visitors}</div>
+            <div class="stat-label">زائر</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==========================================
 # 11. الصفحة الرئيسية
 # ==========================================
 def main():
     """الدالة الرئيسية"""
+    
+    # حالة الاتصال
+    with st.sidebar:
+        st.markdown("### 📊 حالة النظام")
+        if connected:
+            st.markdown('<span class="status-badge status-online">✅ متصل بالسحابة</span>', unsafe_allow_html=True)
+        else:
+            st.markdown('<span class="status-badge status-offline">❌ غير متصل</span>', unsafe_allow_html=True)
+        
+        vendors, requests, visitors = get_stats()
+        st.metric("إجمالي الطلبات", requests)
+        st.metric("إجمالي البائعين", vendors)
     
     # عداد الزوار
     vendors, requests, visitors = get_stats()
@@ -727,17 +693,11 @@ def main():
     
     with tab1:
         st.markdown("### 📋 جميع الطلبات")
-        col1, col2 = st.columns(2)
-        with col1:
-            filter_wilaya = st.selectbox("فلترة حسب الولاية", ["كل الولايات"] + WILAYAS)
-        show_requests(filter_wilaya if filter_wilaya != "كل الولايات" else None)
+        show_requests()
     
     with tab2:
         st.markdown("### 👥 البائعون المسجلون")
-        col1, col2 = st.columns(2)
-        with col1:
-            filter_v_wilaya = st.selectbox("فلترة البائعين", ["كل الولايات"] + WILAYAS, key="vendor_filter")
-        show_vendors(filter_v_wilaya if filter_v_wilaya != "كل الولايات" else None)
+        show_vendors()
     
     with tab3:
         vendor_registration()
@@ -753,3 +713,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
