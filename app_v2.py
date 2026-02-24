@@ -3,7 +3,7 @@
 
 """
 RASSIM OS ULTIMATE 2026
-منصة الوساطة الذكية - النسخة الاحترافية مع Google Sheets
+منصة الوساطة الذكية - النسخة المضادة للأخطاء
 69 ولاية جزائرية
 """
 
@@ -314,28 +314,36 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 5. فئة إدارة قاعدة البيانات (مع معالجة الأخطاء)
+# 5. فئة إدارة قاعدة البيانات (المضادة للأخطاء)
 # ==========================================
 class RassimDB:
-    """إدارة البيانات مع Google Sheets (مع Fallback للتخزين المحلي)"""
+    """إدارة البيانات مع Google Sheets (مع نظام حماية من أخطاء الاتصال)"""
     
     def __init__(self):
         self.connected = False
         self.conn = None
+        self.url = None
         
         try:
-            from streamlit_gsheets import GSheetsConnection
-            # محاولة الاتصال بـ Google Sheets
-            self.conn = st.connection("gsheets", type=GSheetsConnection)
-            self.connected = True
-            st.sidebar.success("✅ متصل بـ Google Sheets")
+            # 1. محاولة قراءة الرابط من Secrets
+            if "connections" in st.secrets and "gsheets" in st.secrets["connections"]:
+                self.url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+                
+                # 2. إنشاء الاتصال
+                from streamlit_gsheets import GSheetsConnection
+                self.conn = st.connection("gsheets", type=GSheetsConnection)
+                self.connected = True
+                st.sidebar.success("✅ متصل بسحابة جوجل")
+                st.sidebar.info(f"📊 الملف: {self.url[:50]}...")
+            else:
+                st.sidebar.warning("⚠️ الرابط مفقود في Secrets - سيتم استخدام التخزين المحلي")
         except Exception as e:
-            st.sidebar.warning("⚠️ وضع التخزين المحلي (بدون سحابة)")
-            st.sidebar.info("للاتصال بـ Google Sheets: أضف رابط الملف في secrets.toml")
-            self.init_local_storage()
-    
+            st.sidebar.error(f"⚠️ فشل الاتصال التقني: {e}")
+        
+        self.init_local_storage()
+
     def init_local_storage(self):
-        """تهيئة التخزين المحلي في حالة عدم وجود اتصال"""
+        """تجهيز ذاكرة احتياطية في حال تعطل السحابة"""
         if 'requests' not in st.session_state:
             st.session_state.requests = [
                 {
@@ -358,59 +366,63 @@ class RassimDB:
                     "تاريخ التسجيل": datetime.now().strftime("%Y-%m-%d")
                 }
             ]
-    
+
     def load_table(self, sheet_name: str) -> pd.DataFrame:
-        """جلب البيانات من ورقة محددة"""
-        if not self.connected:
-            # استخدام التخزين المحلي
-            if sheet_name == "Requests":
-                return pd.DataFrame(st.session_state.get('requests', []))
-            elif sheet_name == "Vendors":
-                return pd.DataFrame(st.session_state.get('vendors', []))
-            return pd.DataFrame()
+        """جلب البيانات مع ضمان عدم حدوث Error 400"""
         
-        try:
-            df = self.conn.read(worksheet=sheet_name, ttl=0)
-            return df if not df.empty else pd.DataFrame()
-        except Exception as e:
-            st.error(f"خطأ في قراءة {sheet_name}: {e}")
-            # استخدام التخزين المحلي كنسخة احتياطية
-            if sheet_name == "Requests":
-                return pd.DataFrame(st.session_state.get('requests', []))
-            elif sheet_name == "Vendors":
-                return pd.DataFrame(st.session_state.get('vendors', []))
-            return pd.DataFrame()
-    
+        # استخدام التخزين المحلي أولاً
+        local_key = 'requests' if sheet_name == "Requests" else 'vendors'
+        
+        # إذا كان متصلاً بالسحابة، حاول الجلب منها
+        if self.connected and self.url:
+            try:
+                # السر هنا: نمرر الرابط في كل مرة لضمان التحديث
+                df = self.conn.read(
+                    spreadsheet=self.url, 
+                    worksheet=sheet_name, 
+                    ttl=0
+                )
+                if df is not None and not df.empty:
+                    # حذف السطور الفارغة تماماً
+                    df = df.dropna(how="all")
+                    return df
+            except Exception as e:
+                st.warning(f"⚠️ فشل الاتصال بالسحابة، استخدام التخزين المحلي: {e}")
+        
+        # إذا فشل كل شيء، نعود للذاكرة المحلية
+        return pd.DataFrame(st.session_state.get(local_key, []))
+
     def save_entry(self, sheet_name: str, new_data: Dict[str, Any]) -> bool:
-        """إضافة سطر جديد وحفظه"""
-        if not self.connected:
-            # حفظ محلي
-            if sheet_name == "Requests":
-                if 'requests' not in st.session_state:
-                    st.session_state.requests = []
-                st.session_state.requests.append(new_data)
-                return True
-            elif sheet_name == "Vendors":
-                if 'vendors' not in st.session_state:
-                    st.session_state.vendors = []
-                st.session_state.vendors.append(new_data)
-                return True
-            return False
+        """حفظ البيانات في السحابة وفي الذاكرة المحلية فوراً"""
         
-        try:
-            df = self.load_table(sheet_name)
-            new_df = pd.DataFrame([new_data])
-            
-            if df.empty:
-                updated_df = new_df
-            else:
-                updated_df = pd.concat([df, new_df], ignore_index=True)
-            
-            self.conn.update(worksheet=sheet_name, data=updated_df)
-            return True
-        except Exception as e:
-            st.error(f"خطأ في حفظ البيانات: {e}")
-            return False
+        # الحفظ المحلي أولاً لضمان السرعة
+        local_key = 'requests' if sheet_name == "Requests" else 'vendors'
+        st.session_state[local_key].append(new_data)
+        
+        # محاولة الحفظ في السحابة إذا كان متصلاً
+        if self.connected and self.url:
+            try:
+                # جلب البيانات الحالية
+                df = self.load_table(sheet_name)
+                
+                # إضافة السطر الجديد
+                new_row = pd.DataFrame([new_data])
+                if df.empty:
+                    updated_df = new_row
+                else:
+                    updated_df = pd.concat([df, new_row], ignore_index=True)
+                
+                # تحديث السحابة
+                self.conn.update(
+                    spreadsheet=self.url, 
+                    worksheet=sheet_name, 
+                    data=updated_df
+                )
+                return True
+            except Exception as e:
+                st.warning(f"⚠️ حفظ محلي فقط (تعذر الوصول لجوجل): {e}")
+                return True
+        return True
 
 # تهيئة قاعدة البيانات
 db = RassimDB()
@@ -453,7 +465,8 @@ def buyer_radar_ui():
     
     with col2:
         buyer_phone = st.text_input("📱 رقم هاتفك (للبائع يتصل بك)", 
-                                   placeholder="0661234567")
+                                   placeholder="0661234567",
+                                   help="سيظهر للتجار فقط")
         wilaya = st.selectbox("📍 الولاية", WILAYAS)
     
     col1, col2, col3 = st.columns(3)
@@ -496,9 +509,11 @@ def show_radar_requests(wilaya_filter: str = None):
         st.info("😕 لا توجد طلبات حالياً")
         return
     
+    # فلترة حسب الولاية
     if wilaya_filter and wilaya_filter != "كل الولايات":
         requests_df = requests_df[requests_df["الولاية"] == wilaya_filter]
     
+    # ترتيب من الأحدث
     requests_df = requests_df.sort_values("الوقت", ascending=False)
     
     for idx, row in requests_df.head(10).iterrows():
@@ -568,6 +583,7 @@ def show_vendors(wilaya_filter: str = None):
         st.info("😕 لا يوجد بائعون مسجلون بعد")
         return
     
+    # فلترة حسب الولاية
     if wilaya_filter and wilaya_filter != "كل الولايات":
         vendors_df = vendors_df[vendors_df["الولاية"] == wilaya_filter]
     
@@ -745,3 +761,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
