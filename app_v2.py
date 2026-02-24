@@ -314,34 +314,89 @@ CATEGORIES: List[str] = [
 ]
 
 # ==========================================
-# 5. فئة إدارة قاعدة البيانات (Google Sheets)
+# 5. فئة إدارة قاعدة البيانات (مع معالجة الأخطاء)
 # ==========================================
 class RassimDB:
-    """إدارة البيانات مع Google Sheets"""
+    """إدارة البيانات مع Google Sheets (مع Fallback للتخزين المحلي)"""
     
     def __init__(self):
+        self.connected = False
+        self.conn = None
+        
         try:
             from streamlit_gsheets import GSheetsConnection
+            # محاولة الاتصال بـ Google Sheets
             self.conn = st.connection("gsheets", type=GSheetsConnection)
             self.connected = True
             st.sidebar.success("✅ متصل بـ Google Sheets")
         except Exception as e:
-            self.connected = False
-            st.sidebar.error("⚠️ فشل الاتصال بقاعدة البيانات")
-            st.sidebar.info("تأكد من إضافة 'st-gsheets-connection' إلى requirements.txt")
-            st.stop()
+            st.sidebar.warning("⚠️ وضع التخزين المحلي (بدون سحابة)")
+            st.sidebar.info("للاتصال بـ Google Sheets: أضف رابط الملف في secrets.toml")
+            self.init_local_storage()
+    
+    def init_local_storage(self):
+        """تهيئة التخزين المحلي في حالة عدم وجود اتصال"""
+        if 'requests' not in st.session_state:
+            st.session_state.requests = [
+                {
+                    "الوقت": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "المطلوب": "محرك رونو كليو 2 ديزل بحالة جيدة",
+                    "الفئة": "🚗 قطع غيار سيارات",
+                    "الهاتف": "0555123456",
+                    "الولاية": "42 - تيبازة",
+                    "الحالة": "جاري البحث"
+                }
+            ]
+        
+        if 'vendors' not in st.session_state:
+            st.session_state.vendors = [
+                {
+                    "الاسم": "مؤسسة الرونو لقطع الغيار",
+                    "الهاتف": "0555123456",
+                    "الولاية": "42 - تيبازة",
+                    "التخصص": "🚗 قطع غيار سيارات, 🔧 خردة وأدوات",
+                    "تاريخ التسجيل": datetime.now().strftime("%Y-%m-%d")
+                }
+            ]
     
     def load_table(self, sheet_name: str) -> pd.DataFrame:
         """جلب البيانات من ورقة محددة"""
+        if not self.connected:
+            # استخدام التخزين المحلي
+            if sheet_name == "Requests":
+                return pd.DataFrame(st.session_state.get('requests', []))
+            elif sheet_name == "Vendors":
+                return pd.DataFrame(st.session_state.get('vendors', []))
+            return pd.DataFrame()
+        
         try:
-            df = self.conn.read(worksheet=sheet_name, ttl=0)  # ttl=0 لجلب أحدث البيانات
+            df = self.conn.read(worksheet=sheet_name, ttl=0)
             return df if not df.empty else pd.DataFrame()
         except Exception as e:
             st.error(f"خطأ في قراءة {sheet_name}: {e}")
+            # استخدام التخزين المحلي كنسخة احتياطية
+            if sheet_name == "Requests":
+                return pd.DataFrame(st.session_state.get('requests', []))
+            elif sheet_name == "Vendors":
+                return pd.DataFrame(st.session_state.get('vendors', []))
             return pd.DataFrame()
     
     def save_entry(self, sheet_name: str, new_data: Dict[str, Any]) -> bool:
         """إضافة سطر جديد وحفظه"""
+        if not self.connected:
+            # حفظ محلي
+            if sheet_name == "Requests":
+                if 'requests' not in st.session_state:
+                    st.session_state.requests = []
+                st.session_state.requests.append(new_data)
+                return True
+            elif sheet_name == "Vendors":
+                if 'vendors' not in st.session_state:
+                    st.session_state.vendors = []
+                st.session_state.vendors.append(new_data)
+                return True
+            return False
+        
         try:
             df = self.load_table(sheet_name)
             new_df = pd.DataFrame([new_data])
@@ -356,19 +411,6 @@ class RassimDB:
         except Exception as e:
             st.error(f"خطأ في حفظ البيانات: {e}")
             return False
-    
-    def delete_entry(self, sheet_name: str, index: int) -> bool:
-        """حذف سطر"""
-        try:
-            df = self.load_table(sheet_name)
-            if not df.empty and 0 <= index < len(df):
-                df = df.drop(index).reset_index(drop=True)
-                self.conn.update(worksheet=sheet_name, data=df)
-                return True
-            return False
-        except Exception as e:
-            st.error(f"خطأ في حذف البيانات: {e}")
-            return False
 
 # تهيئة قاعدة البيانات
 db = RassimDB()
@@ -377,13 +419,13 @@ db = RassimDB()
 # 6. إحصائيات سريعة
 # ==========================================
 def get_stats() -> Tuple[int, int, int]:
-    """الحصول على إحصائيات من Google Sheets"""
+    """الحصول على إحصائيات"""
     requests_df = db.load_table("Requests")
     vendors_df = db.load_table("Vendors")
     
     requests_count = len(requests_df) if not requests_df.empty else 0
     vendors_count = len(vendors_df) if not vendors_df.empty else 0
-    visitors = requests_count + vendors_count + 50  # محاكاة بسيطة
+    visitors = requests_count + vendors_count + 50
     
     return vendors_count, requests_count, visitors
 
@@ -411,8 +453,7 @@ def buyer_radar_ui():
     
     with col2:
         buyer_phone = st.text_input("📱 رقم هاتفك (للبائع يتصل بك)", 
-                                   placeholder="0661234567",
-                                   help="سيظهر للتجار فقط")
+                                   placeholder="0661234567")
         wilaya = st.selectbox("📍 الولاية", WILAYAS)
     
     col1, col2, col3 = st.columns(3)
@@ -421,16 +462,9 @@ def buyer_radar_ui():
     
     if launch_button:
         if item_desc and buyer_phone:
-            # تأثير البحث
-            with st.status("📡 جاري البحث...", expanded=True) as status:
-                st.write("🔎 تحليل الطلب...")
+            with st.spinner("📡 جاري البحث..."):
                 time.sleep(1)
-                st.write("📲 إرسال إشعارات للتجار...")
-                time.sleep(1)
-                st.write("✅ تم إطلاق الرادار!")
-                status.update(label="✅ اكتمل", state="complete")
             
-            # حفظ الطلب
             new_request = {
                 "الوقت": datetime.now().strftime("%Y-%m-%d %H:%M"),
                 "المطلوب": item_desc,
@@ -445,7 +479,6 @@ def buyer_radar_ui():
                 st.balloons()
             else:
                 st.error("❌ فشل في حفظ الطلب")
-            
         else:
             st.error("❌ املأ الحقول المطلوبة")
     
@@ -455,7 +488,7 @@ def buyer_radar_ui():
 # 8. عرض طلبات الرادار
 # ==========================================
 def show_radar_requests(wilaya_filter: str = None):
-    """عرض طلبات المشترين بشكل احترافي"""
+    """عرض طلبات المشترين"""
     
     requests_df = db.load_table("Requests")
     
@@ -463,11 +496,9 @@ def show_radar_requests(wilaya_filter: str = None):
         st.info("😕 لا توجد طلبات حالياً")
         return
     
-    # فلترة
     if wilaya_filter and wilaya_filter != "كل الولايات":
         requests_df = requests_df[requests_df["الولاية"] == wilaya_filter]
     
-    # ترتيب من الأحدث
     requests_df = requests_df.sort_values("الوقت", ascending=False)
     
     for idx, row in requests_df.head(10).iterrows():
@@ -485,19 +516,8 @@ def show_radar_requests(wilaya_filter: str = None):
                 <span>📍 {row.get('الولاية', '')}</span>
                 <span class="request-phone">📞 {hidden_phone}</span>
             </div>
+        </div>
         """, unsafe_allow_html=True)
-        
-        # زر إظهار الرقم للتجار المسجلين
-        if st.session_state.get('vendor_logged_in', False):
-            st.markdown(f"""
-            <div style="margin: 10px 0;">
-                <a href="https://wa.me/213{phone[1:]}" target="_blank" class="contact-btn" style="display: inline-block; padding: 8px 20px;">
-                    📱 تواصل مع المشتري
-                </a>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
 # 9. تسجيل تاجر جديد
@@ -516,7 +536,6 @@ def vendor_registration():
         
         if submitted:
             if name and phone and categories:
-                # التحقق من عدم تكرار الرقم
                 vendors_df = db.load_table("Vendors")
                 if not vendors_df.empty and phone in vendors_df["الهاتف"].values:
                     st.error("❌ هذا الرقم مسجل مسبقاً")
@@ -549,7 +568,6 @@ def show_vendors(wilaya_filter: str = None):
         st.info("😕 لا يوجد بائعون مسجلون بعد")
         return
     
-    # فلترة
     if wilaya_filter and wilaya_filter != "كل الولايات":
         vendors_df = vendors_df[vendors_df["الولاية"] == wilaya_filter]
     
@@ -569,8 +587,8 @@ def show_vendors(wilaya_filter: str = None):
             </div>
             <p style="color: #aaa;">{row.get('التخصص', '')}</p>
             <div style="display: flex; gap: 10px;">
-                <a href="https://wa.me/213{whatsapp}" target="_blank" class="contact-btn" style="flex:1; background:#25D366; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📱 واتساب</a>
-                <a href="tel:{phone}" class="contact-btn" style="flex:1; background:#00ffff; color:black; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📞 اتصال</a>
+                <a href="https://wa.me/213{whatsapp}" target="_blank" style="flex:1; background:#25D366; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📱 واتساب</a>
+                <a href="tel:{phone}" style="flex:1; background:#00ffff; color:black; text-decoration:none; padding:10px; border-radius:10px; text-align:center;">📞 اتصال</a>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -597,11 +615,6 @@ def admin_panel():
         col1.metric("إجمالي البائعين", vendors)
         col2.metric("إجمالي الطلبات", requests)
         col3.metric("زوار اليوم", visitors)
-        
-        st.markdown("#### آخر الطلبات")
-        requests_df = db.load_table("Requests")
-        if not requests_df.empty:
-            st.dataframe(requests_df.tail(5), use_container_width=True)
     
     with tabs[1]:
         vendors_df = db.load_table("Vendors")
@@ -632,8 +645,6 @@ def admin_panel():
                     if db.save_entry("Requests", new_request):
                         st.success("تمت الإضافة!")
                         st.rerun()
-                    else:
-                        st.error("فشل في الإضافة")
 
 # ==========================================
 # 12. إحصائيات سريعة
@@ -670,7 +681,6 @@ def show_stats():
 def main():
     """الدالة الرئيسية"""
     
-    # إعدادات الجلسة
     if 'vendor_logged_in' not in st.session_state:
         st.session_state.vendor_logged_in = False
     
@@ -697,13 +707,9 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # إحصائيات
     show_stats()
-    
-    # رادار الطلبات في المقدمة
     buyer_radar_ui()
     
-    # تبويبات إضافية
     tab1, tab2, tab3, tab4 = st.tabs([
         "🔍 طلبات المشترين",
         "👥 قائمة البائعين",
@@ -716,7 +722,6 @@ def main():
         col1, col2 = st.columns(2)
         with col1:
             filter_wilaya = st.selectbox("فلترة حسب الولاية", ["كل الولايات"] + WILAYAS)
-        
         show_radar_requests(filter_wilaya if filter_wilaya != "كل الولايات" else None)
     
     with tab2:
@@ -724,7 +729,6 @@ def main():
         col1, col2 = st.columns(2)
         with col1:
             filter_v_wilaya = st.selectbox("فلترة البائعين", ["كل الولايات"] + WILAYAS, key="vendor_filter")
-        
         show_vendors(filter_v_wilaya if filter_v_wilaya != "كل الولايات" else None)
     
     with tab3:
@@ -733,15 +737,11 @@ def main():
     with tab4:
         admin_panel()
     
-    # تذييل
     st.markdown("""
     <div class="footer">
         RASSIM OS 2026 • منصة الوساطة الذكية • جميع الحقوق محفوظة
     </div>
     """, unsafe_allow_html=True)
 
-# ==========================================
-# 14. تشغيل التطبيق
-# ==========================================
 if __name__ == "__main__":
     main()
