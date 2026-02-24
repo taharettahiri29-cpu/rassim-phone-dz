@@ -12,19 +12,11 @@ from datetime import datetime
 st.set_page_config(
     page_title="RASSIM OS • 69 ولاية",
     page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="auto"
+    layout="wide"
 )
 
 # ==========================================
-# 2. إنشاء مجلد uploads
-# ==========================================
-UPLOADS_DIR = "uploads"
-if not os.path.exists(UPLOADS_DIR):
-    os.makedirs(UPLOADS_DIR)
-
-# ==========================================
-# 3. قائمة الولايات
+# 2. قائمة الولايات
 # ==========================================
 ALGERIAN_WILAYAS = [
     "الكل",
@@ -45,7 +37,7 @@ ALGERIAN_WILAYAS = [
 ]
 
 # ==========================================
-# 4. المتغيرات في الجلسة
+# 3. المتغيرات في الجلسة
 # ==========================================
 if 'user' not in st.session_state:
     st.session_state.user = None
@@ -55,14 +47,20 @@ if 'ip' not in st.session_state:
     st.session_state.ip = secrets.token_hex(8)
 
 # ==========================================
-# 5. قاعدة البيانات
+# 4. قاعدة البيانات (نسخة جديدة)
 # ==========================================
 DB = "rassim_os.db"
 
+@st.cache_resource
+def get_connection():
+    return sqlite3.connect(DB, check_same_thread=False)
+
+conn = get_connection()
+
 def init_db():
-    conn = sqlite3.connect(DB, check_same_thread=False)
     cursor = conn.cursor()
     
+    # جدول المستخدمين
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -78,6 +76,7 @@ def init_db():
         )
     """)
     
+    # جدول الإعلانات - 9 أعمدة محددة
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,11 +90,11 @@ def init_db():
             status TEXT DEFAULT 'active',
             owner TEXT NOT NULL,
             verified INTEGER DEFAULT 1,
-            date TEXT DEFAULT CURRENT_TIMESTAMP,
-            image_path TEXT
+            date TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
+    # جدول الزوار
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,16 +105,11 @@ def init_db():
     """)
     
     conn.commit()
-    return conn
 
-@st.cache_resource
-def get_connection():
-    return sqlite3.connect(DB, check_same_thread=False)
-
-conn = init_db()
+init_db()
 
 # ==========================================
-# 6. دوال التشفير
+# 5. دوال التشفير
 # ==========================================
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac(
@@ -126,13 +120,13 @@ def hash_password(password, salt):
     ).hex()
 
 # ==========================================
-# 7. دوال المساعدة
+# 6. دوال المساعدة
 # ==========================================
 def log_visitor():
     try:
         conn.execute(
             "INSERT INTO visitors (ip, page) VALUES (?, ?)",
-            (st.session_state.ip, st.session_state.get('page', 'main'))
+            (st.session_state.ip, 'main')
         )
         conn.commit()
     except:
@@ -148,96 +142,112 @@ def get_stats():
         return 0, 0, 0
 
 # ==========================================
+# 7. إضافة إعلانات تلقائية (النسخة المصححة)
+# ==========================================
+def seed_smart_ads():
+    """إدخال إعلانات احترافية تلقائياً لملء الموقع"""
+    
+    fake_ads = [
+        ("iPhone 15 Pro Max", 225000, "0555112233", "16 - الجزائر", "نظيف جداً 10/10 مع شاحن أصلي، بطارية 100%", "آيفون"),
+        ("iPhone 15 Pro", 195000, "0555112244", "31 - وهران", "مستعمل شهرين فقط، مع كامل الأكسسوارات، لون أزرق", "آيفون"),
+        ("Samsung S24 Ultra", 185000, "0666445566", "31 - وهران", "مستعمل شهر واحد فقط، ضمان سنة، مع قلم S Pen", "سامسونج"),
+        ("Samsung S23 Ultra", 145000, "0666445577", "16 - الجزائر", "حالة ممتازة، بطارية 98%، مع شاحن سريع", "سامسونج"),
+        ("Google Pixel 8 Pro", 165000, "0777889900", "42 - تيبازة", "نسخة أمريكية، مفتوح على كل الشبكات، بطارية 98%", "جوجل"),
+        ("Xiaomi 14 Pro", 98000, "0544332211", "25 - قسنطينة", "اللون الأسود، 12GB RAM, 512GB، جديد", "شاومي"),
+        ("iPhone 14 Pro Max", 155000, "0555112277", "06 - بجاية", "بطارية 92%، كل شيء أصلي، مع جراب", "آيفون")
+    ]
+    
+    try:
+        cursor = conn.cursor()
+        count = 0
+        for ad in fake_ads:
+            # التحقق من وجود الإعلان مسبقاً
+            existing = cursor.execute(
+                "SELECT id FROM ads WHERE title=? AND phone=?", 
+                (ad[0], ad[2])
+            ).fetchone()
+            
+            if not existing:
+                # إدراج الإعلان مع 9 أعمدة (title, price, phone, wilaya, description, category, owner, verified)
+                cursor.execute("""
+                    INSERT INTO ads (title, price, phone, wilaya, description, category, owner, verified)
+                    VALUES (?, ?, ?, ?, ?, ?, 'RASSIM_BOT', 1)
+                """, ad)
+                count += 1
+        
+        conn.commit()
+        return count
+    except Exception as e:
+        st.error(f"⚠️ خطأ في إضافة الإعلانات: {e}")
+        return 0
+
+# ==========================================
 # 8. التصميم
 # ==========================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
-
 * {
-    font-family: 'Cairo', sans-serif !important;
     direction: rtl;
-    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
 }
-
 .stApp {
-    background: radial-gradient(circle at 20% 20%, #1a1a2a, #0a0a0f);
-    color: #ffffff;
-    min-height: 100vh;
+    background: #0a0a1a;
+    color: white;
 }
-
 .logo {
-    font-size: 3.5rem;
-    font-weight: 900;
+    font-size: 3rem;
+    font-weight: bold;
     text-align: center;
-    background: linear-gradient(90deg, #00ffff, #ff00ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #00ffff;
     padding: 20px;
-    margin-bottom: 10px;
+    text-shadow: 0 0 10px #00ffff;
 }
-
 .ad-card {
-    background: rgba(20, 20, 30, 0.4);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    border-radius: 30px;
+    background: #1a1a2a;
+    border: 1px solid #00ffff;
+    border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
-    transition: all 0.3s ease;
 }
-
 .ad-card:hover {
-    border-color: #00ffff;
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 255, 255, 0.2);
 }
-
 .stat-card {
-    background: rgba(20, 20, 30, 0.5);
+    background: #1a1a2a;
     border: 1px solid #00ffff;
-    border-radius: 25px;
+    border-radius: 15px;
     padding: 20px;
     text-align: center;
 }
-
 .stat-value {
-    font-size: 2.2rem;
-    font-weight: 800;
+    font-size: 2rem;
     color: #00ffff;
+    font-weight: bold;
 }
-
 .wilaya-badge {
     display: inline-block;
-    background: rgba(0, 255, 255, 0.1);
+    background: #1a1a2a;
     border: 1px solid #00ffff;
-    border-radius: 50px;
+    border-radius: 20px;
     padding: 5px 10px;
-    margin: 3px;
+    margin: 2px;
     color: #00ffff;
     font-size: 0.8rem;
-    white-space: nowrap;
 }
-
 .stButton > button {
     background: linear-gradient(90deg, #00ffff, #ff00ff) !important;
-    border: none !important;
     color: black !important;
-    font-weight: 800 !important;
-    border-radius: 15px !important;
-    padding: 10px 20px !important;
+    font-weight: bold !important;
+    border: none !important;
+    border-radius: 10px !important;
     width: 100%;
 }
-
-.stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 255, 0.3) !important;
-}
-
 .chat-bubble {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #00ffff, #ff00ff);
+    background: #00ffff;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -246,26 +256,17 @@ st.markdown("""
     justify-content: center;
     cursor: pointer;
     z-index: 9999;
-    animation: float 3s ease-in-out infinite;
 }
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
 .live-counter {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    background: rgba(0, 0, 0, 0.7);
+    background: #1a1a2a;
     border: 1px solid #00ffff;
     padding: 8px 15px;
     border-radius: 50px;
     z-index: 999;
     color: white;
-    font-size: 0.9rem;
-    backdrop-filter: blur(5px);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -278,8 +279,7 @@ def show_live_counter():
     users, ads, visitors = get_stats()
     st.markdown(f"""
     <div class="live-counter">
-        <span style="color: #00ffff;">●</span> 
-        <b>{visitors}</b> زائر • <b>{ads}</b> إعلان
+        <span style="color:#00ffff;">●</span> {visitors} زائر | {ads} إعلان
     </div>
     """, unsafe_allow_html=True)
 
@@ -287,36 +287,11 @@ def show_wilaya_badges():
     cols = st.columns(5)
     for i, wilaya in enumerate(ALGERIAN_WILAYAS[1:11]):
         with cols[i % 5]:
-            st.markdown(f"<span class='wilaya-badge'>{wilaya}</span>", unsafe_allow_html=True)
-
-def seed_smart_ads():
-    fake_ads = [
-        ("iPhone 15 Pro Max 512GB", 225000, "0555112233", "16 - الجزائر", "نظيف جداً، مع كامل أغراضه، بطارية 100%، لون أسود", "آيفون"),
-        ("iPhone 15 Pro 256GB", 195000, "0555112244", "31 - وهران", "مستعمل شهرين فقط، مع الأكسسوارات، لون أزرق", "آيفون"),
-        ("Samsung S24 Ultra 512GB", 185000, "0666445566", "31 - وهران", "مستعمل شهر واحد، ضمان سنة، مع قلم S Pen", "سامسونج"),
-        ("Samsung S23 Ultra", 145000, "0666445577", "16 - الجزائر", "حالة ممتازة، بطارية 98%، مع شاحن سريع", "سامسونج"),
-        ("Google Pixel 8 Pro", 165000, "0777889900", "42 - تيبازة", "نسخة أمريكية، مفتوح على كل الشبكات، بطارية 98%", "جوجل"),
-        ("Xiaomi 14 Pro", 98000, "0544332211", "25 - قسنطينة", "اللون الأسود، 12GB RAM, 512GB، جديد", "شاومي"),
-        ("Huawei P60 Pro", 135000, "0888991122", "42 - تيبازة", "مع خدمات جوجل، نظيف، بطارية 100%", "هواوي"),
-        ("Nothing Phone 2", 85000, "0999001122", "16 - الجزائر", "تصميم فريد، بطارية ممتازة، مع جراب", "أخرى"),
-        ("OnePlus 12", 130000, "0999001133", "31 - وهران", "شاحن 100W سريع، مع الأكسسوارات", "أخرى"),
-        ("iPhone 12 Pro", 85000, "0555112277", "06 - بجاية", "بطارية 90%، كل شيء أصلي، مع جراب", "آيفون")
-    ]
-    
-    cursor = conn.cursor()
-    count = 0
-    for ad in fake_ads:
-        existing = cursor.execute("SELECT id FROM ads WHERE title=? AND phone=?", (ad[0], ad[2])).fetchone()
-        if not existing:
-            cursor.execute("""
-                INSERT INTO ads (title, price, phone, wilaya, description, category, owner, verified)
-                VALUES (?, ?, ?, ?, ?, ?, 'RASSIM', 1)
-            """, ad)
-            count += 1
-    conn.commit()
-    return count
+            display_text = wilaya[:8] + "..." if len(wilaya) > 10 else wilaya
+            st.markdown(f"<span class='wilaya-badge'>{display_text}</span>", unsafe_allow_html=True)
 
 def render_ad(ad):
+    # ad[2] = phone, ad[3] = wilaya, ad[4] = price, ad[5] = description, ad[6] = views
     phone_display = ad[2][:4] + "••••" + ad[2][-4:] if len(ad[2]) > 8 else ad[2]
     
     st.markdown(f"""
@@ -325,17 +300,17 @@ def render_ad(ad):
             <span style="color: #00ffff;">📍 {ad[3]}</span>
             <span style="color: #888;">👁️ {ad[6]}</span>
         </div>
-        <h3 style="color: #00ffff; margin: 10px 0;">{ad[1][:30]}</h3>
+        <h3 style="color: #00ffff;">{ad[1][:30]}</h3>
         <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
             <span style="color: #ff00ff; font-size: 1.8rem; font-weight: bold;">{ad[4]:,} دج</span>
             <span style="background: rgba(255,0,255,0.1); padding: 5px 15px; border-radius: 50px; color: #ff00ff;">📞 {phone_display}</span>
         </div>
-        <p style="color: #aaa; margin: 10px 0;">{ad[5][:80]}...</p>
-        <div style="display: flex; gap: 10px;">
-            <a href="tel:{ad[2]}" style="flex: 1; text-decoration: none;">
+        <p style="color: #aaa;">{ad[5][:80]}...</p>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <a href="tel:{ad[2]}" style="flex:1; text-decoration: none;">
                 <button style="width:100%; padding:12px; background:#111; border:1px solid #00ffff; border-radius:10px; color:#00ffff; font-weight:bold; cursor:pointer;">📞 اتصال</button>
             </a>
-            <a href="https://wa.me/{ad[2]}" style="flex: 1; text-decoration: none;">
+            <a href="https://wa.me/{ad[2]}" style="flex:1; text-decoration: none;">
                 <button style="width:100%; padding:12px; background:#25D366; border:none; border-radius:10px; color:white; font-weight:bold; cursor:pointer;">📱 واتساب</button>
             </a>
         </div>
@@ -351,7 +326,7 @@ def render_ad(ad):
 
 def login_page():
     st.markdown('<div class="logo">RASSIM OS</div>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align:center; color:#00ffff;">69 ولاية جزائرية</p>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align:center;">69 ولاية جزائرية</p>', unsafe_allow_html=True)
     
     users, ads, visitors = get_stats()
     cols = st.columns(3)
@@ -359,20 +334,20 @@ def login_page():
         with cols[i]:
             st.markdown(f'<div class="stat-card"><div class="stat-value">{val}</div><div>{label}</div></div>', unsafe_allow_html=True)
     
-    with st.expander("📍 الولايات المدعومة (69)"):
+    with st.expander("📍 الولايات المدعومة"):
         show_wilaya_badges()
     
-    tab1, tab2 = st.tabs(["🔑 دخول", "📝 تسجيل جديد"])
+    tab1, tab2 = st.tabs(["🔑 دخول", "📝 تسجيل"])
     
     with tab1:
-        with st.form("login_form"):
-            u = st.text_input("👤 اسم المستخدم")
-            p = st.text_input("🔐 كلمة المرور", type="password")
-            if st.form_submit_button("⚡ دخول", use_container_width=True) and u and p:
+        with st.form("login"):
+            u = st.text_input("اسم المستخدم")
+            p = st.text_input("كلمة المرور", type="password")
+            if st.form_submit_button("دخول", use_container_width=True) and u and p:
                 if u == "admin" and p == "admin":
                     st.session_state.user = u
                     st.session_state.role = "admin"
-                    st.success(f"✅ أهلاً {u}")
+                    st.success("تم الدخول بنجاح!")
                     time.sleep(1)
                     st.rerun()
                 else:
@@ -380,28 +355,28 @@ def login_page():
                     if user and user[0] == hash_password(p, user[1]):
                         st.session_state.user = u
                         st.session_state.role = user[2]
-                        st.success(f"✅ أهلاً {u}")
+                        st.success("تم الدخول بنجاح!")
                         time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة")
+                        st.error("اسم المستخدم أو كلمة المرور غير صحيحة")
     
     with tab2:
-        with st.form("register_form"):
-            nu = st.text_input("👤 اسم المستخدم الجديد")
-            np = st.text_input("🔐 كلمة المرور", type="password")
-            if st.form_submit_button("✨ تسجيل", use_container_width=True) and nu and np:
+        with st.form("register"):
+            nu = st.text_input("اسم مستخدم جديد")
+            np = st.text_input("كلمة المرور", type="password")
+            if st.form_submit_button("تسجيل", use_container_width=True) and nu and np:
                 if len(np) >= 6:
                     salt = secrets.token_hex(16)
                     hashed = hash_password(np, salt)
                     try:
                         conn.execute("INSERT INTO users (username, password, salt, role) VALUES (?,?,?,'user')", (nu, hashed, salt))
                         conn.commit()
-                        st.success("✅ تم التسجيل بنجاح! يمكنك الدخول الآن")
+                        st.success("تم التسجيل بنجاح!")
                     except:
-                        st.error("❌ اسم المستخدم موجود مسبقاً")
+                        st.error("اسم المستخدم موجود مسبقاً")
                 else:
-                    st.error("❌ كلمة المرور قصيرة (6 أحرف على الأقل)")
+                    st.error("كلمة المرور قصيرة (6 أحرف على الأقل)")
 
 def show_market():
     st.markdown("### 🛍️ السوق الذكي")
@@ -424,7 +399,7 @@ def show_market():
         params.append(f"%{search}%")
         params.append(f"%{search}%")
     
-    query += " ORDER BY date DESC LIMIT 10"
+    query += " ORDER BY date DESC LIMIT 20"
     
     ads = conn.execute(query, params).fetchall()
     
@@ -432,32 +407,37 @@ def show_market():
         for ad in ads:
             render_ad(ad)
     else:
-        st.info("😕 لا توجد إعلانات")
-        if st.button("🚀 إضافة إعلانات تلقائية", use_container_width=True):
-            count = seed_smart_ads()
-            if count > 0:
-                st.success(f"✅ تمت إضافة {count} إعلان!")
-                time.sleep(2)
+        st.info("لا توجد إعلانات حالياً")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🚀 إضافة إعلانات تلقائية"):
+                count = seed_smart_ads()
+                if count > 0:
+                    st.success(f"✅ تمت إضافة {count} إعلان!")
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.warning("تمت إضافة الإعلانات مسبقاً")
+        with col2:
+            if st.button("🔄 إعادة تشغيل التطبيق"):
                 st.rerun()
-            else:
-                st.info("الإعلانات موجودة مسبقاً")
 
 def post_ad():
     st.markdown("### 📢 إعلان جديد")
     
-    with st.form("new_ad_form"):
+    with st.form("new_ad"):
         col1, col2 = st.columns(2)
         with col1:
-            title = st.text_input("📱 اسم المنتج *")
-            cat = st.selectbox("🏷️ الفئة", ["آيفون", "سامسونج", "هواوي", "شاومي", "جوجل", "أخرى"])
+            title = st.text_input("اسم المنتج *")
+            cat = st.selectbox("الفئة", ["آيفون", "سامسونج", "هواوي", "شاومي", "أخرى"])
         with col2:
-            price = st.number_input("💰 السعر (دج) *", min_value=0, step=1000)
-            wilaya = st.selectbox("📍 الولاية *", ALGERIAN_WILAYAS[1:])
+            price = st.number_input("السعر *", min_value=0, step=1000)
+            wilaya = st.selectbox("الولاية *", ALGERIAN_WILAYAS[1:])
         
-        phone = st.text_input("📞 رقم الهاتف *")
-        desc = st.text_area("📝 الوصف", height=100)
+        phone = st.text_input("رقم الهاتف *")
+        desc = st.text_area("الوصف")
         
-        if st.form_submit_button("🚀 نشر إعلان", use_container_width=True) and title and phone and price > 0:
+        if st.form_submit_button("نشر", use_container_width=True) and title and phone and price > 0:
             try:
                 conn.execute("""
                     INSERT INTO ads (title, price, phone, wilaya, description, category, owner, verified)
@@ -469,10 +449,17 @@ def post_ad():
                 time.sleep(2)
                 st.rerun()
             except Exception as e:
-                st.error(f"❌ خطأ: {e}")
+                st.error(f"خطأ: {e}")
 
 def profile_page():
-    st.markdown("### 👤 حسابي الشخصي")
+    st.markdown("### 👤 حسابي")
+    
+    try:
+        user_ads = conn.execute("SELECT COUNT(*) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0]
+        user_views = conn.execute("SELECT SUM(views) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0] or 0
+    except:
+        user_ads = 0
+        user_views = 0
     
     col1, col2 = st.columns(2)
     
@@ -480,29 +467,22 @@ def profile_page():
         st.markdown(f"""
         <div class="ad-card">
             <h4 style="color:#00ffff;">معلومات الحساب</h4>
-            <p><b>👤 المستخدم:</b> {st.session_state.user}</p>
-            <p><b>🔐 الصلاحية:</b> {'مسؤول' if st.session_state.role == 'admin' else 'عضو'}</p>
+            <p><b>المستخدم:</b> {st.session_state.user}</p>
+            <p><b>الصلاحية:</b> {'مسؤول' if st.session_state.role == 'admin' else 'عضو'}</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        try:
-            user_ads = conn.execute("SELECT COUNT(*) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0]
-            user_views = conn.execute("SELECT SUM(views) FROM ads WHERE owner=?", (st.session_state.user,)).fetchone()[0] or 0
-        except:
-            user_ads = 0
-            user_views = 0
-        
         st.markdown(f"""
         <div class="ad-card">
             <h4 style="color:#ff00ff;">إحصائياتي</h4>
-            <p><b>📊 إعلاناتي:</b> {user_ads}</p>
-            <p><b>👁️ مشاهدات:</b> {user_views}</p>
+            <p><b>إعلاناتي:</b> {user_ads}</p>
+            <p><b>مشاهدات:</b> {user_views}</p>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 10. الدالة الرئيسية
+# 10. الصفحة الرئيسية
 # ==========================================
 def main():
     log_visitor()
@@ -517,18 +497,18 @@ def main():
     
     if st.session_state.user:
         with st.sidebar:
-            st.markdown(f"### ✨ أهلاً {st.session_state.user}")
-            choice = st.radio("القائمة الرئيسية", ["🛍️ السوق", "📢 إعلان جديد", "👤 حسابي", "🚪 خروج"])
+            st.markdown(f"### أهلاً {st.session_state.user}")
+            choice = st.radio("القائمة", ["السوق", "إعلان جديد", "حسابي", "خروج"])
             
-            if choice == "🚪 خروج":
+            if choice == "خروج":
                 st.session_state.user = None
                 st.rerun()
         
-        if choice == "🛍️ السوق":
+        if choice == "السوق":
             show_market()
-        elif choice == "📢 إعلان جديد":
+        elif choice == "إعلان جديد":
             post_ad()
-        elif choice == "👤 حسابي":
+        elif choice == "حسابي":
             profile_page()
     else:
         login_page()
