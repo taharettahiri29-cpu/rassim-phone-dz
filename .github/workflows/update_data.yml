@@ -1,56 +1,246 @@
-name: Rassim DZ Auto-Bot (Titanium Max Edition)
+name: 🤖 RASSIM OS - تحديث قاعدة البيانات التلقائي
 
 on:
   schedule:
-    - cron: '0 * * * *' # تشغيل آلي كل ساعة بدقة متناهية
-  workflow_dispatch: # للتشغيل اليدوي الفوري عند الحاجة
+    - cron: '*/30 * * * *'  # كل 30 دقيقة
+  workflow_dispatch:  # تشغيل يدوي
 
 jobs:
-  scrape_and_sync:
+  sync-database:
     runs-on: ubuntu-latest
     
-    # تحديد الصلاحيات للسماح بالدفع (Push) التلقائي
-    permissions:
-      contents: write
-
     steps:
-      - name: 📥 سحب الكود (Checkout Code)
-        uses: actions/checkout@v4 # تحديث للإصدار الأحدث لضمان السرعة
-
-      - name: 🐍 إعداد بيئة بايثون (Python 3.11)
-        uses: actions/setup-python@v4
+      - name: 📥 سحب الكود
+        uses: actions/checkout@v4
         with:
-          python-version: '3.11' # التوافق مع بيئة الـ Dev Container
-          cache: 'pip' # تفعيل التخزين المؤقت لتسريع العملية
-
-      - name: 📦 تثبيت المكتبات (Dependencies)
+          persist-credentials: true
+          
+      - name: 🐍 إعداد Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: 📦 تثبيت المكتبات
         run: |
-          python -m pip install --upgrade pip
-          pip install pandas requests beautifulsoup4 sqlalchemy lxml
-
-      - name: 🔍 تشغيل محرك الجمع (Run Scraper)
-        # أضفت لك متغيرات بيئة هنا في حال احتجت لاستخدام مفاتيح API مستقبلاً
-        run: python myscraper.py
-        env:
-          PYTHONPATH: .
-          DB_PATH: "rassim_titanium_max_2026.db"
-
+          pip install streamlit pandas supabase requests beautifulsoup4 lxml
+          
+      - name: 🔧 إعداد قاعدة البيانات
+        run: |
+          # إنشاء قاعدة البيانات إذا لم تكن موجودة
+          python -c "
+import sqlite3
+conn = sqlite3.connect('rassim_titanium_max_2026.db')
+cursor = conn.cursor()
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS ads (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, price INTEGER, phone TEXT, 
+        wilaya TEXT, description TEXT, category TEXT,
+        views INTEGER DEFAULT 0, status TEXT DEFAULT 'active',
+        owner TEXT, date TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+''')
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT, salt TEXT, role TEXT DEFAULT 'user',
+        email TEXT, phone TEXT, verified INTEGER DEFAULT 0
+    )
+''')
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS buyer_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item TEXT, category TEXT, buyer_phone TEXT,
+        wilaya TEXT, status TEXT DEFAULT 'searching',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+''')
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS vendors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT, phone TEXT UNIQUE, wilaya TEXT,
+        category TEXT, verified INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+''')
+conn.commit()
+conn.close()
+print('✅ قاعدة البيانات جاهزة')
+"
+          
+      - name: 🛠️ تثبيت SQLite (لضمان عمل الإحصائيات)
+        run: sudo apt-get update && sudo apt-get install -y sqlite3
+        
+      - name: 🔄 تشغيل السكرابر وجمع البيانات
+        run: |
+          # تشغيل السكرابر مع تجاهل الأخطاء
+          python scraper.py || echo "⚠️ السكرابر واجه مشكلة ولكن نواصل..."
+          
+          # عرض حالة الملفات بعد التشغيل
+          echo "📁 الملفات الموجودة بعد التشغيل:"
+          ls -la *.db 2>/dev/null || echo "لا توجد ملفات قاعدة بيانات"
+          ls -la *.csv 2>/dev/null || echo "لا توجد ملفات CSV"
+          
       - name: 💾 حفظ وتحديث البيانات (Sync Database)
         run: |
           git config --global user.name "Rassim Titanium Bot"
           git config --global user.email "bot@rassimdz.com"
           
-          # إضافة كل من ملف CSV وقاعدة البيانات لضمان المزامنة الكاملة
-          git add rassim_titanium_max_2026.db users_database.csv
+          echo "═══════════════════════════════════════════════════════════"
+          echo "🚀 RASSIM OS - تحديث قاعدة البيانات التلقائي"
+          echo "⏰ الوقت: $(date +'%Y-%m-%d %H:%M:%S')"
+          echo "═══════════════════════════════════════════════════════════"
           
-          # التحقق مما إذا كان هناك تغييرات فعلاً لتجنب الأخطاء
-          if git diff --staged --quiet; then
-            echo "لا توجد عروض جديدة في الـ 58 ولاية حالياً."
+          # ==========================================
+          # 1. حساب الإحصائيات (مع معالجة الأخطاء)
+          # ==========================================
+          
+          if [ -f "rassim_titanium_max_2026.db" ] && [ -s "rassim_titanium_max_2026.db" ]; then
+            echo "📊 حساب الإحصائيات من قاعدة البيانات..."
+            
+            AD_COUNT=$(sqlite3 rassim_titanium_max_2026.db "SELECT COUNT(*) FROM ads WHERE status='active';" 2>/dev/null || echo "0")
+            USER_COUNT=$(sqlite3 rassim_titanium_max_2026.db "SELECT COUNT(*) FROM users;" 2>/dev/null || echo "0")
+            REQUEST_COUNT=$(sqlite3 rassim_titanium_max_2026.db "SELECT COUNT(*) FROM buyer_requests WHERE status='searching';" 2>/dev/null || echo "0")
+            VENDOR_COUNT=$(sqlite3 rassim_titanium_max_2026.db "SELECT COUNT(*) FROM vendors;" 2>/dev/null || echo "0")
+            VIEWS_COUNT=$(sqlite3 rassim_titanium_max_2026.db "SELECT SUM(views) FROM ads;" 2>/dev/null || echo "0")
+            
+            echo "   📱 إعلانات نشطة: $AD_COUNT"
+            echo "   👥 مستخدمين: $USER_COUNT"
+            echo "   🎯 طلبات نشطة: $REQUEST_COUNT"
+            echo "   🏪 تجار مسجلين: $VENDOR_COUNT"
+            echo "   👁️ إجمالي المشاهدات: $VIEWS_COUNT"
           else
-            git commit -m "🚀 تحديث ذكاء السوق | 📅 $(date +'%Y-%m-%d %H:%M') | 🇩🇿 58 ولاية"
-            git push origin HEAD:${{ github.ref }}
+            echo "⚠️ قاعدة البيانات غير موجودة أو فارغة - سيتم إنشاؤها لاحقاً"
+            AD_COUNT=0
+            USER_COUNT=0
+            REQUEST_COUNT=0
+            VENDOR_COUNT=0
+            VIEWS_COUNT=0
           fi
-
-      - name: 🚨 تقرير الفشل (Failure Report)
+          
+          # ==========================================
+          # 2. إضافة جميع ملفات قاعدة البيانات تلقائياً
+          # ==========================================
+          
+          echo ""
+          echo "📁 البحث عن الملفات وإضافتها..."
+          
+          # ملفات قاعدة البيانات
+          for ext in db sqlite sqlite3 db-journal; do
+            for file in *.$ext; do
+              if [ -f "$file" ] && [ -s "$file" ] && [ "$file" != "*.$ext" ]; then
+                git add "$file"
+                echo "   ✅ تم إضافة: $file (حجمه: $(du -h "$file" | cut -f1))"
+              fi
+            done
+          done
+          
+          # ملفات CSV و JSON
+          for ext in csv json tsv; do
+            for file in *.$ext; do
+              if [ -f "$file" ] && [ "$file" != "*.$ext" ]; then
+                git add "$file"
+                echo "   ✅ تم إضافة: $file"
+              fi
+            done
+          done
+          
+          # مجلد الصور
+          if [ -d "uploads" ]; then
+            git add uploads/* 2>/dev/null || true
+            echo "   ✅ تم إضافة: مجلد uploads/"
+          fi
+          
+          # ملفات السجلات (اختياري)
+          if [ -f "update_log.txt" ]; then
+            git add update_log.txt
+            echo "   ✅ تم إضافة: update_log.txt"
+          fi
+          
+          # ==========================================
+          # 3. التحقق من وجود تغييرات
+          # ==========================================
+          
+          echo ""
+          if git diff --staged --quiet; then
+            echo "═══════════════════════════════════════════════════════════"
+            echo "📭 لا توجد تحديثات جديدة في قاعدة البيانات"
+            echo "📊 آخر إحصائيات مسجلة:"
+            echo "   📱 إعلانات: $AD_COUNT"
+            echo "   👥 مستخدمين: $USER_COUNT"
+            echo "   🎯 طلبات: $REQUEST_COUNT"
+            echo "   🏪 تجار: $VENDOR_COUNT"
+            echo "═══════════════════════════════════════════════════════════"
+          else
+            # ==========================================
+            # 4. إنشاء رسالة commit محسنة
+            # ==========================================
+            
+            FILES_COUNT=$(git diff --staged --name-only | wc -l)
+            CHANGES_SIZE=$(git diff --staged --stat | tail -1 | grep -oP '\d+(?= insertions?)' || echo "0")
+            
+            echo "═══════════════════════════════════════════════════════════"
+            echo "🚀 تحديث قاعدة بيانات RASSIM OS"
+            echo "═══════════════════════════════════════════════════════════"
+            echo "📦 عدد الملفات المحدثة: $FILES_COUNT"
+            echo "📊 حجم التغييرات: $CHANGES_SIZE إدراج"
+            echo ""
+            echo "📈 الإحصائيات الجديدة:"
+            echo "   📱 إعلانات نشطة: $AD_COUNT"
+            echo "   👥 مستخدمين: $USER_COUNT"
+            echo "   🎯 طلبات نشطة: $REQUEST_COUNT"
+            echo "   🏪 تجار مسجلين: $VENDOR_COUNT"
+            echo "═══════════════════════════════════════════════════════════"
+            
+            # إنشاء رسالة commit
+            COMMIT_MSG="🚀 تحديث RASSIM OS | 📅 $(date +'%Y-%m-%d %H:%M')"
+            COMMIT_MSG+=" | 📱 إعلانات: $AD_COUNT"
+            COMMIT_MSG+=" | 👥 مستخدمين: $USER_COUNT"
+            COMMIT_MSG+=" | 🎯 طلبات: $REQUEST_COUNT"
+            COMMIT_MSG+=" | 🏪 تجار: $VENDOR_COUNT"
+            
+            git commit -m "$COMMIT_MSG"
+            
+            # ==========================================
+            # 5. تسجيل التحديث
+            # ==========================================
+            
+            echo "[$(date +'%Y-%m-%d %H:%M:%S')] ✅ تحديث - إعلانات: $AD_COUNT, مستخدمين: $USER_COUNT" >> update_log.txt
+            git add update_log.txt 2>/dev/null || true
+            git commit -m "📝 تحديث سجل النظام" --allow-empty
+            
+            # ==========================================
+            # 6. رفع التغييرات إلى GitHub
+            # ==========================================
+            
+            echo ""
+            echo "📤 جاري رفع التغييرات إلى GitHub..."
+            
+            if git push; then
+              echo "✅ تم رفع التحديثات بنجاح إلى GitHub!"
+              
+              # ==========================================
+              # 7. إشعار واتساب (اختياري - باستخدام secrets)
+              # ==========================================
+              
+              # إلغاء التعليق أدناه لتفعيل إشعار واتساب
+              # if [ -n "${{ secrets.CALLMEBOT_API_KEY }}" ] && [ -n "${{ secrets.CALLMEBOT_PHONE }}" ]; then
+              #   curl -X POST "https://api.callmebot.com/whatsapp.php?phone=${{ secrets.CALLMEBOT_PHONE }}&text=🚀 RASSIM OS تم تحديثه! +$CHANGES_SIZE إعلان جديد&apikey=${{ secrets.CALLMEBOT_API_KEY }}"
+              #   echo "📱 تم إرسال إشعار واتساب"
+              # fi
+              
+            else
+              echo "❌ فشل في رفع التحديثات إلى GitHub"
+              exit 1
+            fi
+          fi
+          
+      - name: 📊 عرض التقرير النهائي
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"
+          echo "✅ اكتملت عملية تحديث RASSIM OS"
+          echo "🕐 الوقت: $(date +'%Y-%m-%d %H:%M:%S')"
+          echo "═══════════════════════════════════════════════════════════"
         if: failure()
         run: echo "حدث خطأ في عملية الجمع التلقائي، يرجى مراجعة سجلات myscraper.py"
